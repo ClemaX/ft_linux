@@ -1,5 +1,9 @@
 FROM debian:bookworm
 
+RUN mkdir /dist
+
+VOLUME /dist
+
 WORKDIR /tmp
 
 ENV DEBIAN_FRONTEND=noninteractive
