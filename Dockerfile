@@ -17,4 +17,6 @@ RUN apt-get -y update && apt-get -y upgrade \
     && echo "dash dash/sh boolean false" | debconf-set-selections \
     && dpkg-reconfigure dash
 
+COPY image-*.sh .
+
 CMD bash
