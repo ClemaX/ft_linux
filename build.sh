@@ -18,4 +18,4 @@ docker run --rm \
     --device-cgroup-rule='b 259:* rmw' \
     -v /dev:/tmp/dev:ro \
     -v "$DIST_DIR:/dist:rw" \
-    -it ft_linux ./image-format.sh
+    -it ft_linux bash #./image-format.sh

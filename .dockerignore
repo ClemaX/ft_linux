@@ -1,4 +1,2 @@
-Dockerfile
-LICENSE
-dist/
-build.sh
+**
+!/src/**
