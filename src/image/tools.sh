@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Create an empty image with a specified size.
 img_new() # dst size
 {
 	dst="$1"
@@ -9,6 +10,7 @@ img_new() # dst size
 	sync
 }
 
+# Create additional devices for a loop device's partitions.
 loop_partitions() # dev
 {
 	dev="$1"
@@ -30,6 +32,7 @@ loop_partitions() # dev
 	done
 }
 
+# Setup a loop device backed by a disk image.
 loop_setup() # dev img
 {
 	dev="$1"
@@ -51,20 +54,20 @@ loop_setup() # dev img
 	trap "loop_teardown '$dev' $((index - 1))" EXIT
 }
 
+# Tear down a loop device with it's associated partitions.
 loop_teardown() # dev partcount
 {
 	dev="$1"
-  partcount=$2
+	partcount=$2
 
-  i=1
+	i=1
 
-  # TODO: Remove, this seems unnecessary and broken
-  while [ $i -lt $partcount ] ; do
-    partdev="${dev}p${i}"
-  	echo "Removing $partdev..."
-    rm -f "$partdev"
-    ((++i))
-  done
+	while [ $i -lt $partcount ] ; do
+		partdev="${dev}p${i}"
+		echo "Removing $partdev..."
+		rm -f "$partdev"
+		((++i))
+	done
 
 	echo "Tearing down $dev..."
 	losetup -d "$dev"

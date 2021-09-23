@@ -6,8 +6,8 @@ source image-tools.sh
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
-
-
+# Fetch a list of urls at "$url/wget_list" and verify file integrity using a
+# list of hashes at "$url/md5sums".
 sources_fetch() # url dst
 {
   url="$1"
