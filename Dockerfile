@@ -17,12 +17,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir /dist
 VOLUME /dist
 
+WORKDIR /home/root
+
 COPY src/host .
+COPY src/image .
+
 RUN ./prepare.sh
 
-WORKDIR /home/lfs
-COPY --chown=lfs:lfs src/lfs/ .
-USER lfs
-RUN ./prepare.sh
+COPY --chown=lfs:lfs src/lfs/ /home/lfs
 
 CMD bash

@@ -13,7 +13,7 @@ sources_fetch() # url dst
   url="$1"
   dst="$2"
 
-  mkdir -v 
+  mkdir -v "$dst" 
   chmod -v a+wt "$dst"
 
   # TODO: Replace kernel with latest version 4.X
@@ -52,4 +52,8 @@ mkfs.ext4 -L root /dev/loop0p2
 disk_mount "$LOOP_DEV" "$LFS"
 
 sources_fetch "$lfs_base_url" "$LFS/sources"
-chown -v lfs "$LFS" "$LFS/sources"
+chown -v lfs:lfs "$LFS" "$LFS/sources"
+
+pushd "$LFS"
+  su - lfs -c '~/prepare.sh'
+popd
