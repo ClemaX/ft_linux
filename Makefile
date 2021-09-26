@@ -1,8 +1,9 @@
 SRCDIR=src
 
 VERBOSE=## Assign a value to verbose to enable logging.
-DSTDIR=dist ## The destination directory to be shared with the host.
-NAME=lfs.img ## The name of the image.
+DISTDIR=dist## The destination directory to be shared with the host.
+CACHEVOL=lfs-cache## The cache docker-volume.
+NAME=lfs.img## The name of the image.
 
 all: $(NAME) ## Alias for dist/lfs.img.
 
@@ -11,7 +12,7 @@ help:
 	| sed -e 's/\(.*\):.*##\s*\(.*\)/\1:\2/' -e 's/\(.*\)=\(.*\)##\s*\(.*\)/\1:\3 Defaults to "\2"./' \
 	| column -t -s':'
 
-ft_linux: $(SRCDIR) ./build.sh ## Build the host docker image.
+ft_linux: $(SRCDIR) ## Build the host docker image.
 	@echo "BUILD ft_linux"
 	@docker build -t ft_linux .
 
@@ -22,7 +23,8 @@ $(NAME): ft_linux ## Build the LFS image.
     --device-cgroup-rule='b 7:* rmw' \
     --device-cgroup-rule='b 259:* rmw' \
     -v /dev:/tmp/dev:ro \
-    -v "$(shell pwd)/$(DST_DIR):/dist:rw" \
+    -v "$(shell pwd)/$(DISTDIR):/dist:rw" \
+    -v "$(CACHEVOL):/cache:rw" \
     -it ft_linux bash #./image-format.sh
 
 .PHONY: help ft_linux

@@ -177,7 +177,8 @@ pushd "$LFS/sources"
 
 	lfs_extract_pkg linux*.tar* lfs_build_kernel
 
-	while read -r pkg < packages.lst; do
+	while read -r pkg < packages.lst
+	do
 		echo TODO: lfs_extract_pkg "$pkg" 
 	done
 popd

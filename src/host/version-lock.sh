@@ -2,9 +2,7 @@
 
 set -euo pipefail
 
-packages=$(<packages.txt)
-
-for package in $packages
+while read -r package < packages.lst
 do
 	version=$(dpkg -s ${package%=*} | grep Version | cut -d' ' -f2)
 	echo "$package=$version"

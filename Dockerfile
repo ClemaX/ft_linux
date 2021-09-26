@@ -1,29 +1,33 @@
 FROM debian:bookworm
 
-# Image destination
-ENV IMG_DST=/dist/disk.img
-# Image size in megabytes
-ENV IMG_SIZE=1000
-# Loop device
-ENV LOOP_DEV="/dev/loop0"
-# LFS root
-ENV LFS="/mnt/lfs"
-# LFS version (use "stable" for latest)
-ENV LFS_VERSION="11.0"
 # Prevent interaction (do not change)
 ENV DEBIAN_FRONTEND=noninteractive
-
 
 RUN mkdir /dist
 VOLUME /dist
 
-WORKDIR /home/root
+WORKDIR /root
 
-COPY src/host .
-COPY src/image .
+COPY src/host/packages.lst .
+COPY src/host/prepare.sh .
 
-RUN ./prepare.sh
+# LFS root
+ENV LFS="/mnt/lfs"
+
+RUN ./prepare.sh && rm -f packages.lst ./prepare.sh
+
+COPY src/host/utils ./utils
+COPY src/host/build.sh .
 
 COPY --chown=lfs:lfs src/lfs/ /home/lfs
 
-CMD bash
+# Loop device
+ENV LOOP_DEV="/dev/loop0"
+# LFS version (use "stable" for latest)
+ENV LFS_VERSION="11.0"
+# Image destination
+ENV IMG_DST=/dist/disk.img
+# Image size in megabytes
+ENV IMG_SIZE=500
+
+CMD ./build.sh

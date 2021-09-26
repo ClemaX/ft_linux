@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Create an empty image with a specified size.
 img_new() # dst size
 {
@@ -21,13 +19,13 @@ loop_partitions() # dev
 	for part in $parts; do
 		major="${part%%:*}"
 		minor="${part##*:}"
-	
+
 		if [ ! -e "${dev}p${index}" ]; then
-      partdev="${dev}p${index}"
-      echo "Creating $partdev..."
+			partdev="${dev}p${index}"
+			echo "Creating $partdev..."
 			mknod "$partdev" b "$major" "$minor"
 		fi
-  
+
 	 	((++index))
 	done
 }
@@ -42,9 +40,6 @@ loop_setup() # dev img
 		echo "Creating loop device at $dev..."
 		mknod "$dev" b 7 0
 	fi
-
-  # TODO: Remove this after debug
-	losetup -d "$dev" || :
 
 	echo "Setting up loop device..."
 	losetup --partscan "$dev" "$img"
@@ -62,7 +57,8 @@ loop_teardown() # dev partcount
 
 	i=1
 
-	while [ $i -lt $partcount ] ; do
+	while [ $i -lt $partcount ]
+	do
 		partdev="${dev}p${i}"
 		echo "Removing $partdev..."
 		rm -f "$partdev"

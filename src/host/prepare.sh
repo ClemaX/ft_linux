@@ -23,4 +23,4 @@ useradd -s /bin/bash -g lfs -m -k /dev/null lfs
 
 # Create the lfs mountpoint
 mkdir -pv "$LFS"
-chown lfs:lfs "$LFS"
+chown lfs "$LFS"
