@@ -5,8 +5,7 @@ sources_urls() # url
   url="$1"
   wget --timestamping "$url/wget-list"
 
-  # TODO: Patch kernel to version 4.x
-  cat wget-list
+  sed -e '|.*/linux-.*\.tar.*|d' wget-list
 }
 
 sources_md5() # url
@@ -14,8 +13,7 @@ sources_md5() # url
   url="$1"
   wget --timestamping "$url/md5sums"
 
-  # TODO: Add kernel package hash
-  cat md5sums
+  sed -e '|.*linux-.*\.tar.*|d' md5sums
 }
 
 # Fetch a list of urls at "$url/wget-list" and verify file integrity using a
@@ -38,9 +36,11 @@ sources_fetch() # url dst
     sources_md5 "$url" | cache_check "rm -rfv"
 
     while wget --input-file=wget-list --no-clobber --directory-prefix="$cache" \
-    | grep 'Downloaded: [0-9]* files, .* in .*s (.* .*/s)'
+    | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
     do
       cache_check "rm -rfv" < md5sums
     done
+
+    linux_checkout "v4.9.283"
   popd
 }

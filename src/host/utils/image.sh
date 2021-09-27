@@ -16,11 +16,13 @@ loop_partitions() # dev
 	parts=$(lsblk --raw --output "MAJ:MIN" --noheadings "$dev" | tail -n +2)
 	index=1
 
-	for part in $parts; do
+	for part in $parts
+	do
 		major="${part%%:*}"
 		minor="${part##*:}"
 
-		if [ ! -e "${dev}p${index}" ]; then
+		if [ ! -e "${dev}p${index}" ]
+		then
 			partdev="${dev}p${index}"
 			echo "Creating $partdev..."
 			mknod "$partdev" b "$major" "$minor"
@@ -36,7 +38,8 @@ loop_setup() # dev img
 	dev="$1"
 	img="$2"
 
-	if [ ! -e "$dev" ]; then
+	if [ ! -e "$dev" ]
+	then
 		echo "Creating loop device at $dev..."
 		mknod "$dev" b 7 0
 	fi

@@ -14,7 +14,7 @@ cache_list() # [cache]
 {
   cache="${1:PWD}"
 
-  sources_md5 | cut -b 35-
+  sources_md5 | cut -b 35- && echo linux-stable
 }
 
 # Link all files in cache to
