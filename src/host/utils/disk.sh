@@ -3,10 +3,10 @@ disk_mount() # dev mnt
   dev="$1"
   mnt="$2"
 
-  [ -d "$mnt"] || mkdir -pv "$mnt"
+  [ -d "$mnt" ] || mkdir -pv "$mnt"
   mount -v -t ext4 "${dev}p2" "$mnt"
 
-  [ -d "$mnt/boot"] || mkdir -v "$mnt/boot"
+  [ -d "$mnt/boot" ] || mkdir -v "$mnt/boot"
   mount -v -t ext4 "${dev}p1" "$mnt/boot"
 }
 
