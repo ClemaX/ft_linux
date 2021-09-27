@@ -1,10 +1,17 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eEu
 
 source utils/package.sh
 
 glibc_version=$(ldd --version | head -n1 | cut -d" " -f2-)
+
+error_handler()
+{
+  echo "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+}
+
+trap error_handler ERR
 
 # Prepare lfs file hierarchy.
 lfs_prepare() # dst

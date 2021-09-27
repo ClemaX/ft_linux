@@ -2,7 +2,7 @@
 
 # TODO: Fix package pinning max versions
 
-set -euo pipefail
+set -eu
 
 # Install packages
 apt-get -y update

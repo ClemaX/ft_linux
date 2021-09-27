@@ -1,4 +1,4 @@
-#!/bin/bash
+MAX_REDIR=80
 
 sources_urls() # url
 {
@@ -14,6 +14,21 @@ sources_md5() # url
   wget --timestamping "$url/md5sums"
 
   sed -e '/.*linux-.*\.tar.*/d' md5sums
+}
+
+parallel_fetch() # options [file] [dst] [count]
+{
+  options="$1"
+  input="${2:-}"
+  dst="${3:-$PWD}"
+  count="${4:-4}"
+
+  if [ -z $input ]
+  then
+    parallel -j"$count" --round-robin --bar wget --input-file=- $options --quiet --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+  else
+    parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- $options --quiet --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+  fi
 }
 
 # Fetch a list of urls at "$url/wget-list" and verify file integrity using a
@@ -32,14 +47,15 @@ sources_fetch() # url dst
 
   pushd "$cache"
     # Resume partial downloads.
-    sources_urls "$url" |  wget --input-file=- --continue --directory-prefix="$cache"
+    sources_urls "$url" | parallel_fetch "--continue --quiet" || echo "Warning: $? jobs failed!"
 
     # Delete corrupted files.
-    sources_md5 "$url" | cache_check "rm -rfv"
+    if [ sources_md5 "$url" | cache_check "rm -rfv"
 
     # Download the deleted files again.
     # TODO: Add a max retry mechanism
-    while wget --input-file=wget-list --no-clobber --directory-prefix="$cache" \
+    # TODO: Add pipepart flag
+    while parallel_fetch --no-clobber wget-list \
     | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
     do
       cache_check "rm -rfv" < md5sums

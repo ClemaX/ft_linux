@@ -1,14 +1,21 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eEu
 
-source utils/image.sh
 source utils/disk.sh
 source utils/cache.sh
+source utils/image.sh
+source utils/linux.sh
 source utils/sources.sh
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
+error_handler()
+{
+  echo "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+}
+
+trap error_handler ERR
 
 img_new "$IMG_DST" "$IMG_SIZE"
 

@@ -23,3 +23,5 @@ fdisk
 vim
 wget
 ca-certificates
+parallel
+git

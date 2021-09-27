@@ -2,11 +2,12 @@ LINUX_REPO="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.gi
 
 linux_checkout() # version (example: "v4.9.283")
 {
-    version="$1"
+    version="${1:-master}"
 
     if [ -d linux_stable ]
     then
         if [ ! -d linux_stable/git ]
+        then
             rm -vf linux_stable
             linux_checkout "$version"
         else

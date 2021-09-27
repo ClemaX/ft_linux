@@ -2,7 +2,9 @@
 cache_check() # action [cache]
 {
   action="$1"
-  cache="${2:-$PWD}/"
+  cache="${2:-$PWD}"
+
+  echo "Checking cache..."
 
   md5sum --check --quiet --ignore-missing "$cache" \
   | grep FAILED \
@@ -21,7 +23,7 @@ cache_list() # [cache]
 cache_link() # dst [cache]
 {
   dst="${1}"
-  cache="${2:-$PWD}/"
+  cache="${2:-$PWD}"
 
   cache_list "$cache" | xargs --no-run-if-empty -I{} ln -s {} "$dst"
 }
