@@ -5,7 +5,7 @@ sources_urls() # url
   url="$1"
   wget --timestamping "$url/wget-list"
 
-  sed -e '|.*/linux-.*\.tar.*|d' wget-list
+  sed -e '/.*\/linux-.*\.tar.*/d' wget-list
 }
 
 sources_md5() # url
@@ -13,7 +13,7 @@ sources_md5() # url
   url="$1"
   wget --timestamping "$url/md5sums"
 
-  sed -e '|.*linux-.*\.tar.*|d' md5sums
+  sed -e '/.*linux-.*\.tar.*/d' md5sums
 }
 
 # Fetch a list of urls at "$url/wget-list" and verify file integrity using a
