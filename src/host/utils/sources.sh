@@ -31,16 +31,21 @@ sources_fetch() # url dst
   [ -d "$cache" ] || mkdir -pv "$cache"
 
   pushd "$cache"
+    # Resume partial downloads.
     sources_urls "$url" |  wget --input-file=- --continue --directory-prefix="$cache"
 
+    # Delete corrupted files.
     sources_md5 "$url" | cache_check "rm -rfv"
 
+    # Download the deleted files again.
+    # TODO: Add a max retry mechanism
     while wget --input-file=wget-list --no-clobber --directory-prefix="$cache" \
     | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
     do
       cache_check "rm -rfv" < md5sums
     done
 
-    linux_checkout "v4.9.283"
+    # Checkout the linux kernel sources
+    linux_checkout "$LINUX_VERSION"
   popd
 }

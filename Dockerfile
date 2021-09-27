@@ -23,8 +23,12 @@ COPY --chown=lfs:lfs src/lfs/ /home/lfs
 
 # Loop device
 ENV LOOP_DEV="/dev/loop0"
+
 # LFS version (use "stable" for latest)
 ENV LFS_VERSION="11.0"
+# Linux kernel version
+ENV LINUX_VERSION="v4.9.283"
+
 # Image destination
 ENV IMG_DST=/dist/disk.img
 # Image size in megabytes
