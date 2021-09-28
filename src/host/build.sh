@@ -34,5 +34,5 @@ sources_fetch "$lfs_base_url" "$LFS/sources"
 chown -v lfs "$LFS" "$LFS/sources"
 
 pushd "$LFS"
-  su - lfs -c '~/build.sh'
+  su lfs -c "LFS='$LFS' ~/build.sh"
 popd
