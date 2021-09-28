@@ -49,7 +49,9 @@ loop_setup() # dev img
 
 	loop_partitions "$dev"
 
-	trap "loop_teardown '$dev' $((index - 1))" EXIT
+	echo "Loaded $index partitions!"
+
+	trap "loop_teardown '$dev' $index" EXIT
 }
 
 # Tear down a loop device with it's associated partitions.
