@@ -6,14 +6,16 @@ linux_checkout() # version (example: "v4.9.283")
 
     if [ -d linux_stable ]
     then
-        if [ ! -d linux_stable/git ]
+        if ! [ -d linux_stable/.git ]
         then
-            rm -vf linux_stable
+            rm -rfv linux_stable
             linux_checkout "$version"
         else
-            git fetch --depth 1 origin "$version"
+            pushd linux_stable
+                git fetch --depth 1 origin "$version"
+            popd
         fi
     else
-        git clone --depth 1 --single-branch --branch "$version" "$LINUX_REPO"
+        git clone --depth 1 --single-branch --branch "$version" "$LINUX_REPO" linux_stable
     fi
 }
