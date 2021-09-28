@@ -30,6 +30,8 @@ mkfs.ext4 -L root "${LOOP_DEV}p2"
 
 disk_mount "$LOOP_DEV" "$LFS"
 
+# Make files readable by anyone
+umask 022
 sources_fetch "$lfs_base_url" "$LFS/sources"
 chown -v lfs "$LFS" "$LFS/sources"
 
