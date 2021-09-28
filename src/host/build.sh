@@ -2,11 +2,11 @@
 
 set -eEu
 
-source utils/disk.sh
-source utils/cache.sh
-source utils/image.sh
-source utils/linux.sh
-source utils/sources.sh
+source ~/utils/disk.sh
+source ~/utils/cache.sh
+source ~/utils/image.sh
+source ~/utils/linux.sh
+source ~/utils/sources.sh
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 

@@ -2,7 +2,7 @@
 
 set -eEu
 
-source utils/package.sh
+source ~/utils/package.sh
 
 glibc_version=$(ldd --version | head -n1 | cut -d" " -f2-)
 
