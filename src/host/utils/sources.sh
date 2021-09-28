@@ -3,15 +3,17 @@ MAX_REDIR=80
 sources_urls() # url
 {
   url="$1"
-  wget --timestamping "$url/wget-list"
+
+  [ -z $url ] || wget --timestamping "$url/wget-list"
 
   sed -e '/.*\/linux-.*\.tar.*/d' wget-list
 }
 
-sources_md5() # url
+sources_md5() # [url]
 {
   url="$1"
-  wget --timestamping "$url/md5sums"
+
+  [ -z $url ] || wget --timestamping "$url/md5sums"
 
   sed -e '/.*linux-.*\.tar.*/d' md5sums
 }
@@ -33,28 +35,28 @@ parallel_fetch() # options [file] [dst] [count]
 
 # Fetch a list of urls at "$url/wget-list" and verify file integrity using a
 # list of hashes at "$url/md5sums".
-sources_fetch() # url dst
+sources_fetch() # url dst [user]
 {
   url="$1"
   dst="$2"
+  #user="$3"
 
   cache="/cache"
 
-  mkdir -v "$dst"
-  chmod -v a+wt "$dst"
+  [ -d "$dst" ] || mkdir -v "$dst" && chmod -v a+wt "$dst"
 
-  [ -d "$cache" ] || mkdir -pv "$cache"
+  [ -d "$cache" ] || mkdir -pv "$cache" #&& [ -z $user ] || chown cache ":$user"
 
   pushd "$cache"
 
     # Check for cache integrity
-    if ! [ sources_md5 "$url" | cache_check "false" ]
+    if ! sources_md5 "$url" | cache_check "false"
     then
       # Resume partial downloads.
       sources_urls "$url" | parallel_fetch "--continue --quiet" || echo "Warning: $? jobs failed!"
 
       # Delete corrupted files.
-      sources_md5 "$url" | cache_check "rm -rfv"
+      cache_check "rm -rfv" < md5sums
 
       # Download the deleted files again.
       # TODO: Add a max retry mechanism
@@ -66,7 +68,8 @@ sources_fetch() # url dst
       done
     fi
 
-    echo 'All packages have been downloaded!'
+    echo "All packages have been downloaded! Linking to '$dst'..."
+    cache_link "$dst"
 
     # Checkout the linux kernel sources
     linux_checkout "$LINUX_VERSION"
