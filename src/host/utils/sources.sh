@@ -46,20 +46,27 @@ sources_fetch() # url dst
   [ -d "$cache" ] || mkdir -pv "$cache"
 
   pushd "$cache"
-    # Resume partial downloads.
-    sources_urls "$url" | parallel_fetch "--continue --quiet" || echo "Warning: $? jobs failed!"
 
-    # Delete corrupted files.
-    if [ sources_md5 "$url" | cache_check "rm -rfv"
+    # Check for cache integrity
+    if ! [ sources_md5 "$url" | cache_check "false" ]
+    then
+      # Resume partial downloads.
+      sources_urls "$url" | parallel_fetch "--continue --quiet" || echo "Warning: $? jobs failed!"
 
-    # Download the deleted files again.
-    # TODO: Add a max retry mechanism
-    # TODO: Add pipepart flag
-    while parallel_fetch --no-clobber wget-list \
-    | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
-    do
-      cache_check "rm -rfv" < md5sums
-    done
+      # Delete corrupted files.
+      sources_md5 "$url" | cache_check "rm -rfv"
+
+      # Download the deleted files again.
+      # TODO: Add a max retry mechanism
+      # TODO: Add pipepart flag
+      while parallel_fetch --no-clobber wget-list \
+      | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
+      do
+        cache_check "rm -rfv" < md5sums
+      done
+    fi
+
+    echo 'All packages have been downloaded!'
 
     # Checkout the linux kernel sources
     linux_checkout "$LINUX_VERSION"
