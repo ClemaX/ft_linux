@@ -14,9 +14,11 @@ error_handler()
 trap error_handler ERR
 
 # Prepare lfs file hierarchy.
-lfs_prepare() # dst
+lfs_prepare_fs() # dst
 {
 	dst="$1"
+
+	echo "Preparing lfs file hierarchy in $LFS..."
 	# Create the bases folder structure
 	mkdir -pv "$dst"/{etc,var} "$dst"/usr/{bin,lib,sbin}
 
@@ -34,7 +36,7 @@ lfs_prepare() # dst
 	mkdir -pv "$dst/tools"
 }
 
-lfs_prepare "$LFS"
+lfs_prepare_fs "$LFS"
 
 pushd "$LFS/sources"
 	ls *.tar* > packages.lst
@@ -59,8 +61,6 @@ pushd "$LFS/sources"
     # pkg_extract linux*.tar* pkg_build_kernel
 	# TODO: Rename to build_kernel_headers
 	pkg_build_kernel linux-stable
-
-
 
 	# TODO: Extract the remaining package and build them
 	while read -r pkg < packages.lst
