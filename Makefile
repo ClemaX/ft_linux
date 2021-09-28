@@ -5,6 +5,9 @@ DISTDIR=dist## The destination directory to be shared with the host.
 CACHEVOL=lfs-cache## The cache docker-volume.
 NAME=lfs.img## The name of the image.
 
+CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID## Capabilities to enable for the docker container.
+CMD=./build.sh## Command to run in the docker container.
+
 all: $(NAME) ## Alias for dist/lfs.img.
 
 help:
@@ -17,15 +20,15 @@ ft_linux: $(SRCDIR) ## Build the host docker image.
 	@docker build -t ft_linux .
 
 $(NAME): ft_linux ## Build the LFS image.
-	@echo "RUN bash"
+	@echo "RUN $(CMD)"
 	@docker run --rm \
-    --cap-drop=all --cap-add=SYS_ADMIN --cap-add=MKNOD \
+    --cap-drop=all $(CAPS:%=--cap-add=%) \
     --device-cgroup-rule='b 7:* rmw' \
     --device-cgroup-rule='b 259:* rmw' \
     -v /dev:/tmp/dev:ro \
     -v "$(shell pwd)/$(DISTDIR):/dist:rw" \
     -v "$(CACHEVOL):/cache:rw" \
-    -it ft_linux bash #./image-format.sh
+    -it ft_linux $(CMD)
 
 .PHONY: help ft_linux
 
