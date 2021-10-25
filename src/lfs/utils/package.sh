@@ -1,7 +1,7 @@
 pkg_build_binutils()
 {
 	pushd "$name"
-		mkdir -v Build
+		mkdir -v build
 		pushd build
 			../configure
 				--prefix="$LFS/tools" \
@@ -131,7 +131,7 @@ pkg_extract() # pkg builder
 	name="${pkg%%.tar*}"
 
 	echo "Extracting $name..."
-	tar -xf "$pkg"
+	cat "$pkg"
 
 	echo "Building $name..."
 	"$builder" $name
