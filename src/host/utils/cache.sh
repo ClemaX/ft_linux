@@ -27,5 +27,5 @@ cache_link() # dst [cache]
   dst="${1}"
   cache="${2:-$PWD}"
 
-  cache_list "$cache" | xargs --no-run-if-empty -I{} ln -sv "$cache/{}" "$dst"
+  cache_list "$cache" | xargs --no-run-if-empty -I{} ln -s "$cache/{}" "$dst"
 }
