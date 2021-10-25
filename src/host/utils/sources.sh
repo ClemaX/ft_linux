@@ -4,28 +4,28 @@ sources_urls() # url
 {
   url="$1"
 
-  [ -z $url ] || wget --timestamping "$url/wget-list"
+  [ -z "$url" ] || wget --timestamping "$url/wget-list"
 
   sed -e '/.*\/linux-.*\.tar.*/d' wget-list
 }
 
 sources_md5() # [url]
 {
-  url="$1"
+  url="${1:-}"
 
-  [ -z $url ] || wget --timestamping "$url/md5sums"
+  [ -z "$url" ] || wget --timestamping "$url/md5sums"
 
   sed -e '/.*linux-.*\.tar.*/d' md5sums
 }
 
-parallel_fetch() # options [file] [dst] [count]
+parallel_fetch() # options [input] [dst] [count]
 {
   options="$1"
   input="${2:-}"
   dst="${3:-$PWD}"
   count="${4:-4}"
 
-  if [ -z $input ]
+  if [ -z "$input" ]
   then
     parallel -j"$count" --round-robin --bar wget --input-file=- $options --quiet --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
   else
@@ -49,7 +49,7 @@ sources_fetch() # url dst [user]
 
   pushd "$cache"
 
-    # Check for cache integrity
+    # Check for cache integrity.
     if ! sources_md5 "$url" | cache_check "false"
     then
       # Resume partial downloads.
@@ -57,21 +57,20 @@ sources_fetch() # url dst [user]
 
       # Delete corrupted files.
       cache_check "rm -rfv" < md5sums
-
-      # Download the deleted files again.
-      # TODO: Add a max retry mechanism
-      # TODO: Add pipepart flag
-      while parallel_fetch --no-clobber wget-list \
-      | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
-      do
-        cache_check "rm -rfv" < md5sums
-      done
     fi
+    # Download missing files.
+    # TODO: Add a max retry mechanism
+    # TODO: Add pipepart flag
+    while sources_urls "$url" | parallel_fetch --no-clobber \
+    | grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
+    do
+      cache_check "rm -rfv" < md5sums
+    done
 
     echo "All packages have been downloaded! Linking to '$dst'..."
     cache_link "$dst"
 
-    # Checkout the linux kernel sources
+    # Checkout the linux kernel sources.
     linux_checkout "$LINUX_VERSION"
   popd
 }
