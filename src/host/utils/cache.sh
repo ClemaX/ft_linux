@@ -21,11 +21,11 @@ cache_list() # [cache]
   cut -b 35- < "$cache/md5sums" && echo linux-stable
 }
 
-# Link all files in cache to
+# Link all files in cache to dst
 cache_link() # dst [cache]
 {
   dst="${1}"
   cache="${2:-$PWD}"
 
-  cache_list "$cache" | xargs --no-run-if-empty -I{} ln -s "$cache/{}" "$dst"
+  cache_list "$cache" | su lfs -c "xargs --no-run-if-empty -I{} ln -s '$cache/{}' '$dst'"
 }
