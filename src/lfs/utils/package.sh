@@ -3,7 +3,7 @@ pkg_build_binutils()
 	pushd "$name"
 		mkdir -v build
 		pushd build
-			../configure
+			../configure \
 				--prefix="$LFS/tools" \
 				--with-sysroot="$LFS_TGT" \
 				--disable-nls \
@@ -128,13 +128,14 @@ pkg_extract() # pkg builder
 	pkg="$1"
 	builder="$2"
 
-	name="${pkg%%.tar*}"
+	base="${pkg##*/}"
+	name="${base%.tar*}"
 
-	echo "Extracting $name..."
+	echo "Extracting $base to $name..."
 	tar xf "$pkg"
 
 	echo "Building $name..."
-	"$builder" $name
+	"$builder" "$name"
 
 	sed -e "/$pkg/d" -i packages.lst
 }
