@@ -25,7 +25,7 @@ lfs_prepare_fs() # dst
 	# Link the bin lib and sbin directories to their /usr/... counterparts.
 	for i in bin lib sbin
 	do
-		ln -sv "usr/$i" "$dst/$i"
+		ln -sv "$LFS/usr/$i" "$dst/$i"
 	done
 
 	# Create architecture specific directories.
