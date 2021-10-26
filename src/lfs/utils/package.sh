@@ -131,7 +131,7 @@ pkg_extract() # pkg builder
 	name="${pkg%%.tar*}"
 
 	echo "Extracting $name..."
-	cat "$pkg"
+	tar xf "$pkg"
 
 	echo "Building $name..."
 	"$builder" $name
