@@ -36,5 +36,5 @@ sources_fetch "$lfs_base_url" "$LFS/sources"
 chown -v lfs "$LFS" "$LFS/sources"
 
 pushd "$LFS"
-  su lfs -c "LFS='$LFS' ~/build.sh"
+  env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
 popd
