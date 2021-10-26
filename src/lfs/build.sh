@@ -38,29 +38,29 @@ lfs_prepare_fs() # dst
 
 lfs_prepare_fs "$LFS"
 
-pushd "$LFS/sources"
-	ls *.tar* > packages.lst
+pushd "/tmp"
+	ls -l "$LFS/sources/"*.tar* > packages.lst
 
 	# Build binutils
-	pkg_extract binutils*.tar* pkg_build_binutils
+	pkg_extract "$LFS/sources/"binutils*.tar* pkg_build_binutils
 
 	# Build gcc
-	gcc_pkg=gcc*.tar.*
+	gcc_pkg="$LFS/sources/"gcc*.tar.*
 	gcc_dir="${gcc%%.tar*}"
 
 	mkdir -v "$gcc"
 
-	pkg_extract mpfr*.tar* pkg_build_gcc_dep
-	pkg_extract gmp*.tar* pkg_build_gcc_dep
-	pkg_extract mpc*.tar* pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"mpfr*.tar* pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"gmp*.tar* pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"mpc*.tar* pkg_build_gcc_dep
 
-	pkg_extract gcc*.tar* pkg_build_gcc
+	pkg_extract "$LFS/sources/"gcc*.tar* pkg_build_gcc
 
 	# Build Linux API Headers
     # We are using git instead
     # pkg_extract linux*.tar* pkg_build_kernel
 	# TODO: Rename to build_kernel_headers
-	pkg_build_kernel linux-stable
+	pkg_build_kernel "$LFS/sources/linux-stable"
 
 	# TODO: Extract the remaining package and build them
 	while read -r pkg < packages.lst
