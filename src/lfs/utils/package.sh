@@ -18,7 +18,7 @@ pkg_build_gcc_dep() # name
 {
 	name="$1"
 
-	mv -v "$name" "$gcc/${name%%-*}"
+	mv -v "$name" "$gcc_dir/${name%%-*}"
 }
 
 pkg_build_gcc() # name
@@ -137,5 +137,5 @@ pkg_extract() # pkg builder
 	echo "Building $name..."
 	"$builder" "$name"
 
-	sed -e "/$pkg/d" -i packages.lst
+	sed -e "/$base/d" -i packages.lst
 }

@@ -39,16 +39,19 @@ lfs_prepare_fs() # dst
 lfs_prepare_fs "$LFS"
 
 pushd "/tmp"
-	ls -l "$LFS/sources/"*.tar* > packages.lst
+	ls "$LFS/sources/"*.tar* > packages.lst
 
 	# Build binutils
 	pkg_extract "$LFS/sources/"binutils*.tar* pkg_build_binutils
 
 	# Build gcc
-	gcc_pkg="$LFS/sources/"gcc*.tar.*
-	gcc_dir="${gcc%%.tar*}"
+	gcc_pkg="$(find "$LFS/sources" -maxdepth 1 -wholename "$LFS/sources/gcc-*.tar.*")"
+	gcc_base="${gcc_pkg##*/}"
+	gcc_dir="${gcc_base%.tar*}"
 
-	mkdir -v "$gcc"
+	echo "gcc: $gcc_pkg, gcc base: $gcc_base, gcc dir: $gcc_dir"
+
+	mkdir -v "$gcc_dir"
 
 	pkg_extract "$LFS/sources/"mpfr*.tar* pkg_build_gcc_dep
 	pkg_extract "$LFS/sources/"gmp*.tar* pkg_build_gcc_dep
