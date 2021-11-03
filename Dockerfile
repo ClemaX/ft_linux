@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bullseye
 
 # Prevent interaction (do not change)
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,6 +15,8 @@ COPY src/host/prepare.sh .
 ENV LFS="/mnt/lfs"
 
 RUN ./prepare.sh && rm -f packages.lst ./prepare.sh
+
+#COPY src/host/version-lock.sh .
 
 COPY src/host/utils ./utils
 COPY src/host/build.sh .
