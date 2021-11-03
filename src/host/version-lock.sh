@@ -2,8 +2,11 @@
 
 set -euo pipefail
 
-while read -r package < packages.lst
+while IFS= read -r package
 do
-	version=$(dpkg -s ${package%=*} | grep Version | cut -d' ' -f2)
-	echo "$package=$version"
-done
+	if ! [ -z "$package" ]
+	then
+		version=$(dpkg -s ${package%=*} | grep Version | cut -d' ' -f2)
+		echo "$package=$version"
+	fi
+done < packages.lst
