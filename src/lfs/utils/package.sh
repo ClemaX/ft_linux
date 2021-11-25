@@ -35,7 +35,7 @@ pkg_build_gcc() # name
 
 		mkdir -v build
 		pushd "build"
-			../configure
+			../configure \
 				--target="$LFS_TGT" \
 				--prefix="$LFS/tools" \
 				--with-glibc-version="$glibc_version" \
