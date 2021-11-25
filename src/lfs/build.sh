@@ -61,9 +61,8 @@ pushd "/tmp"
 
 	# Build Linux API Headers
     # We are using git instead
-    # pkg_extract linux*.tar* pkg_build_kernel
-	# TODO: Rename to build_kernel_headers
-	pkg_build_kernel "$LFS/sources/linux-stable"
+    # pkg_extract linux*.tar* pkg_build_kernel_headers
+	pkg_build_kernel_headers "$LFS/sources/linux-stable"
 
 	# TODO: Extract the remaining package and build them
 	while read -r pkg < packages.lst

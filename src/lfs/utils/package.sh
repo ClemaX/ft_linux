@@ -67,7 +67,7 @@ pkg_build_gcc() # name
 	popd
 }
 
-pkg_build_kernel() # name
+pkg_build_kernel_headers() # name
 {
 	name="$1"
 
