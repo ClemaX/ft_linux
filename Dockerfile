@@ -34,6 +34,6 @@ ENV LINUX_VERSION="v4.9.283"
 # Image destination
 ENV IMG_DST=/dist/disk.img
 # Image size in megabytes
-ENV IMG_SIZE=500
+ENV IMG_SIZE=4096
 
 CMD ./build.sh
