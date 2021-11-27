@@ -71,6 +71,12 @@ sources_fetch() # url dst [user]
     cache_link "$dst"
 
     # Checkout the linux kernel sources.
-    linux_checkout "$LINUX_VERSION"
+    if ! [ -f linux-stable.tar ]
+    then
+      linux_checkout "$LINUX_VERSION"
+      linux_package
+    fi
+    debug "Linking $PWD/linux-stable.tar to $LFS/sources"
+    su lfs -c "ln -sv '$PWD/linux-stable.tar' '$LFS/sources'"
   popd
 }

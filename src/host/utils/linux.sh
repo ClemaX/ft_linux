@@ -21,3 +21,15 @@ linux_checkout() # version (example: "v4.9.283")
         git clone --depth 1 --single-branch --branch "$version" "$LINUX_REPO" linux-stable
     fi
 }
+
+linux_package()
+{
+    repo_dir="linux-stable"
+    package_name="$repo_dir.tar"
+
+    info "Archiving $repo_dir to $package_name"
+
+    pushd "$repo_dir"
+        git archive --prefix="$repo_dir/" -o "../$package_name" HEAD
+    popd
+}
