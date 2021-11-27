@@ -7,7 +7,8 @@ findutils
 gawk
 gcc=4:10.2.1-1
 g++=4:10.2.1-1
-libc6=2.3*
+libc6-dev=2.3*
+libelf-dev
 grep
 gzip
 m4
