@@ -106,7 +106,7 @@ pkg_build_glibc() # name
 		esac
 
 		# Patch non-FHS compliant runtime data directories.
-		patch -Np1 -i "../glibc-$glibc_version-fhs-1.patch"
+		patch -Np1 -i "$LFS/sources/glibc-2.34-fhs-1.patch"
 
 		mkdir -v build
 		pushd build
@@ -116,6 +116,7 @@ pkg_build_glibc() # name
 			../configure \
 				--prefix=/usr \
 				--host="$LFS_TGT" \
+				--build=$(../scripts/config.guess) \
 				--enable-kernel=3.2 \
 				--with-headers="$LFS/usr/include" \
 				libc_cv_slibdir=/usr/lib
@@ -126,6 +127,363 @@ pkg_build_glibc() # name
 
 			# Fix hardcoded path in the ldd script.
 			sed '/RTLDLIST=/s@/usr@@g' -i "$LFS/usr/bin/ldd"
+		popd
+	popd
+}
+
+pkg_build_libstdc++() # name
+{
+	name="$1"
+
+	pushd "$name"
+		[ -d build ] && rm -rfv build
+
+		mkdir -v build
+		pushd build
+			../libstdc++-v3/configure \
+				--host="$LFS_TGT" \
+				--build="$(../config.guess)" \
+				--prefix=/usr \
+				--disable-multilib \
+				--disable-nls \
+				--disable-libstdcxx-pch \
+				--with-gxx-include-dir="$LFS/tools/$LFS_TGT/include/c++/11.2.0"
+			make
+
+			make DESTDIR="$LFS" install
+		popd
+	popd
+}
+
+pkg_build_m4() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)"
+		
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_ncurses() # name
+{
+	name="$1"
+
+	pushd "$name"
+		# Ensure that gawk is found first.
+		sed -i s/mawk// configure
+
+		mkdir -v build
+		pushd build
+			# Build tic.
+			../configure
+			
+			make -C include
+
+			make -C progs tic
+
+			# Build Ncurses.
+			./configure --prefix=/usr \
+				--host="$LFS_TGT" \
+				--build="$(./config.guess)" \
+				--mandir=/usr/share/man \
+				--with-manpage-format=normal \
+				--with-shared \
+				--without-debug \
+				--without-ada \
+				--without-normal \
+				--enable-widec
+
+			make
+
+			make DESTDIR="$LFS" TIC_PATH="$PWD/build/progs/tic install"
+
+			echo "INPUT(-lncursesw)" > "$LFS/usr/lib/libncurses.so"
+		popd
+	popd
+}
+
+pkg_build_bash() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --build=$(support/config.guess) \
+            --host=$LFS_TGT \
+            --without-bash-malloc
+		
+		make
+
+		make DESTDIR="$LFS" install
+
+		ln -sv bash $LFS/bin/sh
+	popd
+}
+
+pkg_build_coreutils() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --host=$LFS_TGT \
+            --build=$(build-aux/config.guess) \
+            --enable-install-program=hostname \
+            --enable-no-install-program=kill,uptime
+		
+		make
+
+		make DESTDIR="$LFS" install
+
+		# Move programs to their expected locations.
+		mv -v "$LFS"/usr/bin/chroot					"$LFS"/usr/sbin
+		mkdir -pv "$LFS"/usr/share/man/man8
+		mv -v "$LFS"/usr/share/man/man1/chroot.1	"$LFS"/usr/share/man/man8/chroot.8
+		sed -i 's/"1"/"8"/'							"$LFS"/usr/share/man/man8/chroot.8
+	popd
+}
+
+pkg_build_diffutils() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr --host="$LFS_TGT"
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_file() # name
+{
+	name="$1"
+
+	pushd "$name"
+		mkdir -v build
+
+		pushd build
+			../configure --disable-bzlib \
+               --disable-libseccomp \
+               --disable-xzlib \
+               --disable-zlib
+
+			make
+		popd
+
+		./configure --prefix=/usr --host="$LFS_TGT" --build="$(./config.guess)"
+
+		make FILE_COMPILE="$PWD/build/src/file"
+
+		make DESTDIR=$LFS install
+	popd
+}
+
+pkg_build_findutils() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --localstatedir=/var/lib/locate \
+            --host="$LFS_TGT" \
+            --build="$(build-aux/config.guess)"
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_gawk() # name
+{
+	name="$1"
+
+	pushd "$name"
+		sed -i 's/extras//' Makefile.in
+
+		./configure --prefix=/usr \
+            --host="$LFS_TGT" \
+            --build="$(./config.guess)"
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_grep() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --host="$LFS_TGT"
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_gzip() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr --host="$LFS_TGT"
+		
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_make() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr   \
+            --without-guile \
+            --host="$LFS_TGT" \
+            --build="$(build-aux/config.guess)"
+		
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_patch() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr   \
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)"
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_sed() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr   \
+            --host="$LFS_TGT"
+		
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_tar() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --host="$LFS_TGT" \
+            --build="$(build-aux/config.guess)"
+		
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_xz() # name
+{
+	name="$1"
+
+	pushd "$name"
+		./configure --prefix=/usr \
+            --host="$LFS_TGT" \
+            --build="$(build-aux/config.guess)" \
+            --disable-static \
+            --docdir=/usr/share/doc/xz-5.2.5
+
+		make
+
+		make DESTDIR="$LFS" install
+	popd
+}
+
+pkg_build_binutils_pass2() # name
+{
+	name="$1"
+
+	pushd "$name"
+		[ -d build ] && rm -rfv build
+
+		mkdir -v build
+		pushd build
+			../configure \
+				--prefix=/usr \
+				--build="$(../config.guess)" \
+				--host="$LFS_TGT" \
+				--disable-nls \
+				--enable-shared \
+				--disable-werror \
+				--enable-64-bit-bfd
+
+			make
+
+			make DESTDIR="$LFS" install -j1
+			install -vm755 libctf/.libs/libctf.so.0.0.0 "$LFS"/usr/lib
+		popd
+	popd
+}
+
+pkg_build_gcc_pass2() # name
+{
+	name="$1"
+
+	pushd "$name"
+		[ -d build ] && rm -rfv build
+		
+		mkdir -v build
+		pushd build
+			mkdir -pv "$LFS_TGT/libgcc"
+			ln -s ../../../libgcc/gthr-posix.h "$LFS_TGT/libgcc/gthr-default.h"
+
+			../configure \
+				--build="$(../config.guess)" \
+				--host="$LFS_TGT" \
+				--prefix=/usr \
+				CC_FOR_TARGET="$LFS_TGT-gcc" \
+				--with-build-sysroot="$LFS" \
+				--enable-initfini-array \
+				--disable-nls \
+				--disable-multilib \
+				--disable-decimal-float \
+				--disable-libatomic \
+				--disable-libgomp \
+				--disable-libquadmath \
+				--disable-libssp \
+				--disable-libvtv \
+				--disable-libstdcxx \
+				--enable-languages=c,c++
+			
+			make
+
+			make DESTDIR="$LFS" install
+
+			ln -sv gcc "$LFS/usr/bin/cc"
 		popd
 	popd
 }
