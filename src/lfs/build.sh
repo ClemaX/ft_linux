@@ -60,10 +60,15 @@ pushd "/tmp"
 
 	pkg_extract "$LFS/sources/"gcc*.tar* pkg_build_gcc
 
-	# Build Linux API Headers
-    # We are using git instead
-    # pkg_extract linux*.tar* pkg_build_kernel_headers
-	pkg_build_kernel_headers "$LFS/sources/linux-stable"
+	# Build Linux API Headers.
+    pkg_extract "$LFS/sources/linux-stable.tar" pkg_build_kernel_headers
+
+	# Build GLIBC.
+	pkg_extract "$LFS/sources/"glibc*.tar* pkg_build_glibc
+
+	# Finalize the installation of the limits.h header.
+	debug "Running mkheaders..."
+	"$LFS/tools/libexec/gcc/$LFS_TGT/11.2.0/install-tools/mkheaders"
 
 	# TODO: Extract the remaining package and build them
 	while read -r pkg < packages.lst

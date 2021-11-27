@@ -82,11 +82,11 @@ pkg_build_kernel_headers() # name
 	pushd "$name"
 		make mrproper
 
-		make headers
+		cp ~/kernel.config .config
+
+		make headers_install
 
 		# Install headers without rsync.
-		find usr/include -name '.*' -delete
-		rm usr/include/Makefile
 		cp -rv usr/include "$LFS/usr"
 	popd
 }
