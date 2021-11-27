@@ -3,7 +3,8 @@ img_new() # dst size
 {
 	dst="$1"
 	size="$2"
-	echo "Creating empty disk image with size $size MB at $dst..."
+
+	info "Creating empty disk image with size $size MB at $dst..."
 	dd if=/dev/zero of="$dst" iflag=fullblock bs=1M count="$size"
 	sync
 }
@@ -40,16 +41,16 @@ loop_setup() # dev img
 
 	if [ ! -e "$dev" ]
 	then
-		echo "Creating loop device at $dev..."
+		debug "Creating loop device at $dev..."
 		mknod "$dev" b 7 0
 	fi
 
-	echo "Setting up loop device..."
+	info "Setting up loop device..."
 	losetup --partscan "$dev" "$img"
 
 	loop_partitions "$dev"
 
-	echo "Loaded $index partitions!"
+	debug "Loaded $index partitions!"
 
 	trap "loop_teardown '$dev' $index" EXIT
 }
@@ -65,11 +66,11 @@ loop_teardown() # dev partcount
 	while [ $i -lt $partcount ]
 	do
 		partdev="${dev}p${i}"
-		echo "Removing $partdev..."
+		info "Removing $partdev..."
 		rm -f "$partdev"
 		((++i))
 	done
 
-	echo "Tearing down $dev..."
+	info "Tearing down $dev..."
 	losetup -d "$dev"
 }

@@ -4,7 +4,7 @@ cache_check() # action [cache]
   action="$1"
   cache="${2:-$PWD}"
 
-  echo "Checking cache..."
+  info "Checking cache..."
 
   pushd "$cache"
     md5sum --check --quiet --ignore-missing - \
@@ -27,5 +27,6 @@ cache_link() # dst [cache]
   dst="${1}"
   cache="${2:-$PWD}"
 
+  debug "Linking packages from $cache to $dst..."
   cache_list "$cache" | su lfs -c "xargs --no-run-if-empty -I{} ln -s '$cache/{}' '$dst'"
 }

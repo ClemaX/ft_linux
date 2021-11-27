@@ -139,10 +139,10 @@ pkg_extract() # pkg builder
 	base="${pkg##*/}"
 	name="${base%.tar*}"
 
-	echo "Extracting $base to $name..."
+	info "Extracting $base to $name..."
 	tar xf "$pkg"
 
-	echo "Building $name..."
+	info "Building $name..."
 	"$builder" "$name"
 
 	sed -e "/$base/d" -i packages.lst

@@ -53,7 +53,7 @@ sources_fetch() # url dst [user]
     if ! sources_md5 "$url" | cache_check "false"
     then
       # Resume partial downloads.
-      sources_urls "$url" | parallel_fetch "--continue --quiet" || echo "Warning: $? jobs failed!"
+      sources_urls "$url" | parallel_fetch "--continue --quiet" || warning "Warning: $? jobs failed!"
 
       # Delete corrupted files.
       cache_check "rm -rfv" < md5sums
@@ -67,7 +67,7 @@ sources_fetch() # url dst [user]
       cache_check "rm -rfv" < md5sums
     done
 
-    echo "All packages have been downloaded! Linking to '$dst'..."
+    info "All packages have been downloaded! Linking to '$dst'..."
     cache_link "$dst"
 
     # Checkout the linux kernel sources.

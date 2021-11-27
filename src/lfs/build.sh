@@ -2,13 +2,14 @@
 
 set -eEu
 
+source ~/utils/logger.sh
 source ~/utils/package.sh
 
 glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
 
 error_handler()
 {
-  echo "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+  error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
 }
 
 trap error_handler ERR
@@ -18,7 +19,7 @@ lfs_prepare_fs() # dst
 {
 	dst="$1"
 
-	echo "Preparing lfs file hierarchy in $LFS..."
+	info "Preparing lfs file hierarchy in $LFS..."
 	# Create the bases folder structure
 	mkdir -pv "$dst"/{etc,var} "$dst"/usr/{bin,lib,sbin}
 
@@ -41,15 +42,15 @@ lfs_prepare_fs "$LFS"
 pushd "/tmp"
 	ls "$LFS/sources/"*.tar* > packages.lst
 
-	# Build binutils
+	# Build binutils.
 	pkg_extract "$LFS/sources/"binutils*.tar* pkg_build_binutils
 
-	# Build gcc
+	# Build gcc.
 	gcc_pkg="$(find "$LFS/sources" -maxdepth 1 -wholename "$LFS/sources/gcc-*.tar.*")"
 	gcc_base="${gcc_pkg##*/}"
 	gcc_dir="${gcc_base%.tar*}"
 
-	echo "gcc: $gcc_pkg, gcc base: $gcc_base, gcc dir: $gcc_dir"
+	debug "gcc: $gcc_pkg, gcc base: $gcc_base, gcc dir: $gcc_dir"
 
 	mkdir -v "$gcc_dir"
 
@@ -67,6 +68,6 @@ pushd "/tmp"
 	# TODO: Extract the remaining package and build them
 	while read -r pkg < packages.lst
 	do
-		echo TODO: pkg_extract "$pkg"
+		debug TODO: pkg_extract "$pkg"
 	done
 popd

@@ -12,10 +12,12 @@ linux_checkout() # version (example: "v4.9.283")
             linux_checkout "$version"
         else
             pushd linux-stable
+                info "Fetching linux kernel $version..."
                 git fetch --depth 1 origin "$version"
             popd
         fi
     else
+        info "Cloning linux kernel $version..."
         git clone --depth 1 --single-branch --branch "$version" "$LINUX_REPO" linux-stable
     fi
 }
