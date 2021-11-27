@@ -8,7 +8,8 @@ pkg_build_binutils()
 		pushd build
 			../configure \
 				--prefix="$LFS/tools" \
-				--with-sysroot="$LFS_TGT" \
+				--with-sysroot="$LFS" \
+             	--target="$LFS_TGT" \
 				--disable-nls \
 				--disable-werror
 
