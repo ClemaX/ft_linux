@@ -4,7 +4,7 @@ set -eEu
 
 source ~/utils/package.sh
 
-glibc_version=$(ldd --version | head -n1 | cut -d" " -f2-)
+glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
 
 error_handler()
 {
