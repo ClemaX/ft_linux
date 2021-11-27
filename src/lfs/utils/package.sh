@@ -1,3 +1,6 @@
+NCORES=$(nproc)
+export MAKEFLAGS="-j${NCORES:-1}"
+
 pkg_build_binutils()
 {
 	pushd "$name"
@@ -8,7 +11,9 @@ pkg_build_binutils()
 				--with-sysroot="$LFS_TGT" \
 				--disable-nls \
 				--disable-werror
+
 			make
+
 			make install -j1
 		popd
 	popd
@@ -55,7 +60,9 @@ pkg_build_gcc() # name
 				--disable-libvtv \
 				--disable-libstdcxx \
 				--enable-languages=c,c++
+
 			make
+
 			make install
 		popd
 
