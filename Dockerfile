@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bullseye-slim
 
 # Prevent interaction (do not change)
 ENV DEBIAN_FRONTEND=noninteractive
