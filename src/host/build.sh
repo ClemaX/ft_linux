@@ -13,11 +13,81 @@ lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
 error_handler()
 {
-  error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+	error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+}
+
+lfs_chown() # owner root
+{
+	owner="${1:-root:root}"
+	root="${2:-$LFS}"
+
+	info "Setting ownership to $owner on $LFS..."
+	# TODO: Remove sources
+	chown "$owner" "."
+	chown -R "$owner" {usr,lib,var,etc,bin,sbin,tools,sources}
+	case $(uname -m) in
+		x86_64) chown -R "$owner" lib64;;
+	esac
+}
+
+lfs_chroot_teardown() # root
+{
+	root="${1:-$LFS}"
+
+	pushd "$root"
+		info "Tearing down kernel file systems in $root..."
+
+		umount "$root/dev/pts" || warning "Failed to unmount a filesystem!"
+		umount "$root/"{sys,proc,run} || warning "Failed to unmount a filesystem!"
+	popd
+}
+
+lfs_chroot() # root
+{
+	root="${1:-$LFS}"
+
+	pushd "$root"
+		info "Mounting kernel file systems to $root..."
+
+		# Create mountpoints.
+		mkdir -pv {dev,proc,sys,run}
+
+		# Teardown on unexpected exit.
+		trap "lfs_chroot_teardown '$root'" EXIT
+
+		# Create console devices.
+		mknod -m 600 dev/console	c 5 1
+		mknod -m 666 dev/null		c 1 3
+
+		# Mount /dev.
+		mount -v --bind /dev		dev
+		mount -v --bind	/dev/pts	dev/pts
+		mount -vt proc	proc		proc
+		mount -vt sysfs	sysfs		sys
+		mount -vt tmpfs	tmpfs		run
+
+		if [ -h dev/shm ]; then
+			mkdir -pv "$(readlink dev/shm)"
+		fi
+
+		info "Changing root to $root..."
+		# Change root directory.
+		chroot . /usr/bin/env -i \
+			HOME=/root \
+			TERM="$TERM" \
+			PS1='(lfs chroot) \u:\w\$ ' \
+			PATH=/usr/bin:/usr/sbin \
+			/bin/bash --login +h
+		
+		# Teardown.
+		trap - EXIT
+		lfs_chroot_teardown "$root"
+	popd
 }
 
 trap error_handler ERR
 
+# Create a new disk image.
 img_new "$IMG_DST" "$IMG_SIZE"
 
 loop_setup "$LOOP_DEV" "$IMG_DST"
@@ -36,6 +106,11 @@ umask 022
 sources_fetch "$lfs_base_url" "$LFS/sources"
 chown -v lfs "$LFS" "$LFS/sources"
 
-pushd "$LFS"
-  env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
-popd
+# Build LFS filesystems.
+env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
+
+# Reset root permissions.
+lfs_chown root:root "$LFS"
+
+# Chroot into the filesystem.
+lfs_chroot "$LFS"

@@ -5,7 +5,7 @@ DISTDIR=dist## The destination directory to be shared with the host.
 CACHEVOL=lfs-cache## The cache docker-volume.
 NAME=lfs.img## The name of the image.
 
-CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID## Capabilities to enable for the docker container.
+CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT## Capabilities to enable for the docker container.
 CMD=./build.sh## Command to run in the docker container.
 
 all: $(NAME) ## Alias for dist/lfs.img.
