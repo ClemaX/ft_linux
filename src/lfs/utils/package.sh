@@ -163,7 +163,7 @@ pkg_build_m4() # name
 		./configure --prefix=/usr \
 			--host="$LFS_TGT" \
 			--build="$(build-aux/config.guess)"
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -182,7 +182,7 @@ pkg_build_ncurses() # name
 		pushd build
 			# Build tic.
 			../configure
-			
+
 			make -C include
 
 			make -C progs tic
@@ -217,7 +217,7 @@ pkg_build_bash() # name
             --build=$(support/config.guess) \
             --host=$LFS_TGT \
             --without-bash-malloc
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -236,7 +236,7 @@ pkg_build_coreutils() # name
             --build="$(build-aux/config.guess)" \
             --enable-install-program=hostname \
             --enable-no-install-program=kill,uptime
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -339,7 +339,7 @@ pkg_build_gzip() # name
 
 	pushd "$name"
 		./configure --prefix=/usr --host="$LFS_TGT"
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -355,7 +355,7 @@ pkg_build_make() # name
             --without-guile \
             --host="$LFS_TGT" \
             --build="$(build-aux/config.guess)"
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -384,7 +384,7 @@ pkg_build_sed() # name
 	pushd "$name"
 		./configure --prefix=/usr   \
             --host="$LFS_TGT"
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -399,7 +399,7 @@ pkg_build_tar() # name
 		./configure --prefix=/usr \
             --host="$LFS_TGT" \
             --build="$(build-aux/config.guess)"
-		
+
 		make
 
 		make DESTDIR="$LFS" install
@@ -455,7 +455,7 @@ pkg_build_gcc_pass2() # name
 
 	pushd "$name"
 		[ -d build ] && rm -rfv build
-		
+
 		mkdir -v build
 		pushd build
 			mkdir -pv "$LFS_TGT/libgcc"
@@ -478,7 +478,7 @@ pkg_build_gcc_pass2() # name
 				--disable-libvtv \
 				--disable-libstdcxx \
 				--enable-languages=c,c++
-			
+
 			make
 
 			make DESTDIR="$LFS" install

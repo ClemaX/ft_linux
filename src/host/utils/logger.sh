@@ -16,22 +16,22 @@ ERROR="${COLOR_ERROR:-}"
 ENDL="${COLOR_DEFAULT:-}"
 
 debug()
-{ 
+{
 	echo "$DEBUG$@$ENDL" 1>&2
 }
 
 info()
-{ 
+{
 	echo "$INFO$@$ENDL" 1>&2
 }
 
 warning()
-{ 
+{
 	echo "$WARNING$@$ENDL" 1>&2
 }
 
 error()
-{ 
+{
 	echo "$ERROR$@$ENDL" 1>&2
 }
 
@@ -39,12 +39,12 @@ pushd()
 {
 	echo -n "$DEBUG" 1>&2
 	builtin pushd $@ 1>&2
-	echo -n "$ENDL" 1>&2 
+	echo -n "$ENDL" 1>&2
 }
 
 popd()
 {
 	echo -n "$DEBUG" 1>&2
 	builtin popd $@ 1>&2
-	echo -n "$ENDL" 1>&2 
+	echo -n "$ENDL" 1>&2
 }

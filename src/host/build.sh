@@ -78,7 +78,7 @@ lfs_chroot() # root
 			PS1='(lfs chroot) \u:\w\$ ' \
 			PATH=/usr/bin:/usr/sbin \
 			/bin/bash --login +h
-		
+
 		# Teardown.
 		trap - EXIT
 		lfs_chroot_teardown "$root"
