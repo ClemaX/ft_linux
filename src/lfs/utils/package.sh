@@ -232,8 +232,8 @@ pkg_build_coreutils() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --host=$LFS_TGT \
-            --build=$(build-aux/config.guess) \
+            --host="$LFS_TGT" \
+            --build="$(build-aux/config.guess)" \
             --enable-install-program=hostname \
             --enable-no-install-program=kill,uptime
 		
