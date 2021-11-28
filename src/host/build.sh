@@ -39,6 +39,8 @@ lfs_chroot_teardown() # root
 
 		umount "$root/dev/pts" || warning "Failed to unmount a filesystem!"
 		umount "$root/"{sys,proc,run} || warning "Failed to unmount a filesystem!"
+
+		rm -vf "$root/dev/"{console,null}
 	popd
 }
 
