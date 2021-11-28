@@ -1,11 +1,15 @@
-# Create an empty image with a specified size.
+# Create an empty image of a specific size.
 img_new() # dst size
 {
 	dst="$1"
 	size="$2"
 
-	info "Creating empty disk image with size $size MB at $dst..."
+	info "Creating empty disk image of size $size MB at $dst..."
+
+	[ -f "$dst" ]&& truncate --size "$sizeM" "$dst"
+
 	dd if=/dev/zero of="$dst" iflag=fullblock bs=1M count="$size"
+
 	sync
 }
 
