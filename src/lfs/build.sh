@@ -24,10 +24,12 @@ lfs_prepare_fs() # dst
 	mkdir -pv "$dst"/{etc,var} "$dst"/usr/{bin,lib,sbin}
 
 	# Link the bin lib and sbin directories to their /usr/... counterparts.
-	for i in bin lib sbin
-	do
-		ln -sv "$LFS/usr/$i" "$dst/$i"
-	done
+	pushd "$dst"
+		for dir in bin lib sbin
+		do
+			ln -sv "usr/$dir" "$dir"
+		done
+	popd
 
 	# Create architecture specific directories.
 	case $(uname -m) in
