@@ -6,7 +6,7 @@ img_new() # dst size
 
 	info "Creating empty disk image of size $size MB at $dst..."
 
-	[ -f "$dst" ]&& truncate --size "$sizeM" "$dst"
+	[ -f "$dst" ]&& truncate --size "${size}M" "$dst"
 
 	dd if=/dev/zero of="$dst" iflag=fullblock bs=1M count="$size"
 
