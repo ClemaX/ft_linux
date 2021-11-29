@@ -8,8 +8,8 @@ VOLUME /dist
 
 WORKDIR /root
 
-COPY src/host/root/packages.lst .
-COPY src/host/root/prepare.sh .
+COPY src/host/root/packages.lst		.
+COPY src/host/root/prepare.sh		.
 
 # LFS root
 ENV LFS="/mnt/lfs"
@@ -18,10 +18,11 @@ RUN ./prepare.sh && rm -f packages.lst ./prepare.sh
 
 #COPY src/host/version-lock.sh .
 
-COPY src/host/root/utils ./utils
-COPY src/host/root/build.sh .
+COPY src/host/root/utils			./utils
+COPY src/host/root/build.sh			.
+COPY src/lfs						./chroot
 
-COPY --chown=lfs:lfs src/host/lfs/ /home/lfs
+COPY --chown=lfs:lfs src/host/lfs/	/home/lfs
 
 # Loop device
 ENV LOOP_DEV="/dev/loop0"

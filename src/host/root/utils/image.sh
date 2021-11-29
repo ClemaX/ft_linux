@@ -63,7 +63,7 @@ loop_setup() # dev img
 loop_teardown() # dev partcount
 {
 	dev="$1"
-	partcount=$2
+	partcount=${2:-0}
 
 	i=1
 

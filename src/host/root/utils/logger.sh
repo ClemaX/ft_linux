@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [[ "$TERM" == *xterm* ]] || [[ "$TERM" == alacritty ]]
 then
 	COLOR_DEBUG=$'\033[1;34m'

@@ -40,19 +40,27 @@ lfs_chroot_teardown() # root
 		umount "$root/dev/pts" || warning "Failed to unmount a filesystem!"
 		umount "$root/"{sys,proc,run} || warning "Failed to unmount a filesystem!"
 
+		umount "$root/dev" || warning "Failed to unmount $root/dev!"
+
+		umount "$root/cache" || warning "Failed to unmount $root/cache!"
+
 		rm -vf "$root/dev/"{console,null}
+
+		rmdir -v "$root/cache"
 	popd
 }
 
-lfs_chroot() # root
+lfs_chroot() # root [cmd]
 {
-	root="${1:-$LFS}"
+	LFS_PS1='(lfs chroot) \u:\w\$ '
+
+	root="${1:-$LFS}"; shift
 
 	pushd "$root"
 		info "Mounting kernel file systems to $root..."
 
 		# Create mountpoints.
-		mkdir -pv {dev,proc,sys,run}
+		mkdir -pv {dev,proc,sys,run,cache}
 
 		# Teardown on unexpected exit.
 		trap "lfs_chroot_teardown '$root'" EXIT
@@ -72,14 +80,17 @@ lfs_chroot() # root
 			mkdir -pv "$(readlink dev/shm)"
 		fi
 
+		# Mount /cache.
+		mount -v --bind	/cache		cache
+
 		info "Changing root to $root..."
 		# Change root directory.
 		chroot . /usr/bin/env -i \
 			HOME=/root \
 			TERM="$TERM" \
-			PS1='(lfs chroot) \u:\w\$ ' \
+			PS1="$LFS_PS1" \
 			PATH=/usr/bin:/usr/sbin \
-			/bin/bash --login +h
+			${@:-/bin/bash --login +h}
 
 		# Teardown.
 		trap - EXIT
@@ -114,5 +125,9 @@ env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
 # Reset root permissions.
 lfs_chown root:root "$LFS"
 
+# Add builder scripts to the filesystem.
+cp -r chroot "$LFS/build"
+
 # Chroot into the filesystem.
-lfs_chroot "$LFS"
+lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
+lfs_chroot "$LFS" /bin/bash --login +h /build/build.sh
