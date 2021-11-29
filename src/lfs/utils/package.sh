@@ -36,7 +36,7 @@ pkg_build_libstdc++() # name
 				--prefix=/usr \
 				--disable-multilib \
 				--disable-nls \
-				--host=$(uname -m)-lfs-linux-gnu \
+				--host="$(uname -m)-lfs-linux-gnu" \
 				--disable-libstdcxx-pch
 
 			make
