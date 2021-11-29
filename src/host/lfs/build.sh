@@ -78,21 +78,11 @@ pushd "/tmp"
 	# Build libstdc++ from gcc.
 	pkg_build_libstdc++ "$gcc_dir"
 
-	pkg_extract "$LFS/sources/"m4*.tar*			pkg_build_m4
-	pkg_extract "$LFS/sources/"ncurses*.tar*	pkg_build_ncurses
-	pkg_extract "$LFS/sources/"bash*.tar*		pkg_build_bash
-	pkg_extract "$LFS/sources/"coreutils*.tar*	pkg_build_coreutils
-	pkg_extract "$LFS/sources/"diffutils*.tar*	pkg_build_diffutils
-	pkg_extract "$LFS/sources/"file*.tar*		pkg_build_file
-	pkg_extract "$LFS/sources/"findutils*.tar*	pkg_build_findutils
-	pkg_extract "$LFS/sources/"gawk*.tar*		pkg_build_gawk
-	pkg_extract "$LFS/sources/"grep*.tar*		pkg_build_grep
-	pkg_extract "$LFS/sources/"gzip*.tar*		pkg_build_gzip
-	pkg_extract "$LFS/sources/"make*.tar*		pkg_build_make
-	pkg_extract "$LFS/sources/"patch*.tar*		pkg_build_patch
-	pkg_extract "$LFS/sources/"sed*.tar*		pkg_build_sed
-	pkg_extract "$LFS/sources/"tar*.tar*		pkg_build_tar
-	pkg_extract "$LFS/sources/"xz*.tar*			pkg_build_xz
+	# Build additional tools.
+	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep gzip make patch sed tar xz
+	do
+		pkg_extract "$LFS/sources/$pkg"*.tar*	pkg_build_$pkg
+	done
 
 	pkg_build_binutils_pass2	binutils*/
 	pkg_build_gcc_pass2			"$gcc_dir"
