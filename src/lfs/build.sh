@@ -4,10 +4,13 @@ set -eEu
 
 error_handler()
 {
-  error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+	local lineno=$1
+	local cmd=$2
+
+ 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
 }
 
-trap error_handler ERR
+trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
 source /build/utils/package.sh
 

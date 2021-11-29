@@ -9,10 +9,13 @@ glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
 
 error_handler()
 {
-  error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+	local lineno=$1
+	local cmd=$2
+
+ 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
 }
 
-trap error_handler ERR
+trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
 # Prepare lfs file hierarchy.
 lfs_prepare_fs() # dst

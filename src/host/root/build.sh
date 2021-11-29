@@ -13,8 +13,13 @@ lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
 error_handler()
 {
-	error "$BASH_SOURCE:$LINENO: $BASH_COMMAND returned with unexpected exit status $?"
+	local lineno=$1
+	local cmd=$2
+
+ 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
 }
+
+trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
 lfs_chown() # owner root
 {
@@ -97,8 +102,6 @@ lfs_chroot() # root [cmd]
 		lfs_chroot_teardown "$root"
 	popd
 }
-
-trap error_handler ERR
 
 # Create a new disk image.
 img_new "$IMG_DST" "$IMG_SIZE"
