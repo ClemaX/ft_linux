@@ -123,7 +123,9 @@ sources_fetch "$lfs_base_url" "$LFS/sources"
 chown -v lfs "$LFS" "$LFS/sources"
 
 # Build LFS filesystems.
-env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
+pushd /home/lfs
+	env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
+popd
 
 # Reset root permissions.
 lfs_chown root:root "$LFS"
