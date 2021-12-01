@@ -1,6 +1,17 @@
 NCORES=$(nproc)
 export MAKEFLAGS="-j${NCORES:-1}"
 
+make() # [arg]...
+{
+	if ! command make $@
+	then
+		local CALLER="${FUNCNAME[1]}"
+		warning "make failed, rerunning without parallel execution!"
+
+		command make -j1 $@
+	fi
+}
+
 pkg_build_binutils()
 {
 	pushd "$name"
@@ -121,7 +132,7 @@ pkg_build_glibc() # name
 				--with-headers="$LFS/usr/include" \
 				libc_cv_slibdir=/usr/lib
 
-			make || make -j1
+			make || warning "make failed, rerunning without parallel execution!" && make -j1
 
 			make DESTDIR="$LFS" install
 
@@ -147,7 +158,7 @@ pkg_build_libstdc++() # name
 				--disable-multilib \
 				--disable-nls \
 				--disable-libstdcxx-pch \
-				--with-gxx-include-dir="$LFS/tools/$LFS_TGT/include/c++/11.2.0"
+				--with-gxx-include-dir="/tools/$LFS_TGT/include/c++/11.2.0"
 			make
 
 			make DESTDIR="$LFS" install
@@ -282,7 +293,7 @@ pkg_build_file() # name
 
 		make FILE_COMPILE="$PWD/build/src/file"
 
-		make DESTDIR=$LFS install
+		make DESTDIR="$LFS" install
 	popd
 }
 
@@ -444,7 +455,7 @@ pkg_build_binutils_pass2() # name
 			make
 
 			make DESTDIR="$LFS" install -j1
-			install -vm755 libctf/.libs/libctf.so.0.0.0 "$LFS"/usr/lib
+			install -vm755 libctf/.libs/libctf.so.0.0.0 "$LFS/usr/lib"
 		popd
 	popd
 }
@@ -454,6 +465,14 @@ pkg_build_gcc_pass2() # name
 	name="$1"
 
 	pushd "$name"
+		# Set architecture specific library directory names.
+		case "$(uname -m)" in
+			x86_64)
+				sed -e '/m64=/s/lib64/lib/' -i.orig gcc/config/i386/t-linux64
+			;;
+		esac
+
+		# Remove existing build directory
 		[ -d build ] && rm -rfv build
 
 		mkdir -v build

@@ -27,12 +27,15 @@ lfs_chown() # owner root
 	root="${2:-$LFS}"
 
 	info "Setting ownership to $owner on $LFS..."
+
 	# TODO: Remove sources
-	chown "$owner" "."
-	chown -R "$owner" {usr,lib,var,etc,bin,sbin,tools,sources}
-	case $(uname -m) in
-		x86_64) chown -R "$owner" lib64;;
-	esac
+	pushd "$root"
+		chown "$owner" "."
+		chown -R "$owner" {usr,lib,var,etc,bin,sbin,tools,sources}
+		case $(uname -m) in
+			x86_64) chown -R "$owner" lib64;;
+		esac
+	popd
 }
 
 lfs_chroot_teardown() # root
@@ -102,6 +105,9 @@ lfs_chroot() # root [cmd]
 		lfs_chroot_teardown "$root"
 	popd
 }
+
+# Detach loop device in case it is in use.
+losetup -D
 
 # Create a new disk image.
 img_new "$IMG_DST" "$IMG_SIZE"

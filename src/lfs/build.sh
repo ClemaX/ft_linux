@@ -12,6 +12,7 @@ error_handler()
 
 trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
+source /build/utils/logger.sh
 source /build/utils/package.sh
 
 log_init()
@@ -26,4 +27,5 @@ log_init
 
 pushd /tmp
 	pkg_extract /sources/gcc*.tar* pkg_build_libstdc++
+	pkg_extract /sources/gettext*.tar* pkg_build_gettext
 popd

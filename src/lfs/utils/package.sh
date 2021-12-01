@@ -15,8 +15,6 @@ pkg_extract() # pkg builder
 
 	info "Building $name..."
 	"$builder" "$name"
-
-	sed -e "/$base/d" -i packages.lst
 }
 
 pkg_build_libstdc++() # name
