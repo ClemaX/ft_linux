@@ -34,3 +34,14 @@ pushd /tmp
 	pkg_extract /sources/texinfo*.tar* pkg_build_texinfo
 	pkg_extract /sources/util-linux*.tar* pkg_build_util-linux
 popd
+
+info "Cleaning up..."
+
+# Remove installed documentations to save space.
+rm -rf /usr/share/{info,man,doc}/*
+
+# Remove libtool .la files that are harmful when using dynamic linking.
+find /usr/{lib,libexec} -name \*.la -delete
+
+# Remove cross-compilation tools.
+rm -rf /tools
