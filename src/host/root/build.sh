@@ -51,6 +51,7 @@ lfs_chroot_teardown() # root
 		umount "$root/dev" || warning "Failed to unmount $root/dev!"
 
 		umount "$root/cache" || warning "Failed to unmount $root/cache!"
+		umount "$root/tmp" || warning "Failed to unmount $root/tmp!"
 
 		rm -vf "$root/dev/"{console,null}
 
@@ -68,7 +69,7 @@ lfs_chroot() # root [cmd]
 		info "Mounting kernel file systems to $root..."
 
 		# Create mountpoints.
-		mkdir -pv {dev,proc,sys,run,cache}
+		mkdir -pv {dev,proc,sys,run,cache,tmp}
 
 		# Teardown on unexpected exit.
 		trap "lfs_chroot_teardown '$root'" EXIT
@@ -90,6 +91,9 @@ lfs_chroot() # root [cmd]
 
 		# Mount /cache.
 		mount -v --bind	/cache		cache
+
+		# Mount /tmp.
+		mount -v --bind /tmp		tmp
 
 		info "Changing root to $root..."
 		# Change root directory.
