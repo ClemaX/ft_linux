@@ -32,4 +32,5 @@ pushd /tmp
 	pkg_extract /sources/perl*.tar* pkg_build_perl
 	pkg_extract /sources/Python*.tar* pkg_build_python
 	pkg_extract /sources/texinfo*.tar* pkg_build_texinfo
+	pkg_extract /sources/util-linux*.tar* pkg_build_util-linux
 popd
