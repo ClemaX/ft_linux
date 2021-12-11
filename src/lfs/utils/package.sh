@@ -92,3 +92,19 @@ pkg_build_perl() # name
 		make install
 	popd
 }
+
+pkg_build_python() # name
+{
+	local name="$1"
+
+	pushd "$name"
+		./configure \
+			--prefix=/usr \
+			--enable-shared \
+			--without-ensurepip
+
+		make || :
+
+		make install
+	popd
+}

@@ -30,4 +30,5 @@ pushd /tmp
 	pkg_extract /sources/gettext*.tar* pkg_build_gettext
 	pkg_extract /sources/bison*.tar* pkg_build_bison
 	pkg_extract /sources/perl*.tar* pkg_build_perl
+	pkg_extract /sources/Python*.tar* pkg_build_python
 popd
