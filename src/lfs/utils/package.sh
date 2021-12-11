@@ -108,3 +108,19 @@ pkg_build_python() # name
 		make install
 	popd
 }
+
+pkg_build_texinfo() # name
+{
+	local name="$1"
+
+	pushd "$name"
+		sed -e 's/__attribute_nonnull__/__nonnull/' \
+		-i gnulib/lib/malloc/dynarray-skeleton.c
+
+		./configure --prefix=/usr
+
+		make
+
+		make install
+	popd
+}
