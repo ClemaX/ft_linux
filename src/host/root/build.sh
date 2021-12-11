@@ -11,6 +11,8 @@ source ~/utils/sources.sh
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
+lfs_backup="/cache/lfs-temp-tools-$LFS_VERSION.tar.xz"
+
 error_handler()
 {
 	local lineno=$1
@@ -110,8 +112,27 @@ lfs_chroot() # root [cmd]
 	popd
 }
 
-# Detach loop device in case it is in use.
-losetup -D
+lfs_backup() # root dest
+{
+	local root="${1:-$LFS}"
+	local dest="${2:-lfs-temp-tools-$LFS_VERSION.tar.xz}"
+
+	info "Backing up $root to $dest..."
+	tar -cJpf "$dest" "$root"
+}
+
+lfs_restore() # root src
+{
+	local root="${1:-$LFS}"
+	local src="${2:-lfs-temp-tools-$LFS_VERSION.tar.xz}"
+
+	info "Restoring $root from $src"
+	pushd "$root"
+		rm -rf ./*
+		tar -xpf "$src"
+	popd
+}
+
 
 # Create a new disk image.
 img_new "$IMG_DST" "$IMG_SIZE"
@@ -127,22 +148,30 @@ mkfs.ext4 -L root "${LOOP_DEV}p2"
 
 disk_mount "$LOOP_DEV" "$LFS"
 
-# Make files readable by anyone
-umask 022
-sources_fetch "$lfs_base_url" "$LFS/sources"
-chown -v lfs "$LFS" "$LFS/sources"
+if [ -f "$lfs_backup" ]
+then
+	lfs_restore "$LFS" "$lfs_backup"
+else
+	# Make files readable by anyone
+	umask 022
+	sources_fetch "$lfs_base_url" "$LFS/sources"
+	chown -v lfs "$LFS" "$LFS/sources"
 
-# Build LFS filesystems.
-pushd /home/lfs
-	env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
-popd
+	# Build LFS filesystems.
+	pushd /home/lfs
+		env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build.sh"
+	popd
 
-# Reset root permissions.
-lfs_chown root:root "$LFS"
+	# Reset root permissions.
+	lfs_chown root:root "$LFS"
 
-# Add builder scripts to the filesystem.
-cp -r chroot "$LFS/build"
+	# Add builder scripts to the filesystem.
+	cp -r chroot "$LFS/build"
 
-# Chroot into the filesystem.
-lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
-lfs_chroot "$LFS" /bin/bash --login +h /build/build.sh
+	# Chroot into the filesystem.
+	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
+	lfs_chroot "$LFS" /bin/bash --login +h /build/build.sh
+
+	# Backup the current lfs root.
+	lfs_backup "$LFS" "$lfs_backup"
+fi
