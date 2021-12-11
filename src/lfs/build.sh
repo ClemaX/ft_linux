@@ -28,4 +28,5 @@ log_init
 pushd /tmp
 	pkg_extract /sources/gcc*.tar* pkg_build_libstdc++
 	pkg_extract /sources/gettext*.tar* pkg_build_gettext
+	pkg_extract /sources/bison*.tar* pkg_build_bison
 popd

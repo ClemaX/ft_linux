@@ -56,3 +56,18 @@ pkg_build_gettext() # name
 		cp -v gettext-tools/src/{msgfmt,msgmerge,xgettext} /usr/bin
 	popd
 }
+
+pkg_build_bison() # name
+{
+	local name="$1"
+
+	pushd "$name"
+		./configure \
+			--prefix=/usr \
+			--docdir="/usr/share/doc/$name"
+
+		make
+
+		make install
+	popd
+}
