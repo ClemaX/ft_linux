@@ -164,6 +164,7 @@ else
 
 	# Reset root permissions.
 	lfs_chown root:root "$LFS"
+	chown -R root:root /tmp
 
 	# Add builder scripts to the filesystem.
 	cp -r chroot "$LFS/build"
