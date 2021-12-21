@@ -15,24 +15,21 @@ trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 source /build/utils/logger.sh
 source /build/utils/package.sh
 
-log_init()
-{
-	touch /var/log/{btmp,lastlog,faillog,wtmp}
-	chgrp -v utmp /var/log/lastlog
-	chmod -v 664  /var/log/lastlog
-	chmod -v 600  /var/log/btmp
-}
+# Initialize log files.
+touch /var/log/{btmp,lastlog,faillog,wtmp}
+chgrp -v utmp /var/log/lastlog
+chmod -v 664  /var/log/lastlog
+chmod -v 600  /var/log/btmp
 
-log_init
-
+# Build tools.
 pushd /tmp
-	pkg_extract /sources/gcc*.tar* pkg_build_libstdc++
-	pkg_extract /sources/gettext*.tar* pkg_build_gettext
-	pkg_extract /sources/bison*.tar* pkg_build_bison
-	pkg_extract /sources/perl*.tar* pkg_build_perl
-	pkg_extract /sources/Python*.tar* pkg_build_python
-	pkg_extract /sources/texinfo*.tar* pkg_build_texinfo
-	pkg_extract /sources/util-linux*.tar* pkg_build_util-linux
+	pkg_extract /sources/gcc*.tar*			pkg_build_libstdc++
+	pkg_extract /sources/Python*.tar*		pkg_build_python
+
+	for pkg in gettext bison perl texinfo util-linux
+	do
+		pkg_extract /sources/$pkg*.tar*		pkg_build_$pkg
+	done
 popd
 
 info "Cleaning up..."
