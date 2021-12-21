@@ -169,9 +169,11 @@ else
 	# Add builder scripts to the filesystem.
 	cp -r chroot "$LFS/build"
 
-	# Chroot into the filesystem.
+	# Initialize the filesystem.
 	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
-	lfs_chroot "$LFS" /bin/bash --login +h /build/build.sh
+	# Build additional temporary tools.
+	lfs_chroot "$LFS" /bin/bash --login +h /build/build_tools.sh
 
+	# Backup the temporary filesystem.
 	lfs_backup "$LFS" "$lfs_backup_file"
 fi
