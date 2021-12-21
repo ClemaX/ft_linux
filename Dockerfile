@@ -25,7 +25,7 @@ COPY src/lfs						./chroot
 COPY --chown=lfs:lfs src/host/lfs/	/home/lfs
 
 # Loop device
-ENV LOOP_DEV="/dev/loop0"
+ENV LOOP_DEV="/dev/lfs"
 
 # LFS version (use "stable" for latest)
 ENV LFS_VERSION="11.0"
