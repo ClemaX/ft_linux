@@ -25,7 +25,7 @@ $(DISTDIR)/$(NAME): ft_linux ## Build the LFS image.
     --cap-drop=all $(CAPS:%=--cap-add=%) \
     --device-cgroup-rule='b 7:* rmw' \
     --device-cgroup-rule='b 259:* rmw' \
-    -v /dev:/tmp/dev:ro \
+    -v /dev:/hostdev:ro \
     -v "$(shell pwd)/$(DISTDIR):/dist:rw" \
     -v "$(CACHEVOL):/cache:rw" \
     -it ft_linux $(CMD)
