@@ -49,12 +49,12 @@ loop_setup() # dev img
 		mknod "$dev" b 7 0
 	fi
 
-	info "Setting up loop device..."
+	info "Setting up $dev..."
 	losetup --partscan "$dev" "$img"
 
 	loop_partitions "$dev"
 
-	debug "Loaded $index partitions!"
+	debug "Loaded $((index - 1)) partitions!"
 
 	trap "loop_teardown '$dev' $index" EXIT
 }
@@ -77,4 +77,5 @@ loop_teardown() # dev partcount
 
 	info "Tearing down $dev..."
 	losetup -d "$dev"
+	rm -vf "$dev"
 }
