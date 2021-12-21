@@ -8,7 +8,7 @@ NAME=lfs.img## The name of the image.
 CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER## Capabilities to enable for the docker container.
 CMD=./build.sh## Command to run in the docker container.
 
-all: $(NAME) ## Alias for dist/lfs.img.
+all: $(DISTDIR)/$(NAME) ## Alias for dist/lfs.img.
 
 help:
 	@grep -e '^.*:.*##\s\+.*$$' -e '^.*=.*##\s\+.*$$' Makefile \
@@ -19,7 +19,7 @@ ft_linux: $(SRCDIR) ## Build the host docker image.
 	@echo "BUILD ft_linux"
 	@docker build -t ft_linux .
 
-$(NAME): ft_linux ## Build the LFS image.
+$(DISTDIR)/$(NAME): ft_linux ## Build the LFS image.
 	@echo "RUN $(CMD)"
 	@docker run --rm \
     --cap-drop=all $(CAPS:%=--cap-add=%) \
