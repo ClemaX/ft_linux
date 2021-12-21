@@ -11,7 +11,7 @@ source ~/utils/sources.sh
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
-lfs_backup="/cache/lfs-temp-tools-$LFS_VERSION.tar.xz"
+lfs_backup_file="/cache/lfs-temp-tools-$LFS_VERSION.tar.xz"
 
 error_handler()
 {
@@ -148,9 +148,9 @@ mkfs.ext4 -L root "${LOOP_DEV}p2"
 
 disk_mount "$LOOP_DEV" "$LFS"
 
-if [ -f "$lfs_backup" ]
+if [ -f "$lfs_backup_file" ]
 then
-	lfs_restore "$LFS" "$lfs_backup"
+	lfs_restore "$LFS" "$lfs_backup_file"
 else
 	# Make files readable by anyone
 	umask 022
@@ -173,6 +173,5 @@ else
 	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
 	lfs_chroot "$LFS" /bin/bash --login +h /build/build.sh
 
-	# Backup the current lfs root.
-	lfs_backup "$LFS" "$lfs_backup"
+	lfs_backup "$LFS" "$lfs_backup_file"
 fi
