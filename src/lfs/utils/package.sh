@@ -1,6 +1,17 @@
 NCORES=$(nproc)
 export MAKEFLAGS="-j${NCORES:-1}"
 
+make() # [arg]...
+{
+	if ! command make $@
+	then
+		local CALLER="${FUNCNAME[1]}"
+		warning "make failed, rerunning without parallel execution!"
+
+		command make -j1 $@
+	fi
+}
+
 # Build a compressed package.
 pkg_extract() # pkg builder
 {
