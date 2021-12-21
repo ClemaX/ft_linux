@@ -11,7 +11,7 @@ pkg_extract() # pkg builder
 	local name="${base%.tar*}"
 
 	info "Extracting $base to $name..."
-	tar --no-same-owner -xf "$pkg"
+	tar --no-same-owner --skip-old-files -xf "$pkg"
 
 	info "Building $name..."
 	"$builder" "$name"
