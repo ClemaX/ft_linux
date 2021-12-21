@@ -177,3 +177,5 @@ else
 	# Backup the temporary filesystem.
 	lfs_backup "$LFS" "$lfs_backup_file"
 fi
+
+disk_umount "$LOOP_DEV"
