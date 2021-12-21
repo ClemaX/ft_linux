@@ -4,13 +4,11 @@ img_new() # dst size
 	dst="$1"
 	size="$2"
 
-	info "Creating empty disk image of size $size MB at $dst..."
+	info "Creating empty disk image of size $size MiB at $dst..."
 
-	[ -f "$dst" ]&& truncate --size "${size}M" "$dst"
+	[ -f "$dst" ] && rm "$dst"
 
-	dd if=/dev/zero of="$dst" iflag=fullblock bs=1M count="$size"
-
-	sync
+	fallocate -l "${size}M" "$dst"
 }
 
 # Create additional devices for a loop device's partitions.
