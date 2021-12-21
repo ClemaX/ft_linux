@@ -25,6 +25,9 @@ error_handler()
 
 trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
+# Ensure that the loop device is not in use.
+loop_teardown "$LOOP_DEV" 3 || :
+
 # Create a new disk image.
 img_new "$IMG_DST" "$IMG_SIZE"
 
