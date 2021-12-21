@@ -12,6 +12,24 @@ make() # [arg]...
 	fi
 }
 
+# Build a compressed package.
+pkg_extract() # pkg builder
+{
+	pkg="$1"
+	builder="$2"
+
+	base="${pkg##*/}"
+	name="${base%.tar*}"
+
+	info "Extracting $base to $name..."
+	tar --skip-old-files -xf "$pkg"
+
+	info "Building $name..."
+	"$builder" "$name"
+
+	sed -e "/$base/d" -i packages.lst
+}
+
 pkg_build_binutils()
 {
 	pushd "$name"
@@ -507,20 +525,3 @@ pkg_build_gcc_pass2() # name
 	popd
 }
 
-# Build a compressed package.
-pkg_extract() # pkg builder
-{
-	pkg="$1"
-	builder="$2"
-
-	base="${pkg##*/}"
-	name="${base%.tar*}"
-
-	info "Extracting $base to $name..."
-	tar xf "$pkg"
-
-	info "Building $name..."
-	"$builder" "$name"
-
-	sed -e "/$base/d" -i packages.lst
-}
