@@ -1,8 +1,8 @@
 # Create an empty image of a specific size.
 img_new() # dst size
 {
-	dst="$1"
-	size="$2"
+	local dst="$1"
+	local size="$2"
 
 	info "Creating empty disk image of size $size MiB at $dst..."
 
@@ -12,68 +12,65 @@ img_new() # dst size
 }
 
 # Create additional devices for a loop device's partitions.
-loop_partitions() # dev
+loop_partitions()
 {
-	dev="$1"
+	local parts=$(lsblk --raw --output "MAJ:MIN" --noheadings "$LOOP_DEV" | tail -n +2)
+	local part_dev
 
-	parts=$(lsblk --raw --output "MAJ:MIN" --noheadings "$dev" | tail -n +2)
-	index=1
-
+	LOOP_PARTS=0
 	for part in $parts
 	do
+	 	((++LOOP_PARTS))
+
 		major="${part%%:*}"
 		minor="${part##*:}"
 
-		if [ ! -e "${dev}p${index}" ]
+		if [ ! -e "${LOOP_DEV}p${LOOP_PARTS}" ]
 		then
-			partdev="${dev}p${index}"
-			echo "Creating $partdev..."
-			mknod "$partdev" b "$major" "$minor"
-		fi
+			part_dev="${LOOP_DEV}p${LOOP_PARTS}"
 
-	 	((++index))
+			echo "Creating $part_dev..."
+			mknod "$part_dev" b "$major" "$minor"
+		fi
 	done
 }
 
 # Setup a loop device backed by a disk image.
-loop_setup() # dev img
+loop_setup() # img
 {
-	dev="$1"
-	img="$2"
+	local img="$1"
 
-	if [ ! -e "$dev" ]
+	if ! [ -e "$LOOP_DEV" ]
 	then
-		debug "Creating loop device at $dev..."
-		mknod "$dev" b 7 0
+		debug "Creating loop device at $LOOP_DEV..."
+		mknod "$LOOP_DEV" b 7 0
 	fi
 
-	info "Setting up $dev..."
-	losetup --partscan "$dev" "$img"
+	info "Setting up $LOOP_DEV..."
+	losetup --partscan "$LOOP_DEV" "$img"
 
-	loop_partitions "$dev"
+	loop_partitions
 
-	debug "Loaded $((index - 1)) partitions!"
-
-	trap "loop_teardown '$dev' $index" EXIT
+	debug "Loaded $((LOOP_PARTS - 1)) partitions!"
 }
 
 # Tear down a loop device with it's associated partitions.
-loop_teardown() # dev partcount
+loop_teardown()
 {
-	dev="$1"
-	partcount=${2:-0}
+	local part_dev
 
-	i=1
-
-	while [ $i -lt $partcount ]
+	local i=1
+	while [ $i -le ${LOOP_PARTS:-0} ]
 	do
-		partdev="${dev}p${i}"
-		info "Removing $partdev..."
-		rm -f "$partdev"
+		part_dev="${LOOP_DEV}p${i}"
+
+		info "Removing $part_dev..."
+		rm -f "$part_dev"
+
 		((++i))
 	done
 
-	info "Tearing down $dev..."
-	losetup -d "$dev"
-	rm -vf "$dev"
+	info "Tearing down $LOOP_DEV..."
+	losetup -d "$LOOP_DEV"
+	rm -vf "$LOOP_DEV"
 }

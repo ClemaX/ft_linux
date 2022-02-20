@@ -38,7 +38,7 @@ pkg_build_binutils()
 			../configure \
 				--prefix="$LFS/tools" \
 				--with-sysroot="$LFS" \
-             	--target="$LFS_TGT" \
+			 	--target="$LFS_TGT" \
 				--disable-nls \
 				--disable-werror
 
@@ -243,9 +243,9 @@ pkg_build_bash() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --build=$(support/config.guess) \
-            --host=$LFS_TGT \
-            --without-bash-malloc
+			--build=$(support/config.guess) \
+			--host=$LFS_TGT \
+			--without-bash-malloc
 
 		make
 
@@ -261,10 +261,10 @@ pkg_build_coreutils() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --host="$LFS_TGT" \
-            --build="$(build-aux/config.guess)" \
-            --enable-install-program=hostname \
-            --enable-no-install-program=kill,uptime
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)" \
+			--enable-install-program=hostname \
+			--enable-no-install-program=kill,uptime
 
 		make
 
@@ -300,9 +300,9 @@ pkg_build_file() # name
 
 		pushd build
 			../configure --disable-bzlib \
-               --disable-libseccomp \
-               --disable-xzlib \
-               --disable-zlib
+			   --disable-libseccomp \
+			   --disable-xzlib \
+			   --disable-zlib
 
 			make
 		popd
@@ -321,9 +321,9 @@ pkg_build_findutils() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --localstatedir=/var/lib/locate \
-            --host="$LFS_TGT" \
-            --build="$(build-aux/config.guess)"
+			--localstatedir=/var/lib/locate \
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)"
 
 		make
 
@@ -339,8 +339,8 @@ pkg_build_gawk() # name
 		sed -i 's/extras//' Makefile.in
 
 		./configure --prefix=/usr \
-            --host="$LFS_TGT" \
-            --build="$(./config.guess)"
+			--host="$LFS_TGT" \
+			--build="$(./config.guess)"
 
 		make
 
@@ -354,7 +354,7 @@ pkg_build_grep() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --host="$LFS_TGT"
+			--host="$LFS_TGT"
 
 		make
 
@@ -381,9 +381,9 @@ pkg_build_make() # name
 
 	pushd "$name"
 		./configure --prefix=/usr   \
-            --without-guile \
-            --host="$LFS_TGT" \
-            --build="$(build-aux/config.guess)"
+			--without-guile \
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)"
 
 		make
 
@@ -412,7 +412,7 @@ pkg_build_sed() # name
 
 	pushd "$name"
 		./configure --prefix=/usr   \
-            --host="$LFS_TGT"
+			--host="$LFS_TGT"
 
 		make
 
@@ -426,8 +426,8 @@ pkg_build_tar() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --host="$LFS_TGT" \
-            --build="$(build-aux/config.guess)"
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)"
 
 		make
 
@@ -441,10 +441,10 @@ pkg_build_xz() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-            --host="$LFS_TGT" \
-            --build="$(build-aux/config.guess)" \
-            --disable-static \
-            --docdir=/usr/share/doc/xz-5.2.5
+			--host="$LFS_TGT" \
+			--build="$(build-aux/config.guess)" \
+			--disable-static \
+			--docdir=/usr/share/doc/xz-5.2.5
 
 		make
 
@@ -524,4 +524,3 @@ pkg_build_gcc_pass2() # name
 		popd
 	popd
 }
-

@@ -1,4 +1,5 @@
 bash
+bc
 binutils=2.35.2-2
 bison
 bzip2

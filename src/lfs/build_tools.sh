@@ -24,9 +24,8 @@ chmod -v 600  /var/log/btmp
 # Build tools.
 pushd /tmp
 	pkg_extract /sources/gcc*.tar*			pkg_build_libstdc++
-	pkg_extract /sources/Python*.tar*		pkg_build_python
 
-	for pkg in gettext bison perl texinfo util-linux
+	for pkg in gettext bison perl Python texinfo util-linux
 	do
 		pkg_extract /sources/$pkg*.tar*		pkg_build_$pkg
 	done

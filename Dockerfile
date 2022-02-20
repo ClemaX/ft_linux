@@ -12,7 +12,7 @@ COPY src/host/root/packages.lst		.
 COPY src/host/root/prepare.sh		.
 
 # LFS root
-ENV LFS="/mnt/lfs"
+ENV LFS=/mnt/lfs
 
 RUN ./prepare.sh && rm -f packages.lst ./prepare.sh
 
@@ -25,12 +25,16 @@ COPY src/lfs						./chroot
 COPY --chown=lfs:lfs src/host/lfs/	/home/lfs
 
 # Loop device
-ENV LOOP_DEV="/dev/lfs"
+ENV LOOP_DEV=/dev/loop0
 
 # LFS version (use "stable" for latest)
-ENV LFS_VERSION="11.0"
+ENV LFS_VERSION=11.0
 # Linux kernel version
-ENV LINUX_VERSION="v4.9.283"
+ENV LINUX_VERSION=v4.9.283
+
+# Compile libraries optimized for the host processor (use "true" to enable)
+ENV HOST_OPTIMIZE=false
+ENV ROOT_PASSWORD=toor
 
 # Image destination
 ENV IMG_DST=/dist/disk.img

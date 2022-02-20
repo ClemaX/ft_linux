@@ -51,11 +51,9 @@ pushd "/tmp"
 	pkg_extract "$LFS/sources/"binutils*.tar*	pkg_build_binutils
 
 	# Build gcc.
-	gcc_pkg="$(find "$LFS/sources" -maxdepth 1 -wholename "$LFS/sources/gcc-*.tar.*")"
+	gcc_pkg="$LFS/sources/"gcc*.tar*
 	gcc_base="${gcc_pkg##*/}"
 	gcc_dir="${gcc_base%.tar*}"
-
-	debug "gcc: $gcc_pkg, gcc base: $gcc_base, gcc dir: $gcc_dir"
 
 	mkdir -v "$gcc_dir"
 
@@ -66,7 +64,7 @@ pushd "/tmp"
 	pkg_extract "$LFS/sources/"gcc*.tar*		pkg_build_gcc
 
 	# Build Linux API Headers.
-    pkg_extract "$LFS/sources/linux-stable.tar" pkg_build_kernel_headers
+	pkg_extract "$LFS/sources/linux-stable.tar" pkg_build_kernel_headers
 
 	# Build GLIBC.
 	pkg_extract "$LFS/sources/"glibc*.tar*		pkg_build_glibc
@@ -79,9 +77,10 @@ pushd "/tmp"
 	pkg_build_libstdc++ "$gcc_dir"
 
 	# Build additional tools.
-	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep gzip make patch sed tar xz
+	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep \
+		gzip make patch sed tar xz
 	do
-		pkg_extract "$LFS/sources/$pkg"*.tar*	pkg_build_$pkg
+		pkg_extract "$LFS/sources/"$pkg*.tar*	pkg_build_$pkg
 	done
 
 	pkg_build_binutils_pass2	binutils*/

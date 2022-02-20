@@ -1,22 +1,41 @@
 lfs_backup() # root dest
 {
 	local root="${1:-$LFS}"
-	local dest="${2:-lfs-temp-tools-$LFS_VERSION.tar.xz}"
+	local dest="${2:-/cache/lfs-temp-tools-$LFS_VERSION.tar.xz}"
 
+	local backup_dir=$(dirname "$dest")
+	local backup_file=$(basename "$dest")
+
+	# TODO: add md5sum and check md5sum on source_fetch
 	info "Backing up $root to $dest..."
 	pushd "$root"
 		tar -cJpf "$dest" .
+	popd
+
+	pushd "$backup_dir"
+		md5sum "$backup_file" > "$backup_file.md5"
 	popd
 }
 
 lfs_restore() # root src
 {
 	local root="${1:-$LFS}"
-	local src="${2:-lfs-temp-tools-$LFS_VERSION.tar.xz}"
+	local src="${2:-/cache/lfs-temp-tools-$LFS_VERSION.tar.xz}"
 
+	local backup_dir=$(dirname "$src")
+	local backup_file=$(basename "$src")
 	local boot=""
 
 	info "Restoring $root from $src..."
+
+	pushd "$backup_dir"
+		if ! md5sum --quiet --check "$backup_file.md5"
+		then
+			error "$src: md5sum does not match!"
+			return false
+		fi
+	popd
+
 	pushd "$root"
 		if mountpoint boot
 		then

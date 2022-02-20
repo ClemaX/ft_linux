@@ -50,3 +50,5 @@ popd()
 	builtin popd $@ 1>&2
 	echo -n "$ENDL" 1>&2
 }
+
+# TODO: Add mkdir verbose wrapper (also mv cp etc...)

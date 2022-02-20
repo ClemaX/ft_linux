@@ -7,7 +7,7 @@ cache_check() # action [cache]
 	info "Checking cache..."
 
 	pushd "$cache"
-		md5sum --check --quiet --ignore-missing - \
+		md5sum --check --quiet - \
 		| grep FAILED \
 		| sed 's/\(.*\):.*/\1/' \
 		| xargs --no-run-if-empty $action
