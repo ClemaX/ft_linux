@@ -27,7 +27,7 @@ $(DISTDIR)/$(NAME): ft_linux ## Build the LFS image.
 		--device-cgroup-rule='b 7:* rmw' \
 		--device-cgroup-rule='b 259:* rmw' \
 		-v /dev:/hostdev:ro \
-		-v "$(shell pwd)/$(DISTDIR):/dist:rw" \
+		-v "$(realpath "$DISTDIR"):/dist:rw" \
 		-v "$(CACHEVOL):/cache:rw" \
 		-it ft_linux $(CMD)
 
