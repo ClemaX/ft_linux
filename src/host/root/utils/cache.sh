@@ -1,3 +1,19 @@
+# Check if the cache is complete from the hashes given to STDIN.
+cache_complete() # [cache]
+{
+	local cache="${1:-$PWD}"
+	local status=0
+
+	info "Checking cache..."
+
+	pushd "$cache"
+		md5sum --check --status -
+		status="$?"
+	popd
+
+	return "$status"
+}
+
 # Get a list of corrupted files from the hashes given to STDIN.
 cache_check() # action [cache]
 {

@@ -102,7 +102,7 @@ sources_fetch_list() # name dst [cache] [user]
 		if [ -f "$base.urls" ]
 		then
 			# Check for cache integrity.
-			while ! cache_check "false" "$cache" < "$srcs_name.md5"
+			until cache_complete "$cache" < "$srcs_name.md5"
 			do
 				# Resume partial downloads.
 				parallel_fetch "--continue --quiet" < "$base.urls" \
