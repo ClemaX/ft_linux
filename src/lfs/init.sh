@@ -7,6 +7,7 @@ source /build/utils/fs.sh
 source /build/utils/hosts.sh
 source /build/utils/user.sh
 
+# Create the Standard filesystem hierarchy.
 fs_hierarchy
 
 # Link the mounted filesystems list to /etc/mtab.

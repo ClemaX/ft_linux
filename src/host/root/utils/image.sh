@@ -6,7 +6,7 @@ img_new() # dst size
 
 	info "Creating empty disk image of size $size MiB at $dst..."
 
-	[ -f "$dst" ] && rm "$dst"
+	[ -f "$dst" ] && rm -fv "$dst"
 
 	fallocate -l "${size}M" "$dst"
 }
@@ -40,11 +40,10 @@ loop_setup() # img
 {
 	local img="$1"
 
-	if ! [ -e "$LOOP_DEV" ]
-	then
-		debug "Creating loop device at $LOOP_DEV..."
-		mknod "$LOOP_DEV" b 7 0
-	fi
+	[ -e "$LOOP_DEV" ] && rm "$LOOP_DEV"
+
+	debug "Creating loop device at $LOOP_DEV..."
+	mknod "$LOOP_DEV" b 7 0
 
 	info "Setting up $LOOP_DEV..."
 	losetup --partscan "$LOOP_DEV" "$img"

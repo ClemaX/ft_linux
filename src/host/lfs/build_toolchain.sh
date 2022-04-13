@@ -48,26 +48,26 @@ pushd "/tmp"
 	ls "$LFS/sources/"*.tar* > packages.lst
 
 	# Build binutils.
-	pkg_extract "$LFS/sources/"binutils*.tar*	pkg_build_binutils
+	pkg_extract "$LFS/sources/"binutils*.tar*		pkg_build_binutils
 
 	# Build gcc.
-	gcc_pkg="$LFS/sources/"gcc*.tar*
+	gcc_pkg=$(echo "$LFS/sources/"gcc*.tar*)
 	gcc_base="${gcc_pkg##*/}"
 	gcc_dir="${gcc_base%.tar*}"
 
 	mkdir -v "$gcc_dir"
 
-	pkg_extract "$LFS/sources/"mpfr*.tar*		pkg_build_gcc_dep
-	pkg_extract "$LFS/sources/"gmp*.tar*		pkg_build_gcc_dep
-	pkg_extract "$LFS/sources/"mpc*.tar*		pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"mpfr*.tar*			pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"gmp*.tar*			pkg_build_gcc_dep
+	pkg_extract "$LFS/sources/"mpc*.tar*			pkg_build_gcc_dep
 
-	pkg_extract "$LFS/sources/"gcc*.tar*		pkg_build_gcc
+	pkg_extract "$LFS/sources/"gcc*.tar*			pkg_build_gcc
 
 	# Build Linux API Headers.
-	pkg_extract "$LFS/sources/linux-stable.tar" pkg_build_kernel_headers
+	pkg_extract "$LFS/sources/"linux-stable*.tar*	pkg_build_kernel_headers
 
 	# Build GLIBC.
-	pkg_extract "$LFS/sources/"glibc*.tar*		pkg_build_glibc
+	pkg_extract "$LFS/sources/"glibc*.tar*			pkg_build_glibc
 
 	# Finalize the installation of the limits.h header.
 	debug "Running mkheaders..."
@@ -80,7 +80,7 @@ pushd "/tmp"
 	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep \
 		gzip make patch sed tar xz
 	do
-		pkg_extract "$LFS/sources/"$pkg*.tar*	pkg_build_$pkg
+		pkg_extract "$LFS/sources/"$pkg*.tar*		pkg_build_$pkg
 	done
 
 	pkg_build_binutils_pass2	binutils*/

@@ -1,17 +1,6 @@
 NCORES=$(nproc)
 export MAKEFLAGS="-j${NCORES:-1}"
 
-make() # [arg]...
-{
-	if ! command make $@
-	then
-		local CALLER="${FUNCNAME[1]}"
-		warning "make failed, rerunning without parallel execution!"
-
-		command make -j1 $@
-	fi
-}
-
 # Build a compressed package.
 pkg_extract() # pkg builder
 {
@@ -33,6 +22,8 @@ pkg_extract() # pkg builder
 pkg_build_binutils()
 {
 	pushd "$name"
+		[ -d build ] && rm -rf build
+
 		mkdir -v build
 		pushd build
 			../configure \
@@ -165,7 +156,7 @@ pkg_build_libstdc++() # name
 	name="$1"
 
 	pushd "$name"
-		[ -d build ] && rm -rfv build
+		[ -d build ] && rm -rf build
 
 		mkdir -v build
 		pushd build
@@ -457,7 +448,7 @@ pkg_build_binutils_pass2() # name
 	name="$1"
 
 	pushd "$name"
-		[ -d build ] && rm -rfv build
+		[ -d build ] && rm -rf build
 
 		mkdir -v build
 		pushd build
@@ -491,7 +482,7 @@ pkg_build_gcc_pass2() # name
 		esac
 
 		# Remove existing build directory
-		[ -d build ] && rm -rfv build
+		[ -d build ] && rm -rf build
 
 		mkdir -v build
 		pushd build

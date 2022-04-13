@@ -21,7 +21,7 @@ lfs_chroot_umount() # root [mountpoint]...
 
 	for mountpoint in $@
 	do
-		umount || warning "Failed to unmount $root/$mountpoint!"
+		umount -lv "$root/$mountpoint" || warning "Failed to unmount $root/$mountpoint!"
 	done
 }
 
@@ -32,13 +32,13 @@ lfs_chroot_teardown() # root
 	pushd "$root"
 		if mountpoint dev/
 		then
-			info "Tearing down kernel file systems in $root..."
+			info "Tearing down kernel filesystems in $root..."
 
 			lfs_chroot_umount "$root" dev/pts {sys,proc,run} dev cache tmp
 
 			rm -vf dev/{console,null}
 
-			rmdir -v cache
+			[ -d cache ] && rmdir -v cache
 		fi
 	popd
 }
@@ -50,17 +50,14 @@ lfs_chroot() # root [cmd]
 	local root="${1:-$LFS}"; shift
 
 	pushd "$root"
-		info "Mounting kernel file systems to $root..."
+		info "Mounting kernel filesystems to $root..."
 
 		# Create mountpoints.
 		mkdir -pv {dev,proc,sys,run,cache,tmp}
 
-		# Teardown on unexpected exit.
-		trap "lfs_chroot_teardown '$root'" EXIT
-
 		# Create console devices.
-		mknod -m 600 dev/console	c 5 1
-		mknod -m 666 dev/null		c 1 3
+		[ -e dev/console	] || mknod -m 600 dev/console	c 5 1
+		[ -e dev/null		] || mknod -m 666 dev/null		c 1 3
 
 		# Mount /dev.
 		mount -v	--bind	/dev		dev
@@ -86,6 +83,8 @@ lfs_chroot() # root [cmd]
 			TERM="$TERM" \
 			PS1="$LFS_PS1" \
 			PATH=/usr/bin:/usr/sbin \
+			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
+			PAGE="$PAGE" \
 			${@:-/bin/bash --login +h}
 
 		lfs_chroot_teardown "$root"

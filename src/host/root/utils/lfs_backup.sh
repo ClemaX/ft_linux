@@ -31,8 +31,7 @@ lfs_restore() # root src
 	pushd "$backup_dir"
 		if ! md5sum --quiet --check "$backup_file.md5"
 		then
-			error "$src: md5sum does not match!"
-			return false
+			error "$src: md5sum does not match!" && false
 		fi
 	popd
 

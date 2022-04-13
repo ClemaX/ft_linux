@@ -1,5 +1,6 @@
 group_init()
 {
+	debug "Initializing /etc/group..."
 	# Create the group list.
 	cat > /etc/group << "EOF"
 root:x:0:
@@ -35,6 +36,8 @@ group_add() # group gid
 	local group="$1"
 	local gid="$2"
 
+	debug "Adding group $group with gid $gid..."
+
 	if cut -d':' -f1 /etc/group | grep -m1 "^$group\$"
 	then
 		error "${FUNCNAME[0]}: The group '$group' already exists!"
@@ -54,6 +57,7 @@ user_init()
 {
 	group_init
 
+	debug "Initializing /etc/passwd..."
 	# Create the user list.
 	cat > /etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/bash
@@ -76,6 +80,8 @@ user_add() # user uid [shell] [desc]
 	local gid="$uid"
 
 	local home="/home/$user"
+
+	debug "Adding user $user with uid $uid, $home and $shell..."
 
 	# Check if the user already exists.
 	if cut -d':' -f1 /etc/passwd | grep -m1 "^$user\$"

@@ -1,82 +1,153 @@
 MAX_REDIR=80
 
-sources_urls() # url
+# Fetch and filter source urls.
+sources_urls() # [url]
 {
-	url="$1"
+	local url="${1:-}"
 
 	[ -z "$url" ] || wget --timestamping "$url/wget-list"
 
-	sed -e '/.*\/linux-.*\.tar.*/d' wget-list
+	sed -e '/\/linux\-[^\/]*.tar[^\/]*/d' wget-list
 }
 
+# Fetch and filter md5 hashes.
 sources_md5() # [url]
 {
-	url="${1:-}"
+	local url="${1:-}"
 
 	[ -z "$url" ] || wget --timestamping "$url/md5sums"
 
-	sed -e '/.*linux-.*\.tar.*/d' md5sums
+	sed -e '/.*[[:space:]]linux-[^\/]*\.tar[^\/]*/d' md5sums
 }
 
+# Fetch multiple files in parallel.
 parallel_fetch() # options [input] [dst] [count]
 {
-	options="$1"
-	input="${2:-}"
-	dst="${3:-$PWD}"
-	count="${4:-4}"
+	local options="$1"
+	local input="${2:-}"
+	local dst="${3:-$PWD}"
+	local count="${4:-4}"
 
 	if [ -z "$input" ]
 	then
-		parallel -j"$count" --round-robin --bar wget --input-file=- $options --quiet --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -j"$count" --round-robin --bar wget --input-file=- $options -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
 	else
-		parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- $options --quiet --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- $options -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
 	fi
+}
+
+# Fetch an archive at "proto://repo:branch" and create a tar archive and a
+# md5 hash.
+sources_fetch_git() # proto://repo:branch dst [user]
+{
+	local dst="$2"
+	local user="${3:-root}"
+
+	if [[ "$1" =~ ^([^:]+)://([^:]+):(.*) ]]
+	then
+		local proto="${BASH_REMATCH[1]}"
+		local repo="${BASH_REMATCH[2]}"
+		local branch="${BASH_REMATCH[3]}"
+
+		local name="$(basename "$repo" .git)"
+		local package_name="$name-$branch"
+
+		if ! md5sum --check --quiet "$package_name.md5"
+		then
+			if ! [ "$proto" = "git" ] \
+			|| ! git archive --remote "$proto://$repo" "$branch" -o "$package_name.tar"
+			then
+				git_checkout "$proto://$repo" "$branch" "$name"
+				git_package "$name" "$package_name"
+			fi
+
+			md5sum "$package_name.tar" > "$package_name.md5"
+		fi
+
+		info "Linking $PWD/$package_name to $dst..."
+		su "$user" -c "ln -sv '$PWD/$package_name.tar' '$dst'"
+	else
+		error "Invalid url format: $1" && false
+	fi
+}
+
+# Fetch sources given an url-list at "name.lst" and verify their integrity using
+# md5 hashes at "name.md5".
+sources_fetch_list() # name dst [cache] [user]
+{
+	local srcs_name=$(realpath "$1")
+	local dst="$2"
+	local cache="${3:-/cache}"
+	local user="${4:-root}"
+
+	local base=$(basename "$srcs_name")
+
+	local proto repo version
+	local name package_name
+
+	pushd "$cache"
+		[ -f "$base.urls" ] && rm -fv "$base.urls"
+
+		while IFS= read -r url
+		do
+			# Fetch git repo or store url.
+			if [[ "$url" =~ ^[^:]+://[^:]+\.git:.* ]]
+			then
+				sources_fetch_git "$url" "$dst" "$user"
+			else
+				echo "$url" >> "$base.urls"
+			fi
+		done < "$srcs_name.lst"
+
+		if [ -f "$base.urls" ]
+		then
+			# Check for cache integrity.
+			while ! cache_check "false" "$cache" < "$srcs_name.md5"
+			do
+				# Resume partial downloads.
+				parallel_fetch "--continue --quiet" < "$base.urls" \
+				|| warning "Warning: $? jobs failed!"
+
+				# Delete corrupted files.
+				cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
+			done
+
+			# Download missing files.
+			#while parallel_fetch --no-clobber < "$base.urls" \
+			#| grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
+			#do
+			#	cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
+			#done
+		
+			# Link to destination.
+			info "All '$base' packages have been downloaded! Linking to '$dst'..."
+			cache_link "$dst" "$cache" "$user" < "$base.urls"
+		fi
+	popd
 }
 
 # Fetch a list of urls at "$url/wget-list" and verify file integrity using a
 # list of hashes at "$url/md5sums".
-sources_fetch() # url dst [user]
+sources_fetch() # url dst [cache] [user]
 {
-	url="$1"
-	dst="$2"
-	#user="$3"
-
-	cache="/cache"
+	local url="$1"
+	local dst="$2"
+	local cache="${3:-/cache}"
+	local user="${4:-root}"
 
 	[ -d "$dst" ] || mkdir -v "$dst" && chmod -v a+wt "$dst"
 
 	[ -d "$cache" ] || mkdir -pv "$cache" #&& [ -z $user ] || chown cache ":$user"
 
 	pushd "$cache"
+		# Fetch lists.
+		sources_urls "$url" > lfs.lst
+		sources_md5 "$url" > lfs.md5
 
-		# Check for cache integrity.
-		if ! sources_md5 "$url" | cache_check "false"
-		then
-			# Resume partial downloads.
-			sources_urls "$url" | parallel_fetch "--continue --quiet" || warning "Warning: $? jobs failed!"
+		# Fetch LFS sources.
+		sources_fetch_list lfs "$dst" "$cache" "$user"
 
-			# Delete corrupted files.
-			cache_check "rm -rfv" < md5sums
-		fi
-		# Download missing files.
-		# TODO: Add a max retry mechanism
-		# TODO: Add pipepart flag
-		while sources_urls "$url" | parallel_fetch --no-clobber \
-		| grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
-		do
-			cache_check "rm -rfv" < md5sums
-		done
-
-		info "All packages have been downloaded! Linking to '$dst'..."
-		cache_link "$dst"
-
-		# Checkout the linux kernel sources.
-		if ! [ -f linux-stable.tar ]
-		then
-			linux_checkout "$LINUX_VERSION"
-			linux_package
-		fi
-		debug "Linking $PWD/linux-stable.tar to $LFS/sources"
-		su lfs -c "ln -sv '$PWD/linux-stable.tar' '$LFS/sources'"
+		# Fetch Linux kernel.
+		sources_fetch_git "$KERNEL_SOURCE" "$dst" "$user"
 	popd
 }

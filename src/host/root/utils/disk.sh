@@ -12,8 +12,8 @@ disk_mount() # dev mnt
 
 disk_umount() # dev
 {
-	umount -v "${dev}p1"
-	umount -v "${dev}p2"
+	umount -lv "${dev}p1"
+	umount -lv "${dev}p2"
 }
 
 disk_partition() # dev

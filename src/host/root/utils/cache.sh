@@ -1,8 +1,8 @@
 # Get a list of corrupted files from the hashes given to STDIN.
 cache_check() # action [cache]
 {
-	action="$1"
-	cache="${2:-$PWD}"
+	local action="$1"
+	local cache="${2:-$PWD}"
 
 	info "Checking cache..."
 
@@ -14,19 +14,28 @@ cache_check() # action [cache]
 	popd
 }
 
+# Print existing cached files from an url-list given to STDIN.
 cache_list() # [cache]
 {
-	cache="${1:-PWD}"
+	local cache="${1:-$PWD}"
 
-	cut -b 35- < "$cache/md5sums" && echo linux-stable
+	local src
+
+	pushd "$cache"
+		while IFS= read -r src
+		do
+			src=$(basename "$src")
+			[ -f "$src" ] && echo "$src"
+		done
+	popd
 }
 
-# Link all files in cache to dst
-cache_link() # dst [cache]
+# Link all files from an url-list exisiting in cache to dst.
+cache_link() # dst [cache] [user]
 {
-	dst="${1}"
-	cache="${2:-$PWD}"
+	local dst="${1}"
+	local cache="${2:-$PWD}"
+	local user="${3:-root}"
 
-	debug "Linking packages from $cache to $dst..."
-	cache_list "$cache" | su lfs -c "xargs --no-run-if-empty -I{} ln -s '$cache/{}' '$dst'"
+	cache_list "$cache" | su "$user" -c "xargs --no-run-if-empty -I{} ln -s '$cache/{}' '$dst'"
 }

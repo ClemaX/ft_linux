@@ -6,13 +6,13 @@ source ~/utils/logger.sh
 source ~/utils/disk.sh
 source ~/utils/cache.sh
 source ~/utils/image.sh
-source ~/utils/linux.sh
+source ~/utils/git.sh
 source ~/utils/sources.sh
 source ~/utils/lfs_chroot.sh
 source ~/utils/lfs_backup.sh
 source ~/utils/progress_bar.sh
 
-PROGRESS_BAR_PREFIX_FW=-24
+PROGRESS_BAR_PREFIX_FW=-27
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
@@ -20,8 +20,9 @@ lfs_backup_file="/cache/lfs-temp-tools-$LFS_VERSION.tar.xz"
 
 error_handler()
 {
-	local lineno=$1
-	local cmd=$2
+	local src="$1"
+	local lineno="$2"
+	local cmd="$3"
 
  	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
 }
@@ -29,16 +30,17 @@ error_handler()
 exit_handler()
 {
 	info "Cleaning up..."
+	if mountpoint "$LFS"
+	then
+		lfs_chroot_teardown "$LFS"
+		disk_umount "$LOOP_DEV"
+	fi
 	loop_teardown
-	lfs_chroot_teardown "$LFS"
 	progress_destroy
 }
 
-trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+trap 'error_handler "$BASH_SOURCE" "$LINENO" "$BASH_COMMAND"' ERR
 trap 'exit_handler' EXIT
-
-# Ensure that the loop device is not in use.
-#loop_teardown || :
 
 progress_init 10
 
@@ -62,7 +64,7 @@ disk_mount "$LOOP_DEV" "$LFS"
 
 if [ -f "$lfs_backup_file" ]
 then
-	PROGRESS_TOTAL=$((PROGRESS_CURR + 2))
+	((PROGRESS_CURR += 4))
 	progress "Restoring backup"
 	lfs_restore "$LFS" "$lfs_backup_file"
 else
@@ -71,7 +73,7 @@ else
 	umask 022
 
 	# Fetch sources.
-	sources_fetch "$lfs_base_url" "$LFS/sources"
+	sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
 	chown -v lfs "$LFS" "$LFS/sources"
 
 	progress "Building toolchain"
@@ -100,12 +102,13 @@ else
 	lfs_backup "$LFS" "$lfs_backup_file"
 fi
 
-# TODO: Remove when stable...
-
-# Add builder scripts to the filesystem.
-#cp -r chroot/* "$LFS/build"
+# TODO: Remove when stable
+# Update builder scripts in the filesystem.
+cp -r chroot/* "$LFS/build"
 
 progress "Building system software"
+
 lfs_chroot "$LFS" /bin/bash --login +h /build/build_software.sh
 
-disk_umount "$LOOP_DEV"
+# TODO: Uncomment when stable
+#disk_umount "$LOOP_DEV"

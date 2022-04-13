@@ -14,6 +14,7 @@ trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
 
 source /build/utils/logger.sh
 source /build/utils/package.sh
+source /build/utils/packages_tools.sh
 
 # Initialize log files.
 touch /var/log/{btmp,lastlog,faillog,wtmp}
@@ -34,10 +35,10 @@ popd
 info "Cleaning up..."
 
 # Remove installed documentations to save space.
-rm -rf /usr/share/{info,man,doc}/*
+rm -rfv /usr/share/{info,man,doc}/*
 
 # Remove libtool .la files that are harmful when using dynamic linking.
-find /usr/{lib,libexec} -name \*.la -delete
+find /usr/{lib,libexec} -name '*.la' -delete
 
 # Remove cross-compilation tools.
 rm -rf /tools
