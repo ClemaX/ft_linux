@@ -15,7 +15,7 @@ then
 		# Save cursor position
 		tput sc
 
-		# Set scroll region (and move cursor to the top-left corner)
+		# Set scroll-region (and move cursor to the top-left corner)
 		tput csr 0 "$PROGRESS_SCROLL_LINES"
 
 		# Restore cursor position
@@ -29,7 +29,9 @@ then
 
 	progress_destroy_scroll()
 	{
-		local lines=$(tput lines)
+		local lines
+
+		lines=$(tput lines)
 
 		# Save cursor position
 		tput sc
@@ -65,10 +67,13 @@ then
 		fi
 	}
 
+	# shellcheck disable=SC2120
 	progress_bar() # [step_name]
 	{
-		local step_name="${1:-}"
-		local columns=$(tput cols)
+		local step_name="${1:-${PROGRESS_CURR_NAME:-}}"
+		local columns
+
+		columns=$(tput cols)
 
 		# Save cursor position
 		tput sc
@@ -80,20 +85,25 @@ then
 		tput ed
 
 		# Print progress-bar
-		local progress=$(bc -l <<< "scale = 2; $PROGRESS_CURR / $PROGRESS_TOTAL")
+		local progress prefix suffix
 
-		local prefix=$(printf "%${PROGRESS_BAR_PREFIX_FW}s [" "$step_name")
-		local suffix=$(printf "] %${PROGRESS_BAR_SUFFIX_FW}s" "$PROGRESS_CURR/$PROGRESS_TOTAL")
+		progress=$(bc -l <<< "scale = 2; $PROGRESS_CURR / $PROGRESS_TOTAL")
 
-		local prefix_length=${#prefix}
-		local suffix_length=${#suffix}
+		prefix=$(printf "%${PROGRESS_BAR_PREFIX_FW}s [" "$step_name")
+		suffix=$(printf "] %${PROGRESS_BAR_SUFFIX_FW}s" "$PROGRESS_CURR/$PROGRESS_TOTAL")
 
-		local bar_length=$((columns - prefix_length - suffix_length))
-		local filled_length=$(bc -l <<< "scale = 0; $bar_length * $progress / 1")
-		local empty_length=$((bar_length - filled_length))
+		local prefix_length=${#prefix} suffix_length=${#suffix}
 
-		local bar_filled=$(progress_bar_part "$PROGRESS_BAR_FILLED" "$filled_length" "$PROGRESS_BAR_FILLED_PREFIX" "$PROGRESS_BAR_FILLED_SUFFIX")
-		local bar_empty=$(progress_bar_part "$PROGRESS_BAR_EMPTY" "$empty_length")
+		local bar_length filled_length empty_length
+
+		bar_length=$((columns - prefix_length - suffix_length))
+		filled_length=$(bc -l <<< "scale = 0; $bar_length * $progress / 1")
+		empty_length=$((bar_length - filled_length))
+
+		local bar_filled bar_empty
+
+		bar_filled=$(progress_bar_part "$PROGRESS_BAR_FILLED" "$filled_length" "$PROGRESS_BAR_FILLED_PREFIX" "$PROGRESS_BAR_FILLED_SUFFIX")
+		bar_empty=$(progress_bar_part "$PROGRESS_BAR_EMPTY" "$empty_length")
 
 		echo -n "$prefix$bar_filled$bar_empty$suffix"
 
@@ -113,14 +123,15 @@ then
 		tput ed
 
 		# Restore cursor position
-		tput rc	
+		tput rc
 	}
 
 	progress_init() # step_count
 	{
-		PROGRESS_TOTAL="$1"
-		PROGRESS_CURR=0
+		PROGRESS_TOTAL="$1" PROGRESS_CURR=0
+		PROGRESS_CURR_NAME=
 
+		# Initialize parameters
 		local progress_max="$PROGRESS_TOTAL/$PROGRESS_TOTAL"
 
 		PROGRESS_BAR_ACCENT="${PROGRESS_BAR_ACCENT:-7}"
@@ -136,6 +147,7 @@ then
 		PROGRESS_BAR_FILLED_SUFFIX=$(tput sgr0)
 		PROGRESS_BAR_FILLED_PREFIX=$(tput setaf "$PROGRESS_BAR_ACCENT")
 
+		# Initialize the scroll-region
 		progress_init_scroll
 	}
 
@@ -147,33 +159,33 @@ then
 		unset PROGRESS_LINES PROGRESS_SCROLL_LINES
 	}
 
+	# shellcheck disable=SC2120
 	progress() # [step_name]
 	{
-		local step_name="${1:-}"
+		PROGRESS_CURR_NAME="${1:-}"
 
-		[ "$(tput lines)" -ne "$PROGRESS_LINES" ] && progress_init_scroll
+		#[ "$(tput lines)" -ne "$PROGRESS_LINES" ] && progress_init_scroll
 
-		progress_bar "$step_name"
+		progress_bar
 
 		[ "$PROGRESS_CURR" -lt "$PROGRESS_TOTAL" ] && ((PROGRESS_CURR += 1))
 	}
 else
 	progress_init() # step_count
 	{
-		PROGRESS_TOTAL="$1"
-		PROGRESS_CURR=0
+		PROGRESS_TOTAL="$1" PROGRESS_CURR=0
 	}
 
 	progress_destroy()
-	{ 
-		unset PROGRESS_TOTAL
-		unset PROGRESS_CURR
+	{
+		unset PROGRESS_TOTAL PROGRESS_CURR
 	}
 
-	progress() # [step_name] 
+	# shellcheck disable=SC2120
+	progress() # [step_name]
 	{
 		echo -n "$PROGRESS_CURR/$PROGRESS_TOTAL"
-		[ -z "${1:-}" ] && echo || echo ": $1"
+		[ -z "${1:-${PROGRESS_CURR_NAME:-}}" ] && echo || echo ": $1"
 
 		[ "$PROGRESS_CURR" -lt "$PROGRESS_TOTAL" ] && ((PROGRESS_CURR += 1))
 	}
