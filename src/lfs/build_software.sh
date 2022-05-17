@@ -30,7 +30,7 @@ pushd /tmp
 
 	pkg_extract /sources/tcl*-src*.tar* pkg_build_tcl
 
-	for pkg in expect dejagnu binutils gmp mpfr attr acl libcap shadow gcc \
+	for pkg in expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow gcc \
 		pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
 		gperf expat inetutils less perl XML-Parser intltool autoconf automake \
 		kmod elfutils libffi openssl Python ninja meson coreutils check \
