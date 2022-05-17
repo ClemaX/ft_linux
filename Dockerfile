@@ -37,7 +37,12 @@ ENV PAGE=A4
 
 # Compile libraries optimized for the host processor (use "true" to enable)
 ENV HOST_OPTIMIZE=false
+
+# Password for the root user
 ENV ROOT_PASSWORD=toor
+
+# Skip test suites
+ENV SKIP_TESTS=true
 
 # Image destination
 ENV IMG_DST=/dist/disk.img

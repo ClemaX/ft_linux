@@ -42,7 +42,10 @@ pkg_build_glibc() # name
 
 			make
 
-			make check || warning "$name tests were not fully passed!"
+			if [ "$SKIP_TESTS" != true ]
+			then
+				make check || warning "$name tests were not fully passed!"
+			fi
 
 			touch /etc/ld.so.conf
 
@@ -104,7 +107,7 @@ pkg_build_zlib() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -162,7 +165,7 @@ pkg_build_xz() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -191,7 +194,7 @@ pkg_build_file() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -230,7 +233,7 @@ pkg_build_m4() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -245,7 +248,7 @@ pkg_build_bc() # name
 
 		make
 
-		make test
+		[ "$SKIP_TESTS" != true ] && make test
 
 		make install
 	popd
@@ -262,7 +265,7 @@ pkg_build_flex() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -305,7 +308,7 @@ pkg_build_tcl() # name
 				-e "s|$srcdir/pkgs/itcl4.2.1|/usr/include|" \
 				-i pkgs/itcl4.2.1/itclConfig.sh
 
-			make test
+			[ "$SKIP_TESTS" != true ] && make test
 
 			make install
 
@@ -339,7 +342,7 @@ pkg_build_expect() # name
 
 		make
 
-		make test
+		[ "$SKIP_TESTS" != true ] && make test
 
 		make install
 
@@ -367,7 +370,7 @@ pkg_build_dejagnu() # name
 			install -v -dm755  "/usr/share/doc/dejagnu-$version"
 			install -v -m644   doc/dejagnu.{html,txt} "/usr/share/doc/dejagnu-$version"
 
-			make check
+			[ "$SKIP_TESTS" != true ] && make check
 		popd
 	popd
 }
@@ -405,23 +408,27 @@ pkg_build_binutils() # name
 
 			make tooldir=/usr
 
-			local check_log="/tmp/$name-check.log"
-
-			# Run tests and store output.
-			(command make -k check || :) 2>&1 | tee "$check_log" >&2
-
-			# Count failed tests.
-			local fail_count=$(grep -c '^FAIL: ' "$check_log")
-
-			# Four zlib related tests are known to fail.
-			if [ "$((fail_count -= 4))" -ne 0 ]
+			if [ "$SKIP_TESTS" != true ]
 			then
-				error "$check_log: $fail_count mandatory tests failed!"
-				return 1
-			fi
+				local check_log="/tmp/$name-check.log"
+				local fail_count
 
-			# Remove log.
-			rm -f "$check_log"
+				# Run tests and store output.
+				(make -k check || :) 2>&1 | tee "$check_log" >&2
+
+				# Count failed tests.
+				fail_count=$(grep -c '^FAIL: ' "$check_log")
+
+				# Four zlib related tests are known to fail.
+				if [ "$((fail_count -= 4))" -ne 0 ]
+				then
+					error "$check_log: $fail_count mandatory tests failed!"
+					false
+				fi
+
+				# Remove log.
+				rm -f "$check_log"
+			fi
 
 			make tooldir=/usr install -j1
 
@@ -457,21 +464,26 @@ pkg_build_gmp() # name
 		# Generate HTML documentation.
 		make html
 
-		# Run tests and store output.
-		local check_log="/tmp/$name-check.log"
-
-		command make check 2>&1 | tee "$check_log" >&2
-
-		local pass_count=$(awk '/# PASS:/{total+=$3} ; END{print total}' "$check_log")
-		local fail_count=$((197 - pass_count))
-
-		if [ "$fail_count" -ne 0 ]
+		if [ "$SKIP_TESTS" != true ]
 		then
-			error "$check_log: $fail_count mandatory tests failed!"
-			return 1
-		fi
+			# Run tests and store output.
+			local check_log="/tmp/$name-check.log"
+			local pass_count
+			local fail_count
 
-		rm -f "$check_log"
+			make check 2>&1 | tee "$check_log" >&2
+
+			pass_count=$(awk '/# PASS:/{total+=$3} ; END{print total}' "$check_log")
+			fail_count=$((197 - pass_count))
+
+			if [ "$fail_count" -ne 0 ]
+			then
+				error "$check_log: $fail_count mandatory tests failed!"
+				return 1
+			fi
+
+			rm -f "$check_log"
+		fi
 
 		make install
 		make install-html
@@ -495,7 +507,7 @@ pkg_build_mpfr() # name
 		# Generate HTML documentation.
 		make html
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 		make install-html
@@ -516,7 +528,7 @@ pkg_build_mpc() # name
 		make
 		make html
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 		make install-html
@@ -537,7 +549,7 @@ pkg_build_attr() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -572,7 +584,7 @@ pkg_build_libcap() # name
 
 		make prefix=/usr lib=lib
 
-		make test
+		[ "$SKIP_TESTS" != true ] && make test
 
 		make prefix=/usr lib=lib install
 
@@ -664,17 +676,22 @@ pkg_build_gcc() # name
 
 			make
 
-			# Increase stack size to permit exhaustive tests.
-			local prev_stack_limit=$(ulimit -s)
-			ulimit -s 32768
+			if [ "$SKIP_TESTS" != true ]
+			then
+				# Increase stack size to permit exhaustive tests.
+				local prev_stack_limit
 
-			# Run the tests using an unprivileged user.
-			chown -Rv tester .
-			su tester -c "PATH=$PATH make -k check"
-			# TODO: Eight tests related to analyzer are known to fail.
+				prev_stack_limit=$(ulimit -s)
+				ulimit -s 32768
 
-			# Restore stack size limit.
-			ulimit -s "$prev_stack_limit"
+				# Run the tests using an unprivileged user.
+				chown -Rv tester .
+				su tester -c "PATH=$PATH make -k check"
+				# TODO: Eight tests related to analyzer are known to fail.
+
+				# Restore stack size limit.
+				ulimit -s "$prev_stack_limit"
+			fi
 
 			make install
 
@@ -692,26 +709,31 @@ pkg_build_gcc() # name
 			ln -sfv "../../libexec/gcc/$(gcc -dumpmachine)/$version/liblto_plugin.so" \
 				/usr/lib/bfd-plugins/
 
-			# Compilation test.
-			local check_log=/tmp/dummy.log
-
-			echo 'int main(){}' > dummy.c
-			cc dummy.c -v -Wl,--verbose &> "$check_log"
-			readelf -l a.out | grep ': /lib'
-			# TODO: Check output of the last command.
-
-			local success_count=$(grep -c '/usr/lib.*/crt[1in].*succeeded' "$check_log")
-			if [ "$success_count" -ne 3 ]
+			if [ "$SKIP_TESTS" != true ]
 			then
-				error "Basic compilation failed!"
-				return 1
+				# Compilation test.
+				local check_log=/tmp/dummy.log
+
+				echo 'int main(){}' > dummy.c
+				cc dummy.c -v -Wl,--verbose &> "$check_log"
+				readelf -l a.out | grep ': /lib'
+				# TODO: Check output of the last command.
+
+				local success_count
+
+				success_count=$(grep -c '/usr/lib.*/crt[1in].*succeeded' "$check_log")
+				if [ "$success_count" -ne 3 ]
+				then
+					error "Basic compilation failed!"
+					return 1
+				fi
+
+				grep -B4 '^ /usr/include' dummy.log
+
+				# TODO: Remove or complete these tests.
+
+				rm -v dummy.c a.out "$check_log"
 			fi
-
-			grep -B4 '^ /usr/include' dummy.log
-
-			# TODO: Remove or complete these tests.
-
-			rm -v dummy.c a.out "$check_log"
 
 			# Move a misplaced file.
 			mkdir -pv /usr/share/gdb/auto-load/usr/lib
@@ -734,7 +756,7 @@ pkg_build_pkg-config() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -793,8 +815,11 @@ pkg_build_sed() # name
 		# Generate html documentation
 		make html
 
-		chown -Rv tester .
-		su tester -c "PATH=\"$PATH\" make check"
+		if [ "$SKIP_TESTS" != true ]
+		then
+			chown -Rv tester .
+			su tester -c "PATH=\"$PATH\" make check"
+		fi
 	popd
 }
 
@@ -824,7 +849,7 @@ pkg_build_gettext() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 		chmod -v 0755 /usr/lib/preloadable_libintl.so
@@ -841,7 +866,7 @@ pkg_build_bison() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -856,7 +881,7 @@ pkg_build_grep() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -879,13 +904,16 @@ pkg_build_bash() # name
 		# Run tests.
 		chown -Rv tester .
 
-		su -s /usr/bin/expect tester << EOF
+		if [ "$SKIP_TESTS" != true ]
+		then
+			su -s /usr/bin/expect tester <<'EOF'
 set timeout -1
 spawn make tests
 expect eof
 lassign [wait] _ _ _ value
 exit $value
 EOF
+		fi
 
 		make install
 	popd
@@ -900,7 +928,7 @@ pkg_build_libtool() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -921,7 +949,10 @@ pkg_build_gdbm() # name
 
 		make
 
-		make -k check || :
+		if [ "$SKIP_TESTS" != true ]
+		then
+			make -k check || :
+		fi
 
 		make install
 
@@ -940,7 +971,7 @@ pkg_build_gperf() # name
 
 		make
 
-		make -j1 check
+		[ "$SKIP_TESTS" != true ] && make -j1 check
 
 		make install
 	popd
@@ -959,7 +990,7 @@ pkg_build_expat() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -986,7 +1017,7 @@ pkg_build_inetutils() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -1033,10 +1064,10 @@ pkg_build_perl() # name
 			-Dpager="/usr/bin/less -isR" \
 			-Duseshrplib \
 			-Dusethreads
-		
+
 		make
 
-		make test
+		[ "$SKIP_TESTS" != true ] && make test
 
 		make install
 
@@ -1053,7 +1084,7 @@ pkg_build_XML-Parser() # name
 
 		make
 
-		make test
+		[ "$SKIP_TESTS" != true ] && make test
 
 		make install
 	popd
@@ -1072,7 +1103,7 @@ pkg_build_intltool() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 		install -v -Dm644 doc/I18N-HOWTO "/usr/share/doc/intltool-$version/I18N-HOWTO"
@@ -1088,7 +1119,7 @@ pkg_build_autoconf() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1104,7 +1135,7 @@ pkg_build_automake() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1148,7 +1179,7 @@ pkg_build_libelf() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		# Install only libelf
 		make -C libelf install
@@ -1174,7 +1205,7 @@ pkg_build_libffi() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1192,11 +1223,14 @@ pkh_build_openssl() # name
 			--libdir=lib \
 			shared \
 			zlib-dynamic
-		
+
 		make
 
-		# TODO: Filter known failing test
-		make test || warning "$name tests were not fully passed!"
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# TODO: Filter known failing test
+			make test || warning "$name tests were not fully passed!"
+		fi
 
 		sed -i '/INSTALL_LIBS/s/libcrypto.a libssl.a//' Makefile
 		make MANSUFFIX=ssl install
@@ -1228,7 +1262,7 @@ pkg_build_Python() # name
 
 		install -v -dm755 "/usr/share/doc/python-$version/html"
 
-		# Install prefomatted documentation
+		# Install preformatted documentation
 		tar --strip-components=1 \
 			--no-same-owner \
 			--no-same-permissions \
@@ -1252,9 +1286,12 @@ pkg_build_Ninja() # name
 
 		python3 configure.py --bootstrap
 
-		# Run tests.
-		./ninja ninja_test
-		./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests.
+			./ninja ninja_test
+			./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+		fi
 
 		install -vm755 ninja /usr/bin/
 		install -vDm644 misc/bash-completion /usr/share/bash-completion/completions/ninja
@@ -1288,20 +1325,23 @@ pkg_build_coreutils() # name
 		FORCE_UNSAFE_CONFIGURE=1 ./configure \
 			--prefix=/usr \
 			--enable-no-install-program=kill,uptime
-		
+
 		make
 
-		make NON_ROOT_USERNAME=tester check-root
+		if [ "$SKIP_TESTS" != true ]
+		then
+			make NON_ROOT_USERNAME=tester check-root
 
-		# Create a temporary group.
-		echo "dummy:x:102:tester" >> /etc/group
+			# Create a temporary group.
+			echo "dummy:x:102:tester" >> /etc/group
 
-		chown -Rv tester .
+			chown -Rv tester .
 
-		su tester -c "PATH=$PATH make RUN_EXPENSIVE_TESTS=yes check"
+			su tester -c "PATH=$PATH make RUN_EXPENSIVE_TESTS=yes check"
 
-		# Remove the temporary group.
-		sed -i '/dummy/d' /etc/group
+			# Remove the temporary group.
+			sed -i '/dummy/d' /etc/group
+		fi
 
 		make install
 
@@ -1322,7 +1362,7 @@ pkg_build_check() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make docdir="/usr/share/doc/check-$version" install
 	popd
@@ -1337,7 +1377,7 @@ pkg_build_diffutils() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1356,7 +1396,7 @@ pkg_build_gawk() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -1375,9 +1415,12 @@ pkg_build_findutils() # name
 
 		make
 
-		# Run tests.
-		chown -Rv tester .
-		su tester -c "PATH=\"$PATH\" make check"
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests.
+			chown -Rv tester .
+			su tester -c "PATH=\"$PATH\" make check"
+		fi
 
 		make install
 	popd
@@ -1406,7 +1449,7 @@ pkg_build_gzip() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1455,7 +1498,7 @@ pkg_build_kbd() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -1474,7 +1517,7 @@ pkg_build_libpipeline() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1489,7 +1532,7 @@ pkg_build_make() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1504,7 +1547,7 @@ pkg_build_patch() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1520,7 +1563,7 @@ pkg_build_tar() # name
 
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 		make -C doc install-html docdir="/usr/share/doc/tar-$version"
@@ -1537,10 +1580,10 @@ pkg_build_texinfo() # name
 
 		sed -e 's/__attribute_nonnull__/__nonnull/' \
    			-i gnulib/lib/malloc/dynarray-skeleton.c
-		
+
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -1559,17 +1602,20 @@ pkg_build_vim() # name
 		echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
 
 		./configure --prefix=/usr
-		
+
 		make
 
-		# Run tests.
-		chown -Rv tester .
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests.
+			chown -Rv tester .
 
-		su tester -c "LANG=en_US.UTF-8 make -j1 test" &> /tmp/vim-test.log
+			su tester -c "LANG=en_US.UTF-8 make -j1 test" &> /tmp/vim-test.log
 
-		grep --text "ALL DONE" /tmp/vim-test.log
+			grep --text "ALL DONE" /tmp/vim-test.log
 
-		rm /tmp/vim-test.log
+			rm /tmp/vim-test.log
+		fi
 
 		make install
 
@@ -1615,13 +1661,13 @@ pkg_build_eudev() # name
 			--sysconfdir=/etc \
 			--enable-manpages \
 			--disable-static
-		
+
 		make
 
 		mkdir -pv /usr/lib/udev/rules.d
 		mkdir -pv /etc/udev/rules.d
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 
@@ -1648,10 +1694,10 @@ pkg_build_man-db() # name
 			--with-grap=/usr/bin/grap \
 			--with-systemdtmpfilesdir= \
 			--with-systemdsystemunitdir=
-		
+
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1668,10 +1714,10 @@ pkg_build_procps-ng() # name
 			--docdir="/usr/share/doc/procps-ng-$version" \
 			--disable-static \
 			--disable-kill
-		
+
 		make
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make install
 	popd
@@ -1700,15 +1746,18 @@ pkg_build_util-linux() # name
 			--without-systemd \
 			--without-systemdsystemunitdir \
 			runstatedir=/run
-		
+
 		make
 
-		# Remove a test that is hanging when in chroot.
-		rm tests/ts/lsns/ioctl_ns
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Remove a test that is hanging when in chroot.
+			rm tests/ts/lsns/ioctl_ns
 
-		# Run tests.
-		chown -Rv tester .
-		su tester -c "make -k check"
+			# Run tests.
+			chown -Rv tester .
+			su tester -c "make -k check"
+		fi
 
 		make install
 	popd
@@ -1729,20 +1778,20 @@ pkg_build_e2fsprogs() # name
 				--disable-libuuid \
 				--disable-uuidd \
 				--disable-fsck
-			
+
 			make
 
-			make check
+			[ "$SKIP_TESTS" != true ] && make check
 
 			make install
 
 			#  Remove useless static libraries.
 			rm -fv /usr/lib/{libcom_err,libe2p,libext2fs,libss}.a
-		
+
 			# Update info directory.
 			gunzip -v /usr/share/info/libext2fs.info.gz
 			install-info --dir-file=/usr/share/info/dir /usr/share/info/libext2fs.info
-		
+
 			# Create and install documentation.
 			makeinfo -o doc/com_err.info ../lib/et/com_err.texinfo
 			install -v -m644 doc/com_err.info /usr/share/info
