@@ -44,6 +44,9 @@ ENV ROOT_PASSWORD=toor
 # Skip test suites
 ENV SKIP_TESTS=true
 
+# Strip unnecessary symbols off binaries
+ENV STRIP_BINARIES=true
+
 # Image destination
 ENV IMG_DST=/dist/disk.img
 # Image size in MiB

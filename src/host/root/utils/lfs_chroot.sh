@@ -91,6 +91,7 @@ lfs_chroot() # root [cmd]
 			PATH=/usr/bin:/usr/sbin \
 			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
 			SKIP_TESTS="$SKIP_TESTS" \
+			STRIP_BINARIES="$STRIP_BINARIES" \
 			PAGE="$PAGE" \
 			"$@"
 
