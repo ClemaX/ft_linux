@@ -1328,6 +1328,7 @@ pkg_build_meson() # name
 pkg_build_coreutils() # name
 {
 	local name="$1"
+	local version="${name##*-}"
 
 	pushd "$name"
 		# Patch to fix non-compliances and i18n bugs.
