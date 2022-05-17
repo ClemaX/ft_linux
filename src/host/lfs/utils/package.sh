@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 NCORES=$(nproc)
 export MAKEFLAGS="-j${NCORES:-1}"
 
@@ -44,12 +48,15 @@ pkg_build_gcc_dep() # name
 {
 	name="$1"
 
-	mv -v "$name" "$gcc_dir/${name%%-*}"
+	mv -v "$name" "$GCC_DIR/${name%%-*}"
 }
 
 pkg_build_gcc() # name
 {
-	name="$1"
+	local glibc_version
+	local name="$1"
+
+	glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
 
 	pushd "$name"
 		# Set architecture specific library directory names.
@@ -136,7 +143,7 @@ pkg_build_glibc() # name
 			../configure \
 				--prefix=/usr \
 				--host="$LFS_TGT" \
-				--build=$(../scripts/config.guess) \
+				--build="$(../scripts/config.guess)" \
 				--enable-kernel=3.2 \
 				--with-headers="$LFS/usr/include" \
 				libc_cv_slibdir=/usr/lib
@@ -234,15 +241,15 @@ pkg_build_bash() # name
 
 	pushd "$name"
 		./configure --prefix=/usr \
-			--build=$(support/config.guess) \
-			--host=$LFS_TGT \
+			--build="$(support/config.guess)" \
+			--host="$LFS_TGT" \
 			--without-bash-malloc
 
 		make
 
 		make DESTDIR="$LFS" install
 
-		ln -sv bash $LFS/bin/sh
+		ln -sv bash "$LFS/bin/sh"
 	popd
 }
 

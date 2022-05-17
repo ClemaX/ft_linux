@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 group_init()
 {
 	debug "Initializing /etc/group..."

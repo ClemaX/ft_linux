@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 pkg_build_man-pages() # name
 {
 	local name="$1"
@@ -50,6 +54,7 @@ pkg_build_glibc() # name
 			touch /etc/ld.so.conf
 
 			# Remove an unneeded sanity check that fails in a partial environment.
+			# shellcheck disable=SC2016
 			sed '/test-installation/s@$(PERL)@echo not running@' -i ../Makefile
 
 			make install
@@ -125,6 +130,7 @@ pkg_build_bzip2() # name
 		patch -Np1 -i /sources/bzip2-1.0.8-install_docs-1.patch
 
 		# Ensure that symbolic links are relative.
+		# shellcheck disable=SC2016
 		sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
 
 		# Ensure that man-pages are installed into the correct location.
@@ -283,12 +289,15 @@ pkg_build_tcl() # name
 		tar --no-same-owner -xf "/sources/$name-html.tar.gz" --strip-components=1
 
 		local srcdir="$PWD"
+		local configure_options
+
+		[ "$(uname -m)" = x86_64 ] && configure_options=(--enable-64bit)
 
 		pushd unix
 			./configure \
 				--prefix=/usr \
 				--mandir=/usr/share/man \
-				$([ "$(uname -m)" = x86_64 ] && echo --enable-64bit)
+				"${configure_options[@]}"
 
 			make
 
@@ -382,7 +391,9 @@ pkg_build_binutils() # name
 	pushd "$name"
 		# Ensure that PTYs are working correctly.
 		local expected='spawn ls'
-		local actual=$(expect -c "$expected")
+		local actual
+
+		actual=$(expect -c "$expected")
 
 		if [ "$actual" != "$expected" ]
 		then
@@ -392,7 +403,7 @@ pkg_build_binutils() # name
 
 		# Remove empty man-pages so that they are regenerated correctly.
 		sed -i '63d' etc/texi2pod.pl
-		find -name '*.1' -delete
+		find . -name '*.1' -delete
 
 		mkdir -v build
 		pushd build
@@ -599,6 +610,7 @@ pkg_build_shadow() # name
 
 	pushd "$name"
 		# Prevent groups program and man-pages installation, to use coreutils.
+		# shellcheck disable=SC2016
 		sed -i 's/groups$(EXEEXT) //' src/Makefile.in
 		find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
 		find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \;
@@ -1629,12 +1641,12 @@ pkg_build_vim() # name
 		ln -sv ../vim/vim82/doc "/usr/share/doc/vim-$version"
 
 		# Configure vim.
-		cat > /etc/vimrc << "EOF"
+		cat > /etc/vimrc << 'EOF'
 " Begin /etc/vimrc
 
 " Ensure defaults are set before customizing settings, not after
 source $VIMRUNTIME/defaults.vim
-let skip_defaults_vim=1 
+let skip_defaults_vim=1
 
 set nocompatible
 set backspace=2

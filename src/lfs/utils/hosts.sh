@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 hosts_init()
 {
 	# Create the hosts list.
@@ -10,7 +12,7 @@ EOF
 hosts_add() # address hostnames
 {
 	address="$1"; shift
-	hostnames="$@"
+	hostnames="$*"
 
 	printf '%-40s %s\n' "$address" "$hostnames" >> /etc/hosts
 }

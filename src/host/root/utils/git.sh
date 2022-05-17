@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 git_checkout() # repo branch dst
 {
     local repo="$1"

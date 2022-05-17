@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 disk_mount() # dev mnt
 {
 	dev="$1"

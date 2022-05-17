@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 # Check if the cache is complete from the hashes given to STDIN.
 cache_complete() # [cache]
 {
@@ -17,8 +21,10 @@ cache_complete() # [cache]
 # Get a list of corrupted files from the hashes given to STDIN.
 cache_check() # action [cache]
 {
-	local action="$1"
+	local action
 	local cache="${2:-$PWD}"
+
+	read -r -a action <<< "$1"
 
 	info "Checking cache..."
 
@@ -26,7 +32,7 @@ cache_check() # action [cache]
 		md5sum --check --quiet - \
 		| grep FAILED \
 		| sed 's/\(.*\):.*/\1/' \
-		| xargs --no-run-if-empty $action
+		| xargs --no-run-if-empty "${action[@]}"
 	popd
 }
 

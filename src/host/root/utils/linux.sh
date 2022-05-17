@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 LINUX_REPO="git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 
 linux_checkout() # version (example: "v4.9.283")

@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 fs_hierarchy()
 {
 	# Create required root subdirectories.

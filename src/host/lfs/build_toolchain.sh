@@ -2,20 +2,21 @@
 
 set -eEu
 
-source ~/utils/logger.sh
-source ~/utils/package.sh
+SCRIPTDIR=~
 
-glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
+source "$SCRIPTDIR/utils/logger.sh"
+source "$SCRIPTDIR/utils/package.sh"
 
 error_handler()
 {
-	local lineno=$1
-	local cmd=$2
+	local src=$1
+	local lineno=$2
+	local cmd=$3
 
- 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
+ 	error "$src:$lineno: $cmd returned with unexpected exit status $?"
 }
 
-trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "$LINENO" "$BASH_COMMAND"' ERR
 
 # Prepare lfs file hierarchy.
 lfs_prepare_fs() # dst
@@ -53,9 +54,9 @@ pushd "/tmp"
 	# Build gcc.
 	gcc_pkg=$(echo "$LFS/sources/"gcc*.tar*)
 	gcc_base="${gcc_pkg##*/}"
-	gcc_dir="${gcc_base%.tar*}"
+	export GCC_DIR="${gcc_base%.tar*}"
 
-	mkdir -v "$gcc_dir"
+	mkdir -v "$GCC_DIR"
 
 	pkg_extract "$LFS/sources/"mpfr*.tar*			pkg_build_gcc_dep
 	pkg_extract "$LFS/sources/"gmp*.tar*			pkg_build_gcc_dep
@@ -74,7 +75,7 @@ pushd "/tmp"
 	"$LFS/tools/libexec/gcc/$LFS_TGT/11.2.0/install-tools/mkheaders"
 
 	# Build libstdc++ from gcc.
-	pkg_build_libstdc++ "$gcc_dir"
+	pkg_build_libstdc++ "$GCC_DIR"
 
 	# Build additional tools.
 	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep \
@@ -84,5 +85,5 @@ pushd "/tmp"
 	done
 
 	pkg_build_binutils_pass2	binutils*/
-	pkg_build_gcc_pass2			"$gcc_dir"
+	pkg_build_gcc_pass2			"$GCC_DIR"
 popd

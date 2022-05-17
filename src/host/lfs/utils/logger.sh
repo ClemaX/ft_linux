@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 if [[ "$TERM" == *xterm* ]] || [[ "$TERM" == alacritty ]]
 then
 	COLOR_DEBUG=$'\033[1;34m'
@@ -16,38 +20,39 @@ ENDL="${COLOR_DEFAULT:-}"
 debug()
 {
 	local caller="${CALLER:-${FUNCNAME[1]}}"
-	echo "$DEBUG$caller: $@$ENDL" 1>&2
+	echo "$DEBUG$caller: $*$ENDL" 1>&2
 }
 
 info()
 {
 	local caller="${CALLER:-${FUNCNAME[1]}}"
-	echo "$INFO$caller: $@$ENDL" 1>&2
+	echo "$INFO$caller: $*$ENDL" 1>&2
 }
 
 warning()
 {
 	local caller="${CALLER:-${FUNCNAME[1]}}"
-	echo "$WARNING$caller: $@$ENDL" 1>&2
+	echo "$WARNING$caller: $*$ENDL" 1>&2
 }
 
 error()
 {
 	local caller="${CALLER:-${FUNCNAME[1]}}"
-	echo "$ERROR$caller: $@$ENDL" 1>&2
+	echo "$ERROR$caller: $*$ENDL" 1>&2
 }
 
 pushd()
 {
 	echo -n "$DEBUG${FUNCNAME[0]}: " 1>&2
-	builtin pushd $@ 1>&2
+	builtin pushd "$@" 1>&2
 	echo -n "$ENDL" 1>&2
 }
 
+# shellcheck disable=SC2120
 popd()
 {
 	echo -n "$DEBUG${FUNCNAME[0]}: " 1>&2
-	builtin popd $@ 1>&2
+	builtin popd "$@" 1>&2
 	echo -n "$ENDL" 1>&2
 }
 

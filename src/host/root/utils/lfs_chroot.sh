@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 lfs_chown() # owner root
 {
 	owner="${1:-root:root}"
@@ -19,7 +23,7 @@ lfs_chroot_umount() # root [mountpoint]...
 {
 	local root="$1"; shift
 
-	for mountpoint in $@
+	for mountpoint in "$@"
 	do
 		umount -lv "$root/$mountpoint" || warning "Failed to unmount $root/$mountpoint!"
 	done
@@ -76,6 +80,8 @@ lfs_chroot() # root [cmd]
 		# Mount /tmp.
 		mount -v --bind /tmp		tmp
 
+		[ $# -eq 0 ] && set -- /bin/bash --login +h
+
 		info "Changing root to $root..."
 		# Change root directory.
 		chroot . /usr/bin/env -i \
@@ -84,8 +90,9 @@ lfs_chroot() # root [cmd]
 			PS1="$LFS_PS1" \
 			PATH=/usr/bin:/usr/sbin \
 			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
+			SKIP_TESTS="$SKIP_TESTS" \
 			PAGE="$PAGE" \
-			${@:-/bin/bash --login +h}
+			"$@"
 
 		lfs_chroot_teardown "$root"
 	popd

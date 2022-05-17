@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 pkg_build_libstdc++() # name
 {
 	local name="$1"

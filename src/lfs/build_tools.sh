@@ -4,17 +4,20 @@ set -eEu
 
 error_handler()
 {
-	local lineno=$1
-	local cmd=$2
+	local src=$1
+	local lineno=$2
+	local cmd=$3
 
- 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
+ 	error "$src:$lineno: $cmd returned with unexpected exit status $?"
 }
 
-trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "$LINENO" "$BASH_COMMAND"' ERR
 
-source /build/utils/logger.sh
-source /build/utils/package.sh
-source /build/utils/packages_tools.sh
+SCRIPTDIR=/build
+
+source "$SCRIPTDIR/utils/logger.sh"
+source "$SCRIPTDIR/utils/package.sh"
+source "$SCRIPTDIR/utils/packages_tools.sh"
 
 # Initialize log files.
 touch /var/log/{btmp,lastlog,faillog,wtmp}

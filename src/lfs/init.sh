@@ -2,10 +2,12 @@
 
 set -euo pipefail
 
-source /build/utils/logger.sh
-source /build/utils/fs.sh
-source /build/utils/hosts.sh
-source /build/utils/user.sh
+SCRIPTDIR=/build
+
+source "$SCRIPTDIR/utils/logger.sh"
+source "$SCRIPTDIR/utils/fs.sh"
+source "$SCRIPTDIR/utils/hosts.sh"
+source "$SCRIPTDIR/utils/user.sh"
 
 # Create the Standard filesystem hierarchy.
 fs_hierarchy

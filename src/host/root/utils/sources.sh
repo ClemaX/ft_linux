@@ -1,3 +1,7 @@
+# shellcheck shell=bash
+
+set -e
+
 MAX_REDIR=80
 
 # Fetch and filter source urls.
@@ -23,16 +27,18 @@ sources_md5() # [url]
 # Fetch multiple files in parallel.
 parallel_fetch() # options [input] [dst] [count]
 {
-	local options="$1"
+	local options
 	local input="${2:-}"
 	local dst="${3:-$PWD}"
 	local count="${4:-4}"
 
+	read -r -a options <<< "$1"
+
 	if [ -z "$input" ]
 	then
-		parallel -j"$count" --round-robin --bar wget --input-file=- $options -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -j"$count" --round-robin --bar wget --input-file=- "${options[@]}" -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
 	else
-		parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- $options -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- "${options[@]}" -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
 	fi
 }
 
@@ -49,8 +55,10 @@ sources_fetch_git() # proto://repo:branch dst [user]
 		local repo="${BASH_REMATCH[2]}"
 		local branch="${BASH_REMATCH[3]}"
 
-		local name="$(basename "$repo" .git)"
-		local package_name="$name-$branch"
+		local name package_name
+
+		name="$(basename "$repo" .git)"
+		package_name="$name-$branch"
 
 		if ! md5sum --check --quiet "$package_name.md5"
 		then
@@ -75,14 +83,16 @@ sources_fetch_git() # proto://repo:branch dst [user]
 # md5 hashes at "name.md5".
 sources_fetch_list() # name dst [cache] [user]
 {
-	local srcs_name=$(realpath "$1")
 	local dst="$2"
 	local cache="${3:-/cache}"
 	local user="${4:-root}"
 
-	local base=$(basename "$srcs_name")
+	local srcs_name base
 
-	local proto repo version
+	srcs_name=$(realpath "$1")
+	base=$(basename "$srcs_name")
+
+	local proto repo
 	local name package_name
 
 	pushd "$cache"
@@ -118,7 +128,7 @@ sources_fetch_list() # name dst [cache] [user]
 			#do
 			#	cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
 			#done
-		
+
 			# Link to destination.
 			info "All '$base' packages have been downloaded! Linking to '$dst'..."
 			cache_link "$dst" "$cache" "$user" < "$base.urls"

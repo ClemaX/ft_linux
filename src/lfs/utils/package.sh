@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 NCORES=$(nproc)
 export MAKEFLAGS="-j${NCORES:-1}"
 export NINJAJOBS="${NCORES:-1}"
@@ -9,10 +11,14 @@ pkg_extract() # pkg builder
 	local builder="$2"
 
 	local base="${pkg##*/}"
-	local name=$(tar -tf "$pkg" | head -n1)
+	local name
+
+	local logfile
+
+	name=$(tar -tf "$pkg" | head -n1)
 	name="${name%%/*}"
 
-	local logfile=$(mktemp "$name.XXXX.log")
+	logfile=$(mktemp "/tmp/$name.XXXX.log")
 
 	info "Extracting $base to $name..."
 	tar --no-same-owner --skip-old-files -xf "$pkg"
@@ -22,8 +28,7 @@ pkg_extract() # pkg builder
 	then
 		rm "$logfile"
 	else
-		error "Could not build $name! Build log is located at $logfile."
-		ERROR_LOG="$logfile"
-		false
+		export ERROR_LOG="$logfile"
+		! error "Could not build $name! Build log is located at $logfile."
 	fi
 }

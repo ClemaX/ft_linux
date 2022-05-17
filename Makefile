@@ -31,6 +31,9 @@ $(DISTDIR)/$(NAME): ft_linux ## Build the LFS image.
 		-v "$(CACHEVOL):/cache:rw" \
 		-it ft_linux $(CMD)
 
-.PHONY: help ft_linux
+check-scripts:
+	shellcheck $(shell find $(SRCDIR) -type f -name '*.sh')
+
+.PHONY: help ft_linux check-scripts
 
 $(VERBOSE).SILENT:

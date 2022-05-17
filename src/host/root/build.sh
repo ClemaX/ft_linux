@@ -2,17 +2,20 @@
 
 set -eEu
 
-source ~/utils/logger.sh
-source ~/utils/disk.sh
-source ~/utils/cache.sh
-source ~/utils/image.sh
-source ~/utils/git.sh
-source ~/utils/sources.sh
-source ~/utils/lfs_chroot.sh
-source ~/utils/lfs_backup.sh
-source ~/utils/progress_bar.sh
+SCRIPTDIR=~
 
-PROGRESS_BAR_PREFIX_FW=-27
+source "$SCRIPTDIR/utils/logger.sh"
+source "$SCRIPTDIR/utils/disk.sh"
+source "$SCRIPTDIR/utils/cache.sh"
+source "$SCRIPTDIR/utils/image.sh"
+source "$SCRIPTDIR/utils/git.sh"
+source "$SCRIPTDIR/utils/sources.sh"
+source "$SCRIPTDIR/utils/lfs_chroot.sh"
+source "$SCRIPTDIR/utils/lfs_backup.sh"
+source "$SCRIPTDIR/utils/progress_bar.sh"
+
+export PROGRESS_BAR_ACCENT=4
+export PROGRESS_BAR_PREFIX_FW=-27
 
 lfs_base_url="https://www.linuxfromscratch.org/lfs/view/$LFS_VERSION"
 
@@ -24,7 +27,7 @@ error_handler()
 	local lineno="$2"
 	local cmd="$3"
 
- 	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
+	error "$src:$lineno: $cmd returned with unexpected exit status $?"
 }
 
 exit_handler()
@@ -84,7 +87,8 @@ else
 	progress "Building toolchain"
 	# Build LFS toolchain.
 	pushd /home/lfs
-		env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c "~/build_toolchain.sh"
+		# shellcheck disable=SC2088
+		env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c '~/build_toolchain.sh'
 	popd
 
 	# Reset root permissions.

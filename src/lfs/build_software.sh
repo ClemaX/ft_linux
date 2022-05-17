@@ -6,19 +6,22 @@ ERROR_LOG=
 
 error_handler()
 {
-	local lineno=$1
-	local cmd=$2
+	local src=$1
+	local lineno=$2
+	local cmd=$3
 
-	error "$BASH_SOURCE:$lineno: $cmd returned with unexpected exit status $?"
-	
-	[ -z "$ERROR_LOG" ] || cat "$ERROR_LOG"
+	error "$src:$lineno: $cmd returned with unexpected exit status $?"
+
+	[ -z "$ERROR_LOG" ] || tail "$ERROR_LOG"
 }
 
-trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "$LINENO" "$BASH_COMMAND"' ERR
 
-source /build/utils/logger.sh
-source /build/utils/package.sh
-source /build/utils/packages_software.sh
+SCRIPTDIR=/build
+
+source "$SCRIPTDIR/utils/logger.sh"
+source "$SCRIPTDIR/utils/package.sh"
+source "$SCRIPTDIR/utils/packages_software.sh"
 
 pushd /tmp
 	# Install basic system software.
@@ -51,7 +54,7 @@ pushd /tmp
 	find /usr/lib /usr/libexec -name \*.la -delete
 
 	# Remove the temporary compiler.
-	find /usr -depth -name $(uname -m)-lfs-linux-gnu\* | xargs rm -rf
+	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" -exec rm -rf {} \;
 
 	# Remove the temporary test user.
 	userdel -r tester

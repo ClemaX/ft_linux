@@ -1,10 +1,17 @@
+# shellcheck shell=bash
+
+set -e
+
 lfs_backup() # root dest
 {
 	local root="${1:-$LFS}"
 	local dest="${2:-/cache/lfs-temp-tools-$LFS_VERSION.tar.xz}"
 
-	local backup_dir=$(dirname "$dest")
-	local backup_file=$(basename "$dest")
+	local backup_dir
+	local backup_file
+
+	backup_dir=$(dirname "$dest")
+	backup_file=$(basename "$dest")
 
 	# TODO: add md5sum and check md5sum on source_fetch
 	info "Backing up $root to $dest..."
@@ -22,9 +29,12 @@ lfs_restore() # root src
 	local root="${1:-$LFS}"
 	local src="${2:-/cache/lfs-temp-tools-$LFS_VERSION.tar.xz}"
 
-	local backup_dir=$(dirname "$src")
-	local backup_file=$(basename "$src")
+	local backup_dir
+	local backup_file
 	local boot=""
+
+	backup_dir=$(dirname "$src")
+	backup_file=$(basename "$src")
 
 	info "Restoring $root from $src..."
 
@@ -44,7 +54,7 @@ lfs_restore() # root src
 		fi
 
 		debug "Cleaning file-system..."
-		rm -rf *
+		rm -rf ./*
 
 		if [ -n "$boot" ]
 		then
