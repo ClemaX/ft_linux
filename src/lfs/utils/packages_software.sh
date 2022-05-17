@@ -1179,7 +1179,7 @@ pkg_build_kmod() # name
 	popd
 }
 
-pkg_build_libelf() # name
+pkg_build_elfutils() # name
 {
 	local name="$1"
 	local version="${name##*-}"
@@ -1223,7 +1223,7 @@ pkg_build_libffi() # name
 	popd
 }
 
-pkh_build_openssl() # name
+pkg_build_openssl() # name
 {
 	local name="$1"
 	local version="${name##*-}"
@@ -1283,7 +1283,7 @@ pkg_build_Python() # name
 	popd
 }
 
-pkg_build_Ninja() # name
+pkg_build_ninja() # name
 {
 	local name="$1"
 
