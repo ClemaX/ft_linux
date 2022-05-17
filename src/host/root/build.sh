@@ -42,7 +42,13 @@ exit_handler()
 trap 'error_handler "$BASH_SOURCE" "$LINENO" "$BASH_COMMAND"' ERR
 trap 'exit_handler' EXIT
 
-progress_init 10
+# Initialize progress bar
+if [ -f "$lfs_backup_file" ]
+then
+	progress_init 6
+else
+	progress_init 10
+fi
 
 # Create a new disk image.
 progress "Creating disk image"
@@ -64,7 +70,6 @@ disk_mount "$LOOP_DEV" "$LFS"
 
 if [ -f "$lfs_backup_file" ]
 then
-	((PROGRESS_CURR += 4))
 	progress "Restoring backup"
 	lfs_restore "$LFS" "$lfs_backup_file"
 else
