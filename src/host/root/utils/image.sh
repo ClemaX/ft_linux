@@ -52,9 +52,8 @@ loop_setup() # img
 	mknod "$LOOP_DEV" b 7 0
 
 	info "Setting up $LOOP_DEV..."
-	((try -= 1))
 
-	until [ "$try" -eq 0 ] || losetup --partscan "$LOOP_DEV" "$img"
+	until [ "$((try -= 1))" -eq 0 ] || losetup --partscan "$LOOP_DEV" "$img"
 	do
 		[ -e "$LOOP_DEV" ] && rm "$LOOP_DEV"
 		sleep 1
@@ -64,7 +63,6 @@ loop_setup() # img
 		sleep 1
 
 		info "Setting up $LOOP_DEV..."
-		((try -= 1))
 	done
 
 	[ "$try" -eq 0 ] && false
