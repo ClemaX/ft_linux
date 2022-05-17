@@ -18,16 +18,16 @@ help:
 
 ft_linux: $(SRCDIR) ## Build the host docker image.
 	@echo "BUILD ft_linux"
-	@docker build -t ft_linux .
+	docker build -t ft_linux .
 
 $(DISTDIR)/$(NAME): ft_linux ## Build the LFS image.
 	@echo "RUN $(CMD)"
-	@docker run --rm \
+	docker run --rm \
 		--cap-drop=all $(CAPS:%=--cap-add=%) \
 		--device-cgroup-rule='b 7:* rmw' \
 		--device-cgroup-rule='b 259:* rmw' \
 		-v /dev:/hostdev:ro \
-		-v "$(realpath "$DISTDIR"):/dist:rw" \
+		-v "$(shell realpath $(DISTDIR)):/dist:rw" \
 		-v "$(CACHEVOL):/cache:rw" \
 		-it ft_linux $(CMD)
 
