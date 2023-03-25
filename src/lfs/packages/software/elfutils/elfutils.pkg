@@ -1,0 +1,30 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="elfutils"
+version="0.186"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.bz2")
+md5sums=('2b6e94c2eebc1f2194173e31bca9396e')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-debuginfod \
+			--enable-libdebuginfod=dummy
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		# Install only libelf
+		make DESTDIR="$DESTDIR" -C libelf install
+		install -vm644 config/libelf.pc "$DESTDIR/usr/lib/pkgconfig"
+		rm "$DESTDIR/usr/lib/libelf.a"
+    popd || return
+}

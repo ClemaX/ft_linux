@@ -1,0 +1,26 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="automake"
+version="1.16.4"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('86e8e682bd74e6390a016c4d9c11267c')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

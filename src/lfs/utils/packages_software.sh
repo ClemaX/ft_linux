@@ -64,6 +64,7 @@ pkg_build_glibc() # name
 
 			# Install the configuration file and runtime directory for nscd.
 			cp -v ../nscd/nscd.conf /etc/nscd.conf
+			mkdir -pv /var/cache/nscd
 
 			# Initialize locales.
 			mkdir -pv /usr/lib/locale
@@ -73,6 +74,8 @@ pkg_build_glibc() # name
 			local output
 			local options
 			local cmd
+			local has_c_utf8
+			local has_ja_sijs
 
 			while IFS=$'\t ' read -r -a fields
 			do
@@ -84,6 +87,18 @@ pkg_build_glibc() # name
 				charmap=$1; shift
 				output=$1; shift
 				options=("$@")
+
+				[ "$has_c_utf8" != true ] \
+				&& [ "$input" = POSIX ] \
+				&& [ "$charmap" = UTF-8 ] \
+				&& [ "$output" = C.UTF-8 ] \
+				&& has_c_utf8=true
+
+				[ "$has_ja_sijs" != true ] \
+				&& [ "$input" = ja_JP ] \
+				&& [ "$charmap" = SHIFT_JIS ] \
+				&& [ "$output" = ja_JP.SIJS ] \
+				&& has_ja_sijs=true
 
 				cmd=(localedef -i "$input" -f "$charmap" "$output")
 
@@ -98,7 +113,9 @@ pkg_build_glibc() # name
 				fi
 			done < locales.lst
 
-			make
+			# Define mandatory locales.
+			[ "$has_c_utf8" != true ] && localedef -i POSIX -f UTF-8 C.UTF-8
+			[ "$has_c_utf8" != true ] && localedef -i ja_JP -f SHIFT_JIS ja_JP.SIJS
 		popd
 	popd
 }
@@ -967,9 +984,6 @@ pkg_build_gdbm() # name
 		fi
 
 		make install
-
-		# Remove a useless static library.
-		rm -fv /usr/lib/libltdl.a
 	popd
 }
 
@@ -1499,9 +1513,6 @@ pkg_build_kbd() # name
 	pushd "$name"
 		# Patch backspace and delete key inconsistencies.
 		patch -Np1 -i "../kbd-$version-backspace-1.patch"
-
-		# Disable modules requiring iptables.
-		sed -i 's/.m_ipt.o//' tc/Makefile
 
 		# Remove redundant resizecons program,
 		sed -i '/RESIZECONS_PROGS=/s/yes/no/' configure

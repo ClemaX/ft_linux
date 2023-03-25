@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="iproute2"
+version="5.13.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('15fc3786303a173a14e180afe4cd2ecd')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Remove arpd related directories.
+		sed -i /ARPD/d Makefile
+		rm -fv man/man8/arpd.8
+
+		# Disable modules requiring iptables.
+		sed -i 's/.m_ipt.o//' tc/Makefile
+    popd || return
+
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" SBINDIR=/usr/sbin install
+
+		# Install documentation
+		mkdir -vp				"$DESTDIR/usr/share/doc/$source_base"
+		cp -v COPYING README*	"$DESTDIR/usr/share/doc/$source_base"
+    popd || return
+}

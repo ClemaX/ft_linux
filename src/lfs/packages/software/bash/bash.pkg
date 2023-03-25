@@ -1,0 +1,40 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="bash"
+version="5.1.8"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('23eee6195b47318b9fd878e590ccb38c')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+            --docdir="/usr/share/doc/$source_base" \
+            --without-bash-malloc \
+            --with-installed-readline
+
+		make
+
+		# Run tests.
+		chown -Rv tester .
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			su -s /usr/bin/expect tester <<'EOF'
+set timeout -1
+spawn make tests
+expect eof
+lassign [wait] _ _ _ value
+exit $value
+EOF
+		fi
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

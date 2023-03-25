@@ -72,12 +72,12 @@ pushd "/tmp"
 
 	# Finalize the installation of the limits.h header.
 	debug "Running mkheaders..."
-	"$LFS/tools/libexec/gcc/$LFS_TGT/11.2.0/install-tools/mkheaders"
+	"$LFS/tools/libexec/gcc/$LFS_TGT/"*.*.*"/install-tools/mkheaders"
 
 	# Build libstdc++ from gcc.
 	pkg_build_libstdc++ "$GCC_DIR"
 
-	# Build additional tools.
+	# Build temporary tools.
 	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep \
 		gzip make patch sed tar xz
 	do

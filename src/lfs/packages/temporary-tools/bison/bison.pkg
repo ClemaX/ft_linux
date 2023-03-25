@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="bison"
+version="3.8.2"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('c28f119f405a2304ff0a7ccdcc629713')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

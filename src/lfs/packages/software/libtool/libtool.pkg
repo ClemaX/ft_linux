@@ -1,0 +1,27 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libtool"
+version="2.4.6"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('1bfb9b923f2c1339b4d2ce1807064aa5')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Remove a useless static library.
+		rm -fv "$DESTDIR/usr/lib/libltdl.a"
+    popd || return
+}

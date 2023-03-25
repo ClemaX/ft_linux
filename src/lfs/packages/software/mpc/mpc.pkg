@@ -1,0 +1,29 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="mpc"
+version="1.2.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('9f16c976c25bb0f76b50be749cd7a3a8')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+		make html
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+		make DESTDIR="$DESTDIR" install-html
+    popd || return
+}

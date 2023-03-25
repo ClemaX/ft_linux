@@ -1,0 +1,29 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="flex"
+version="2.6.4"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('2882e3179748cc9f9c23ec593d6adc8d')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--docdir="/usr/share/doc/$source_base" \
+			--disable-static
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Link to lex for backward compatibility.
+		ln -sv flex "$DESTDIR/usr/bin/lex"
+    popd || return
+}

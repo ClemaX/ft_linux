@@ -1,0 +1,23 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gettext"
+version="0.21.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('27fcc8a42dbc8f334f23a08f1f2fe00a')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --disable-shared
+
+		make
+
+		install -v -d "$DESTDIR/usr/bin"
+		install -v gettext-tools/src/{msgfmt,msgmerge,xgettext} "$DESTDIR/usr/bin"
+    popd || return
+}

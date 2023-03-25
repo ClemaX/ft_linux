@@ -1,0 +1,29 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="findutils"
+version="4.8.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('eeefe2e6380931a77dfa6d9350b43186')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --localstatedir=/var/lib/locate
+
+		make
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests.
+			chown -Rv tester .
+			su tester -c "PATH=\"$PATH\" make check"
+		fi
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

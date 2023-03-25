@@ -1,0 +1,80 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="tcl"
+version="8.6.13"
+
+source_base="$name$version"
+
+sources=("/sources/$source_base-src.tar.gz" "/sources/$source_base-html.tar.gz")
+md5sums=('0e4358aade2f5db8a8b6f2f6d9481ec2' '4452f2f6d557f5598cca17b786d6eb68')
+
+build()
+{
+	local version_minor="${version%.*}"
+
+	local tdbc_name="tdbc"
+	local tdbc_version="1.1.5"
+
+	local itcl_name="itcl"
+	local itcl_version="4.2.3"
+
+	local tdbc_source_base="$tdbc_name$tdbc_version"
+	local itcl_source_base="$itcl_name$itcl_version"
+
+	local srcdir="$PWD"
+	local configure_options
+
+    pushd "$SRCDIR/$source_base-src" || return
+		[ "$(uname -m)" = x86_64 ] && configure_options=(--enable-64bit)
+
+		pushd unix || return
+			./configure \
+				--prefix=/usr \
+				--mandir=/usr/share/man \
+				"${configure_options[@]}"
+
+			make
+
+			# Replace build directory with install location in config files.
+			sed -e "s|$srcdir/unix|/usr/lib|" \
+				-e "s|$srcdir|/usr/include|" \
+				-i tclConfig.sh
+
+			sed -e "s|$srcdir/unix/pkgs/$tdbc_source_base|/usr/lib/$tdbc_source_base|" \
+				-e "s|$srcdir/pkgs/$tdbc_source_base/generic|/usr/include|" \
+				-e "s|$srcdir/pkgs/$tdbc_source_base/library|/usr/lib/tcl8.6|" \
+				-e "s|$srcdir/pkgs/$tdbc_source_base|/usr/include|" \
+				-i "pkgs/$tdbc_source_base/tdbcConfig.sh"
+
+			sed -e "s|$srcdir/unix/pkgs/$itcl_source_base|/usr/lib/$itcl_source_base|" \
+				-e "s|$srcdir/pkgs/$itcl_source_base/generic|/usr/include|" \
+				-e "s|$srcdir/pkgs/$itcl_source_base|/usr/include|" \
+				-i pkgs/$itcl_source_base/itclConfig.sh
+
+			[ "$SKIP_TESTS" != true ] && make test
+
+			make DESTDIR="$DESTDIR" install
+
+			# Enable user write to enable stripping of debugging symbols.
+			chmod -v u+w "$DESTDIR/usr/lib/libtcl$version_minor.so"
+
+			# Install development headers.
+			make DESTDIR="$DESTDIR" install-private-headers
+
+			# Link default tclsh to the installed version.
+			ln -sfv "tclsh$version_minor" "$DESTDIR/usr/bin/tclsh"
+
+			# Solve conflict with a Perl man-page.
+			mv "$DESTDIR/usr/share/man/man3/"{Thread,Tcl_Thread}.3
+    	popd || return
+    popd || return
+
+	# Install documentation
+	pushd "$SRCDIR/$source_base-html" || return
+		install -vD "$DESTDIR/usr/share/doc/$name-$version"
+
+		cp -v -r ./html/* "$DESTDIR/usr/share/doc/$name-$version"
+	popd || return
+}

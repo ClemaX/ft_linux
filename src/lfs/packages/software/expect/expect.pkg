@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="expect"
+version="5.45.4"
+
+source_base="$name$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('00fce8de158422f5ccd2666512329bd2')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--with-tcl=/usr/lib \
+			--enable-shared \
+			--mandir=/usr/share/man \
+			--with-tclinclude=/usr/include
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make test
+
+		make DESTDIR="$DESTDIR" install
+
+		ln -svf "$source_base/lib$source_base.so" "$DESTDIR/usr/lib"
+    popd || return
+}

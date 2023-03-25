@@ -1,0 +1,108 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gcc"
+version="11.2.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('31c86f2ced76acac66992eeedce2fce2')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Fix an issue breaking libasan when building with glibc 2.34.
+		sed -e '/static.*SIGSTKSZ/d' \
+			-e 's/return kAltStackSize/return SIGSTKSZ * 4/' \
+			-i libsanitizer/sanitizer_common/sanitizer_posix_libcdep.cpp
+        
+        # Set architecture specific library directory names.
+		case $(uname -m) in
+			x86_64)
+				sed -e '/m64=/s/lib64/lib/' -i.orig gcc/config/i386/t-linux64
+			;;
+		esac
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        mkdir -v build
+		pushd "build" || return
+			../configure \
+				--prefix=/usr \
+				LD=ld \
+				--enable-languages=c,c++ \
+				--disable-multilib \
+				--disable-bootstrap \
+				--with-system-zlib
+
+			make
+
+			if [ "$SKIP_TESTS" != true ]
+			then
+				# Increase stack size to permit exhaustive tests.
+				local prev_stack_limit
+
+				prev_stack_limit=$(ulimit -s)
+				ulimit -s 32768
+
+				# Run the tests using an unprivileged user.
+				chown -Rv tester .
+				su tester -c "PATH=$PATH make -k check"
+				# TODO: Eight tests related to analyzer are known to fail.
+
+				# Restore stack size limit.
+				ulimit -s "$prev_stack_limit"
+			fi
+
+			make DESTDIR="$DESTDIR" install
+
+			# Remove unneeded directory.
+			rm -rf "$DESTDIR/usr/lib/gcc/$(gcc -dumpmachine)/$version/include-fixed/bits/"
+
+			# Restore root permissions on installed headers.
+			chown -v -R root:root \
+				"$DESTDIR/usr/lib/gcc/"*"linux-gnu/$version/include"{,-fixed}
+
+			# Create historical symlink required by FHS.
+			ln -svr /usr/bin/cpp "$DESTDIR/usr/lib"
+
+			# Create compatibility symlink to enable Link Time Optimization.
+			ln -sfv "../../libexec/gcc/$(gcc -dumpmachine)/$version/liblto_plugin.so" \
+				"$DESTDIR/usr/lib/bfd-plugins/"
+
+			if [ "$SKIP_TESTS" != true ]
+			then
+				# Compilation test.
+				local check_log=/tmp/dummy.log
+
+				echo 'int main(){}' > dummy.c
+				cc dummy.c -v -Wl,--verbose &> "$check_log"
+				readelf -l a.out | grep ': /lib'
+				# TODO: Check output of the last command.
+
+				local success_count
+
+				success_count=$(grep -c '/usr/lib.*/crt[1in].*succeeded' "$check_log")
+				if [ "$success_count" -ne 3 ]
+				then
+					fatal "Basic compilation failed!"
+				fi
+
+				grep -B4 '^ /usr/include' dummy.log
+
+				# TODO: Remove or complete these tests.
+
+				rm -v dummy.c a.out "$check_log"
+			fi
+
+			# Move a misplaced file.
+			mkdir -pv "$DESTDIR/usr/share/gdb/auto-load/usr/lib"
+			mv -v "$DESTDIR/usr/lib/"*gdb.py "$DESTDIR/usr/share/gdb/auto-load/usr/lib"
+		popd || return
+    popd || return
+}

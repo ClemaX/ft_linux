@@ -1,0 +1,69 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="shadow"
+version="4.9"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('126924090caf72f3de7e9261fd4e10ac')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Prevent groups program and man-pages installation, to use coreutils.
+		# shellcheck disable=SC2016
+		sed -i 's/groups$(EXEEXT) //' src/Makefile.in
+		find man -name Makefile.in -exec sed -i 's/groups\.1 / /' {} \;
+		find man -name Makefile.in -exec sed -i 's/getspnam\.3 / /' {} \;
+		find man -name Makefile.in -exec sed -i 's/passwd\.5 / /' {} \;
+
+		# Use SHA-512 instead of default crypt for password encryption.
+		# Change the obsolete /var/spool/mail to /var/mail.
+		# Remove /bin and /sbin symlinks from PATH.
+		sed -e 's:#ENCRYPT_METHOD DES:ENCRYPT_METHOD SHA512:' \
+			-e 's:/var/spool/mail:/var/mail:' \
+			-e '/PATH=/{s@/sbin:@@;s@/bin:@@}' \
+			-i etc/login.defs
+
+		# TODO: Think about adding cracklib support.
+
+		# Fix a programming error.
+		sed -e "224s/rounds/min_rounds/" -i libmisc/salt.c
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        install -d "$DESTDIR/usr/bin"
+		touch "$DESTDIR/usr/bin/passwd"
+		./configure \
+			--sysconfdir=/etc \
+			--with-group-name-max-length=32
+
+		make
+
+		make DESTDIR="$DESTDIR" exec_prefix=/usr install
+
+        make DESTDIR="$DESTDIR" -C man install-man
+    popd || return
+}
+
+post_install()
+{
+    mkdir -p /etc/default
+    useradd -D --gid 999
+
+    # Enable shadowed passwords.
+    pwconv
+    grpconv
+
+    # Make the shadow file writeable by the root user.
+    chmod -v 600 /etc/shadow
+
+    # Set default root password.
+    chpasswd <<< "root:$ROOT_PASSWORD"
+}

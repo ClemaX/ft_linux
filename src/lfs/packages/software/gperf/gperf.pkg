@@ -1,0 +1,25 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gperf"
+version="3.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('9e251c0a618ad0824b51117d5d9db87e')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make -j1 check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

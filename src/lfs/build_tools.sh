@@ -25,14 +25,13 @@ chgrp -v utmp /var/log/lastlog
 chmod -v 664  /var/log/lastlog
 chmod -v 600  /var/log/btmp
 
-# Build tools.
-pushd /tmp
-	pkg_extract /sources/gcc*.tar*			pkg_build_libstdc++
+# Build additional temporary tools.
+pushd "$SCRIPTDIR/packages/temporary-tools"
+	"$SCRIPTDIR/utils/pkg.sh" build gettext bison perl python \
+		texinfo util-linux
 
-	for pkg in gettext bison perl Python texinfo util-linux
-	do
-		pkg_extract /sources/$pkg*.tar*		pkg_build_$pkg
-	done
+	"$SCRIPTDIR/utils/pkg.sh" install gettext bison perl python \
+	texinfo util-linux
 popd
 
 info "Cleaning up..."

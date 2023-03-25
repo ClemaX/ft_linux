@@ -1,0 +1,73 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="vim"
+version="8.2.3337"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('e0325a4988b1b99b9c2e46fa853c1980')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+       	# Change the default vimrc location to /etc.
+		echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# TODO: Use mktemp for log name
+
+			# Run tests.
+			chown -Rv tester .
+
+			su tester -c "LANG=en_US.UTF-8 make -j1 test" &> /tmp/vim-test.log
+
+			grep --text "ALL DONE" /tmp/vim-test.log
+
+			rm /tmp/vim-test.log
+		fi
+
+		make DESTDIR="$DESTDIR" install
+
+		# Create symlinks for vi backward compatibility.
+		ln -sv vim "$DESTDIR/usr/bin/vi"
+		for L in "$DESTDIR/usr/share/man/"{,*/}"man1/vim.1"; do
+			ln -sv vim.1 "$(dirname "$L")/vi.1"
+		done
+
+		# Create a symlink for consistent documentation.
+		ln -sv ../vim/vim82/doc "$DESTDIR/usr/share/doc/vim-$version"
+
+		# TODO: Do this post install if the config is not already in place.
+		# Configure vim.
+		cat > "$DESTDIR/etc/vimrc" << 'EOF'
+" Begin /etc/vimrc
+
+" Ensure defaults are set before customizing settings, not after
+source $VIMRUNTIME/defaults.vim
+let skip_defaults_vim=1
+
+set nocompatible
+set backspace=2
+set mouse=
+syntax on
+if (&term == "xterm") || (&term == "putty")
+  set background=dark
+endif
+
+" End /etc/vimrc
+EOF
+    popd || return
+}

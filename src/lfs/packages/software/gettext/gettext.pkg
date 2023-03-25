@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gettext"
+version="0.21"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('40996bbaf7d1356d3c22e33a8b255b31')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+		chmod -v 0755 "$DESTDIR/usr/lib/preloadable_libintl.so"
+    popd || return
+}

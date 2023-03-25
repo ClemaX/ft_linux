@@ -1,0 +1,25 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="zstd"
+version="1.5.4"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('2352b1f9ccc7446641046bb3d440c3ed')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		make prefix="/usr"
+
+		make check
+
+		make prefix="$DESTDIR/usr" install
+
+		# Remove static library.
+		rm -v "$DESTDIR/usr/lib/libzstd.a"
+    popd || return
+}

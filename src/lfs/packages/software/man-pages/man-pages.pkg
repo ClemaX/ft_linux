@@ -1,0 +1,16 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="man-pages"
+version="6.03"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('c62b7c944bb0887a35edab7cab301357')
+
+build()
+{
+    make -C "$SRCDIR/$source_base" DESTDIR="$DESTDIR" prefix=/usr install
+}

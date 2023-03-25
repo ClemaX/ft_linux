@@ -23,16 +23,17 @@ source "$SCRIPTDIR/utils/logger.sh"
 source "$SCRIPTDIR/utils/package.sh"
 source "$SCRIPTDIR/utils/packages_software.sh"
 
-pushd /tmp
-	# Install basic system software.
+# Install basic system software.
+pushd "$SCRIPTDIR/packages/software"
 	for pkg in man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
-		flex
+		flex tcl
 	do
-		pkg_extract /sources/$pkg*.tar* pkg_build_$pkg
+		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
+		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
 	done
+popd
 
-	pkg_extract /sources/tcl*-src*.tar* pkg_build_tcl
-
+pushd /tmp
 	for pkg in expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow gcc \
 		pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
 		gperf expat inetutils less perl XML-Parser intltool autoconf automake \

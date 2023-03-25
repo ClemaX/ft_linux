@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="make"
+version="4.3"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('fc7a67ea86ace13195b0bce683fd4469')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

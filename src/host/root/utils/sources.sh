@@ -31,14 +31,23 @@ parallel_fetch() # options [input] [dst] [count]
 	local input="${2:-}"
 	local dst="${3:-$PWD}"
 	local count="${4:-4}"
+	local wget_cmd
 
 	read -r -a options <<< "$1"
 
+	wget_cmd=(
+		wget "${options[@]}"
+			--input-file=-
+			--max-redirect="${MAX_REDIR}"
+			--directory-prefix="$dst"
+			--no-verbose
+	)
+
 	if [ -z "$input" ]
 	then
-		parallel -j"$count" --round-robin --bar wget --input-file=- "${options[@]}" -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -j"$count" --round-robin --bar "${wget_cmd[@]}"
 	else
-		parallel -a "$input" -j"$count" --pipepart --round-robin --bar wget --input-file=- "${options[@]}" -nv --max-redirect="${MAX_REDIR}" --directory-prefix="$dst"
+		parallel -a "$input" -j"$count" --pipepart --round-robin --bar "${wget_cmd[@]}"
 	fi
 }
 
@@ -115,11 +124,14 @@ sources_fetch_list() # name dst [cache] [user]
 			until cache_complete "$cache" < "$srcs_name.md5"
 			do
 				# Resume partial downloads.
-				parallel_fetch "--continue --quiet" < "$base.urls" \
+				parallel_fetch "--continue" < "$base.urls" \
 				|| warning "Warning: $? jobs failed!"
 
 				# Delete corrupted files.
 				cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
+
+				# Download missing files.
+				parallel_fetch --no-clobber < "$base.urls"
 			done
 
 			# Download missing files.

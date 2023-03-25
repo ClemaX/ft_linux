@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="util-linux"
+version="2.38.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('cd11456f4ddd31f7fbfdd9488c0c0d02')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		mkdir -pv "$DESTDIR/var/lib/hwclock"
+
+		./configure \
+			ADJTIME_PATH=/var/lib/hwclock/adjtime \
+			--libdir=/usr/lib \
+			--docdir="/usr/share/doc/$source_base" \
+			--disable-chfn-chsh \
+			--disable-login \
+			--disable-nologin \
+			--disable-su \
+			--disable-setpriv \
+			--disable-runuser \
+			--disable-pylibmount \
+			--disable-static \
+			--without-python \
+			runstatedir=/run
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

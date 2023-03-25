@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="man-db"
+version="2.9.4"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('6e233a555f7b9ae91ce7cd0faa322bce')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--docdir="/usr/share/doc/$source_base" \
+			--sysconfdir=/etc \
+			--disable-setuid \
+			--enable-cache-owner=bin \
+			--with-browser=/usr/bin/lynx \
+			--with-vgrind=/usr/bin/vgrind \
+			--with-grap=/usr/bin/grap \
+			--with-systemdtmpfilesdir= \
+			--with-systemdsystemunitdir=
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

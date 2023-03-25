@@ -1,0 +1,48 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="readline"
+version="8.2"
+
+source_base="$name-$version"
+
+sources=(
+    "/sources/$source_base.tar.gz"
+    "/sources/$source_base-upstream_fix-1.patch"
+)
+md5sums=(
+    '4aa1b31be779e6b84f9a96cb66bc50f6'
+	'dd1764b84cfca6b677f44978218a75da'
+)
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Prevent keeping reinstalled libraries.
+		sed -i '/MV.*old/d' Makefile.in
+		sed -i '/{OLDSUFF}/c:' support/shlib-install
+
+		# Fix a problem identified upstream.
+		patch -Np1 -i "../$source_base-upstream_fix-1.patch"
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure \
+			--prefix=/usr \
+			--disable-static \
+			--with-curses \
+			--docdir="/usr/share/doc/$source_base"
+
+		make SHLIB_LIBS="-lncursesw"
+
+		make DESTDIR="$DESTDIR" SHLIB_LIBS="-lncursesw" install
+
+		# Install documentation.
+		install -v -m644 doc/*.{ps,pdf,html,dvi} \
+            "$DESTDIR/usr/share/doc/$source_base"
+    popd || return
+}

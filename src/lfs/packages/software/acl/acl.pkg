@@ -1,0 +1,26 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="acl"
+version="2.3.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('95ce715fe09acca7c12d3306d0f076b2')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		# TODO: make check after installing coreutils
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

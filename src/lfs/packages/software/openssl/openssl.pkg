@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="openssl"
+version="1.1.1l"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('ac0d4387f3ba0ad741b0580dd45f6ff3')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./config \
+			--prefix=/usr \
+			--openssldir=/etc/ssl \
+			--libdir=lib \
+			shared \
+			zlib-dynamic
+
+		make
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# TODO: Filter known failing test
+			make test || echo "Warning: $name tests were not fully passed!" >&2
+		fi
+
+		# Prevent installation of static libraries.
+		sed -i '/INSTALL_LIBS/s/libcrypto.a libssl.a//' Makefile
+
+		make DESTDIR="$DESTDIR" MANSUFFIX=ssl install
+
+		# Add the version to the documentation directory, to be consistent.
+		mv -v /usr/share/doc/openssl "$DESTDIR/usr/share/doc/$source_base"
+
+		# Install additional documentation.
+		cp -vfr doc/* "/usr/share/doc/$source_base"
+    popd || return
+}

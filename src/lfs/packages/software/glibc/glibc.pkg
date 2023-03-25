@@ -1,0 +1,92 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="glibc"
+version="2.37"
+
+source_base="$name-$version"
+
+sources=(
+    "/sources/$source_base.tar.xz"
+    "/sources/$source_base-fhs-1.patch"
+	"locale-gen.sh"
+	"locale.gen"
+)
+md5sums=(
+    'e89cf3dcb64939d29f04b4ceead5cc4e'
+    '9a5997c3452909b1769918c759eff8a2'
+)
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Patch non-FHS compliant /var/db directory
+		patch -Np1 -i "$SRCDIR/$source_base-fhs-1.patch"
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		mkdir -v build
+		pushd build || return
+			echo "rootsbindir=/usr/sbin" > configparms
+
+			../configure \
+				--prefix=/usr \
+				--disable-werror \
+				--enable-kernel=3.2 \
+				--enable-stack-protector=strong \
+				--with-headers=/usr/include \
+				libc_cv_slibdir=/usr/lib
+
+			make
+
+			if [ "$SKIP_TESTS" != true ]
+			then
+				make check || warning "$name tests were not fully passed!"
+			fi
+
+			# Create dynamic linker configuration file.
+			install -d "$DESTDIR/etc"
+			touch "$DESTDIR/etc/ld.so.conf"
+
+			# Remove an unneeded sanity check that fails in a partial environment.
+			# shellcheck disable=SC2016
+			sed '/test-installation/s@$(PERL)@echo not running@' -i ../Makefile
+
+			make DESTDIR="$DESTDIR" install
+
+			# Fix hardcoded path to the executable loader.
+			sed '/RTLDLIST=/s@/usr@@g' -i "$DESTDIR/usr/bin/ldd"
+
+			# Install the configuration file and runtime directory for nscd.
+			install -D ../nscd/nscd.conf "$DESTDIR/etc/nscd.conf"
+			install -d "$DESTDIR/var/cache/nscd"
+
+			# Install default locale list.
+			install -D "$SRCDIR/locale.gen" "$DESTDIR/etc/locale.gen"
+
+			# Install locale generator.
+			install -D "$SRCDIR/locale-gen.sh" "$DESTDIR/usr/bin/locale-gen"
+
+			# Install locale archive directory.
+			install -d "$DESTDIR/usr/lib/locale"
+		popd || return
+    popd || return
+}
+
+post_install()
+{
+	# Generate default locales from /etc/locale.gen.
+	locale-gen
+}
+
+post_uninstall()
+{
+	local locale_archive=/usr/lib/locale/locale-archive
+
+	# Uninstall generated locale archive.
+	[ -f "$locale_archive" ] && rm "$locale_archive"
+}

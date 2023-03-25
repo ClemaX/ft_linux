@@ -1,0 +1,33 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="sed"
+version="4.8"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('6d906edfdb3202304059233f51f9a71d')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure --prefix=/usr
+
+		make
+
+		# Generate html documentation
+		make html
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			chown -Rv tester .
+			su tester -c "PATH=\"$PATH\" make check"
+		fi
+
+		make DESTDIR="$DESTDIR" install
+		install -d -m755           "$DESTDIR/usr/share/doc/$source_base"
+		install -m644 doc/sed.html "$DESTDIR/usr/share/doc/$source_base"
+    popd || return
+}

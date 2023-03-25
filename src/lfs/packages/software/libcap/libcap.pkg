@@ -1,0 +1,33 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libcap"
+version="2.53"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('094994d4554c6689cf98ae4f717b8e19')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Prevent static library installation.
+		sed -i '/install -m.*STA/d' libcap/Makefile
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		make prefix=/usr lib=lib
+
+		[ "$SKIP_TESTS" != true ] && make test
+
+		make DESTDIR="$DESTDIR" prefix=/usr lib=lib install
+
+		# Adjust permissions of shared libraries.
+		chmod -v 755 "$DESTDIR/usr/lib/lib"{cap,psx}".so.$version"
+    popd || return
+}

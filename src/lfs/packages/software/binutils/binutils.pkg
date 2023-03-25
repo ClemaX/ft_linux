@@ -1,0 +1,80 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="binutils"
+version="1.6.3"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz" "/sources/$source_base-upstream_fix-1.patch")
+md5sums=('e78d9ff2976b745a348f4c1f27c77cb1' '3518fa864fe8d7ef65be4960f380b03b')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+        # Ensure that PTYs are working correctly.
+        local expected='spawn ls'
+        local actual
+
+        actual=$(expect -c "$expected")
+
+        if [ "$actual" != "$expected" ]
+        then
+            echo "PTYs do not work correctly, applying upstream patch..."
+            patch -Np1 -i "$SRCDIR/binutils-2.37-upstream_fix-1.patch"
+        fi
+
+        # Remove empty man-pages so that they are regenerated correctly.
+        sed -i '63d' etc/texi2pod.pl
+        find . -name '*.1' -delete
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		mkdir -v build
+		pushd build || return
+			../configure \
+				--prefix=/usr \
+				--enable-gold \
+				--enable-ld=default \
+				--enable-plugins \
+				--enable-shared \
+				--disable-werror \
+				--enable-64-bit-bfd \
+				--with-system-zlib
+
+			make tooldir=/usr
+
+			if [ "$SKIP_TESTS" != true ]
+			then
+			    local check_log
+				local fail_count
+
+				check_log=$(mktemp "$PKG_TMP/$name-$version.XXXX.check.log")
+
+				# Run tests and store output.
+				(make -k check || :) 2>&1 | tee "$check_log" >&2
+
+				# Count failed tests.
+				fail_count=$(grep -c '^FAIL: ' "$check_log")
+
+				# Four zlib related tests are known to fail.
+				if [ "$((fail_count -= 4))" -ne 0 ]
+				then
+					fatal "$check_log: $fail_count mandatory tests failed!"
+				fi
+
+				# Remove log.
+				rm -f "$check_log"
+			fi
+
+			make DESTDIR="$DESTDIR" tooldir=/usr install -j1
+
+			# Remove static libraries.
+			rm -fv "$DESTDIR/usr/lib/lib"{bfd,ctf,ctf-nobfd,opcodes}.a
+		popd || return
+    popd || return
+}

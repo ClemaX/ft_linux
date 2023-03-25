@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="bc"
+version="5.0.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('8345bb81c576ddfc8c27e0842370603c')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		CC=gcc ./configure --prefix=/usr -G -O3
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make test
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

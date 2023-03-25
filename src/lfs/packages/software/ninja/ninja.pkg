@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="ninja"
+version="1.10.2"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('639f75bc2e3b19ab893eaf2c810d4eb4')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+        # Patch to add NINJAOBS variable.
+		sed -i '/int Guess/a \
+  int   j = 0;\
+  char* jobs = getenv( "NINJAJOBS" );\
+  if ( jobs != NULL ) j = atoi( jobs );\
+  if ( j > 0 ) return j;\
+' src/ninja.cc
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		python3 configure.py --bootstrap
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests.
+			./ninja ninja_test
+			./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+		fi
+
+		install -vm755 ninja "$DESTDIR/usr/bin/"
+		install -vDm644 misc/bash-completion "$DESTDIR/usr/share/bash-completion/completions/ninja"
+		install -vDm644 misc/zsh-completion  "$DESTDIR/usr/share/zsh/site-functions/_ninja"
+    popd || return
+}

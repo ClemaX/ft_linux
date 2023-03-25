@@ -1,0 +1,50 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="ncurses"
+version="6.2"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('e812da327b1c2214ac1aed440ea3ae8d')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure \
+			--prefix=/usr \
+			--mandir=/usr/share/man \
+			--with-shared \
+			--without-debug \
+			--without-normal \
+			--enable-pc-files \
+			--enable-widec
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Redirect non-wide-character ncurses libraries.
+		for lib in ncurses form panel menu ; do
+			rm -vf						"$DESTDIR/usr/lib/lib$lib.so"
+			echo "INPUT(-l${lib}w)"		>"$DESTDIR/usr/lib/lib$lib.so"
+			ln -sfv ${lib}w.pc			"$DESTDIR/usr/lib/pkgconfig/$lib.pc"
+		done
+
+		# Backward compatibility for -lcurses.
+		rm -vf						"$DESTDIR/usr/lib/libcursesw.so"
+		echo "INPUT(-lncursesw)"	>"$DESTDIR/usr/lib/libcursesw.so"
+		ln -sfv libncurses.so		"$DESTDIR/usr/lib/libcurses.s"
+
+		# Remove a static library that is not handled by configure.
+		rm -fv "$DESTDIR/usr/lib/libncurses++w.a"
+
+		# Install the ncurses documentation.
+		mkdir -v		"$DESTDIR/usr/share/doc/$source_base"
+		cp -v -R doc/*	"$DESTDIR/usr/share/doc/$source_base"
+
+		# TODO: Add option for non-wide ncurses library
+    popd || return
+}

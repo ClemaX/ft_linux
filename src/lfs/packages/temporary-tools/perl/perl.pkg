@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="perl"
+version="5.36.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('826e42da130011699172fd655e49cfa2')
+
+build()
+{
+	local version_minor="${version%.*}"
+	local version_major="${version_minor%%.*}"
+
+	local perl_path="/usr/lib/perl$version_major/$version_minor/"
+
+    pushd "$SRCDIR/$source_base" || return
+		sh Configure \
+			-des \
+			-Dprefix=/usr \
+			-Dvendorprefix=/usr \
+			-Dprivlib="$perl_path/core_perl" \
+			-Darchlib="$perl_path/core_perl" \
+			-Dsitelib="$perl_path/site_perl" \
+			-Dsitearch="$perl_path/site_perl" \
+			-Dvendorlib="$perl_path/vendor_perl" \
+			-Dvendorarch="$perl_path/vendor_perl"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

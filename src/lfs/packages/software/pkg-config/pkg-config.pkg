@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="pkg-config"
+version="0.29.2"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('f6e931e319531b736fadc017f470e68a')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure \
+			--prefix=/usr \
+			--with-internal-glib \
+			--disable-host-tool \
+			--docdir="/usr/share/doc/pkg-config-$version"
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

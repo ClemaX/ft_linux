@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="diffutils"
+version="3.8"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('50fcafcecde5a380415b12e9c574e0b2')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

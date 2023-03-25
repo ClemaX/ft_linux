@@ -102,6 +102,10 @@ else
 	# Initialize the filesystem.
 	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
 
+	# Link package cache.
+	mkdir -vp /cache/pkg
+	ln -vs /cache/pkg /var/cache
+
 	# Build additional temporary tools.
 	progress "Building temporary tools"
 	lfs_chroot "$LFS" /bin/bash --login +h /build/build_tools.sh

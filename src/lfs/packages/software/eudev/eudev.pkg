@@ -1,0 +1,39 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="eudev"
+version="3.2.10"
+config_version="20171102"
+
+source_base="$name-$version"
+config_base="udev-lfs-$config_version"
+
+# TODO: Extract udev-lfs configs to another package
+sources=("/sources/$source_base.tar.gz" "/sources/$config_base.tar.xz")
+md5sums=('60b135a189523f333cea5f71a3345c8d' '27cd82f9a61422e186b9d6759ddf1634')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--bindir=/usr/sbin \
+			--sysconfdir=/etc \
+			--enable-manpages \
+			--disable-static
+
+		make
+
+		mkdir -pv "$DESTDIR/usr/lib/udev/rules.d"
+		mkdir -pv "$DESTDIR/etc/udev/rules.d"
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install some custom rules and support files.
+		tar -xvf "$SRCDIR/$config_base.tar.xz"
+		make DESTDIR="$DESTDIR" -f "$config_base/Makefile.lfs" install
+    popd || return
+}

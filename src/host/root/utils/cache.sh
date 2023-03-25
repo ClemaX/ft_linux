@@ -11,8 +11,7 @@ cache_complete() # [cache]
 	info "Checking cache..."
 
 	pushd "$cache"
-		md5sum --check --status -
-		status="$?"
+		md5sum --check --status - || status="$?"
 	popd
 
 	return "$status"

@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="inetutils"
+version="2.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('4e7676d1980e57c7df665e5c5c3c1047')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+            --bindir=/usr/bin \
+            --localstatedir=/var \
+            --disable-logger \
+            --disable-whois \
+            --disable-rcp \
+            --disable-rexec \
+            --disable-rlogin \
+            --disable-rsh \
+            --disable-servers
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Move a program to the proper location.
+		mv -v "$DESTDIR/usr/"{,s}bin/ifconfig
+    popd || return
+}

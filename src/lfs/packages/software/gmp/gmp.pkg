@@ -1,0 +1,64 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gmp"
+version="6.2.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('0b82665c4a92fd2ade7440c13fcaa42b')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		local optimize="${HOST_OPTIMIZE:-false}"
+
+        if [ "$optimize" != "true" ]
+		then
+			echo "Disabling host processor optimization..."
+			cp -v configfsf.guess config.guess
+			cp -v configfsf.sub config.sub
+		fi
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--enable-cxx \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		# Generate HTML documentation.
+		make html
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			# Run tests and store output.
+			local check_log="/tmp/$name-check.log"
+			local pass_count
+			local fail_count
+
+			make check 2>&1 | tee "$check_log" >&2
+
+			pass_count=$(awk '/# PASS:/{total+=$3} ; END{print total}' "$check_log")
+			fail_count=$((197 - pass_count))
+
+			if [ "$fail_count" -ne 0 ]
+			then
+				fatal "$check_log: $fail_count mandatory tests failed!"
+			fi
+
+			rm -f "$check_log"
+		fi
+
+		make DESTDIR="$DESTDIR" install
+		make DESTDIR="$DESTDIR" install-html
+    popd || return
+}

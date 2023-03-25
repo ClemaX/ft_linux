@@ -1,0 +1,25 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="python"
+version="3.11.2"
+
+source_base="Python-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('a957cffb58a89303b62124896881950b')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--enable-shared \
+			--without-ensurepip
+
+		make || :
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

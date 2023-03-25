@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="patch"
+version="2.7.6"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('78ad9937e4caadcba1526ef1853730d5')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        ./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

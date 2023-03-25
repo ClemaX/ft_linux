@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="gawk"
+version="5.1.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('8470c34eeecc41c1aa0c5d89e630df50')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Ensure that some unneeded files are not installed.
+		s.ed -i 's/extras//' Makefile.in
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation
+		mkdir -v "$DESTDIR/usr/share/doc/$source_base"
+		cp -v doc/{awkforai.txt,*.{eps,pdf,jpg}} "$DESTDIR/usr/share/doc/$source_base"
+    popd || return
+}

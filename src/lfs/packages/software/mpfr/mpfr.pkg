@@ -1,0 +1,32 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="mpfr"
+version="4.1.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('bdd3d5efba9c17da8d83a35ec552baef')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-static \
+			--enable-thread-safe \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		# Generate HTML documentation.
+		make html
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+		make DESTDIR="$DESTDIR" install-html
+    popd || return
+}

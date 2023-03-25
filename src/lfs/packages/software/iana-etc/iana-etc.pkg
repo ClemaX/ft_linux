@@ -1,0 +1,19 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="iana-etc"
+version="20230202"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('e64685d046cd0dfe94b5c66e294cf9ef')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		install -d ./etc
+        cp -v services protocols ./etc
+    popd || return
+}

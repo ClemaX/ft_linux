@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="sysvinit"
+version="2.99"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz" "/sources/$source_base-consolidated-1.patch")
+md5sums=('6abc0ea61b8dd4a41b4e931a43b1bb90' '4900322141d493e74020c9cf437b2cdc')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Patch to remove duplicate programs, and fix a warning.
+		patch -Np1 -i "../sysvinit-$version-consolidated-1.patch"
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" install
+    popd || return
+}

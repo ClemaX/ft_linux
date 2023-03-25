@@ -1,0 +1,30 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="expat"
+version="2.4.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('a4fb91a9441bcaec576d4c4a56fa3aa6')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure \
+			--prefix=/usr \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		install -v -m644 doc/*.{html,png,css} \
+			"$DESTDIR/usr/share/doc/$source_base"
+    popd || return
+}

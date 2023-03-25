@@ -1,0 +1,26 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="tar"
+version="1.34"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('9a08d29a9ac4727130b5708347c0f5cf')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+       	FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr
+
+		make
+
+		[ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+		make -C doc DESTDIR="$DESTDIR" install-html \
+			docdir="/usr/share/doc/$source_base"
+    popd || return
+}

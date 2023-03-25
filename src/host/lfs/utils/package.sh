@@ -35,6 +35,7 @@ pkg_build_binutils()
 				--with-sysroot="$LFS" \
 			 	--target="$LFS_TGT" \
 				--disable-nls \
+				--enable-gprofng=no \
 				--disable-werror
 
 			make
@@ -55,8 +56,11 @@ pkg_build_gcc() # name
 {
 	local glibc_version
 	local name="$1"
-
-	glibc_version=$(ldd --version | head -n1 | rev | cut -d' ' -f1 | rev)
+	local libgcc gcc_include
+	
+	glibc_version=$(basename "$LFS/sources/glibc-"*.tar*)
+	glibc_version=${glibc_version%%.tar.*}
+	glibc_version=${glibc_version##glibc-}
 
 	pushd "$name"
 		# Set architecture specific library directory names.
@@ -75,11 +79,11 @@ pkg_build_gcc() # name
 				--with-sysroot="$LFS" \
 				--with-newlib \
 				--without-headers \
-				--enable-initfini-array \
+				--enable-default-pie \
+				--enable-default-ssp \
 				--disable-nls \
 				--disable-shared \
 				--disable-multilib \
-				--disable-decimal-float \
 				--disable-threads \
 				--disable-libatomic \
 				--disable-libgomp \
@@ -94,8 +98,8 @@ pkg_build_gcc() # name
 			make install
 		popd
 
-		libgcc=$("$LFS_TGT-gcc" -print-libgcc-file-name)
-		gcc_include=$(dirname "$libgcc")/install-tools/include
+		libgcc="$("$LFS_TGT-gcc" -print-libgcc-file-name)"
+		gcc_include="$(dirname "$libgcc")/install-tools/include"
 
 		# Add the builtin limits headers to the include path.
 		cat gcc/limitx.h gcc/glimits.h gcc/limity.h > "$gcc_include/limits.h"
@@ -133,7 +137,7 @@ pkg_build_glibc() # name
 		esac
 
 		# Patch non-FHS compliant runtime data directories.
-		patch -Np1 -i "$LFS/sources/glibc-2.34-fhs-1.patch"
+		patch -Np1 -i "$LFS/sources/glibc-"*-fhs-1.patch
 
 		mkdir -v build
 		pushd build
@@ -148,7 +152,11 @@ pkg_build_glibc() # name
 				--with-headers="$LFS/usr/include" \
 				libc_cv_slibdir=/usr/lib
 
-			make || warning "make failed, rerunning without parallel execution!" && make -j1
+			if ! make
+			then
+				warning "make failed, rerunning without parallel execution!"
+				make -j1
+			fi
 
 			make DESTDIR="$LFS" install
 
@@ -162,6 +170,12 @@ pkg_build_libstdc++() # name
 {
 	name="$1"
 
+	local gcc_version
+
+	gcc_version=$(basename "$LFS/sources/gcc-"*.tar*)
+	gcc_version=${gcc_version%%.tar.*}
+	gcc_version=${gcc_version##gcc-}
+
 	pushd "$name"
 		[ -d build ] && rm -rf build
 
@@ -174,10 +188,13 @@ pkg_build_libstdc++() # name
 				--disable-multilib \
 				--disable-nls \
 				--disable-libstdcxx-pch \
-				--with-gxx-include-dir="/tools/$LFS_TGT/include/c++/11.2.0"
+				--with-gxx-include-dir="/tools/$LFS_TGT/include/c++/$gcc_version"
+
 			make
 
 			make DESTDIR="$LFS" install
+
+			rm -v "$LFS/usr/lib/lib"{stdc++,stdc++fs,supc++}.la
 		popd
 	popd
 }
@@ -222,14 +239,16 @@ pkg_build_ncurses() # name
 			--mandir=/usr/share/man \
 			--with-manpage-format=normal \
 			--with-shared \
+			--without-normal \
+			--with-cxx-shared \
 			--without-debug \
 			--without-ada \
-			--without-normal \
+			--disable-stripping \
 			--enable-widec
 
 		make
 
-		make DESTDIR="$LFS" TIC_PATH="$PWD/build/progs/tic install"
+		make DESTDIR="$LFS" TIC_PATH="$PWD/build/progs/tic" install
 
 		echo "INPUT(-lncursesw)" > "$LFS/usr/lib/libncurses.so"
 	popd
@@ -310,6 +329,9 @@ pkg_build_file() # name
 		make FILE_COMPILE="$PWD/build/src/file"
 
 		make DESTDIR="$LFS" install
+
+		# Remove harmful static archive.
+		rm -v $LFS/usr/lib/libmagic.la
 	popd
 }
 
@@ -334,6 +356,7 @@ pkg_build_gawk() # name
 	name="$1"
 
 	pushd "$name"
+		# Disable extras.
 		sed -i 's/extras//' Makefile.in
 
 		./configure --prefix=/usr \
@@ -378,7 +401,12 @@ pkg_build_make() # name
 	name="$1"
 
 	pushd "$name"
-		./configure --prefix=/usr   \
+		# Fix an issue identified upstream.
+		sed -e '/ifdef SIGPIPE/,+2 d' \
+		-e '/undef  FATAL_SIG/i FATAL_SIG (SIGPIPE);' \
+		-i src/main.c
+
+		./configure --prefix=/usr \
 			--without-guile \
 			--host="$LFS_TGT" \
 			--build="$(build-aux/config.guess)"
@@ -442,11 +470,13 @@ pkg_build_xz() # name
 			--host="$LFS_TGT" \
 			--build="$(build-aux/config.guess)" \
 			--disable-static \
-			--docdir=/usr/share/doc/xz-5.2.5
+			--docdir=/usr/share/doc/xz-5.4.1
 
 		make
 
 		make DESTDIR="$LFS" install
+
+		rm -v "$LFS/usr/lib/liblzma.la"
 	popd
 }
 
@@ -454,7 +484,11 @@ pkg_build_binutils_pass2() # name
 {
 	name="$1"
 
+
 	pushd "$name"
+		# Workaround lack of sysroot support to fix library linking.
+		sed '6009s/$add_dir//' -i ltmain.sh
+
 		[ -d build ] && rm -rf build
 
 		mkdir -v build
@@ -465,13 +499,16 @@ pkg_build_binutils_pass2() # name
 				--host="$LFS_TGT" \
 				--disable-nls \
 				--enable-shared \
+				--enable-gprofng=no \
 				--disable-werror \
 				--enable-64-bit-bfd
 
 			make
 
 			make DESTDIR="$LFS" install -j1
-			install -vm755 libctf/.libs/libctf.so.0.0.0 "$LFS/usr/lib"
+
+			# Remove harmful and unnecessary static libraries.
+			rm -v $LFS/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes}.{a,la}
 		popd
 	popd
 }
@@ -488,30 +525,34 @@ pkg_build_gcc_pass2() # name
 			;;
 		esac
 
+		# Allow buildiing with POSIX threads support.
+		sed '/thread_header =/s/@.*@/gthr-posix.h/' \
+			-i libgcc/Makefile.in libstdc++-v3/include/Makefile.in
+
 		# Remove existing build directory
 		[ -d build ] && rm -rf build
 
 		mkdir -v build
 		pushd build
-			mkdir -pv "$LFS_TGT/libgcc"
-			ln -s ../../../libgcc/gthr-posix.h "$LFS_TGT/libgcc/gthr-default.h"
+			#mkdir -pv "$LFS_TGT/libgcc"
+			#ln -s ../../../libgcc/gthr-posix.h "$LFS_TGT/libgcc/gthr-default.h"
 
 			../configure \
 				--build="$(../config.guess)" \
 				--host="$LFS_TGT" \
+				--target="$LFS_TGT" \
+				LDFLAGS_FOR_TARGET="-L$PWD/$LFS_TGT/libgcc" \
 				--prefix=/usr \
-				CC_FOR_TARGET="$LFS_TGT-gcc" \
 				--with-build-sysroot="$LFS" \
-				--enable-initfini-array \
+				--enable-default-pie \
+				--enable-default-ssp \
 				--disable-nls \
 				--disable-multilib \
-				--disable-decimal-float \
 				--disable-libatomic \
 				--disable-libgomp \
 				--disable-libquadmath \
 				--disable-libssp \
 				--disable-libvtv \
-				--disable-libstdcxx \
 				--enable-languages=c,c++
 
 			make

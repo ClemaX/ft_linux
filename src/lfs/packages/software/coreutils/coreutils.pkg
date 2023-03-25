@@ -1,0 +1,53 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="coreutils"
+version="8.32"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz" "/sources/$source_base-i18n-1.patch")
+md5sums=('022042695b7d5bcf1a93559a9735e668' 'cd8ebed2a67fff2e231026df91af6776')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Patch to fix non-compliances and i18n bugs.
+		patch -Np1 -i "$SRCDIR/$source_base-i18n-1.patch"
+    popd || return
+}
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		autoreconf -fiv
+		FORCE_UNSAFE_CONFIGURE=1 ./configure \
+			--prefix=/usr \
+			--enable-no-install-program=kill,uptime
+
+		make
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			make NON_ROOT_USERNAME=tester check-root
+
+			# Create a temporary group.
+			echo "dummy:x:102:tester" >> /etc/group
+
+			chown -Rv tester .
+
+			su tester -c "PATH=$PATH make RUN_EXPENSIVE_TESTS=yes check"
+
+			# Remove the temporary group.
+			sed -i '/^dummy:/d' /etc/group
+		fi
+
+		make DESTDIR="$DESTDIR" install
+
+		# Move programs to locations specified by the FHS.
+		mv -v "$DESTDIR/usr/bin/chroot" "$DESTDIR/usr/sbin"
+		mv -v "$DESTDIR/usr/share/man/man1/chroot.1" "$DESTDIR/usr/share/man/man8/chroot.8"
+		sed -i 's/"1"/"8"/' "$DESTDIR/usr/share/man/man8/chroot.8"
+    popd || return
+}

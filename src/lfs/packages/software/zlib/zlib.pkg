@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="zlib"
+version="1.2.13"
+
+source_base="$name-$version"
+
+sources=(
+    "/sources/$source_base.tar.xz"
+)
+md5sums=(
+    '7d9fc1d78ae2fa3e84fe98b77d006c63'
+)
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+        [ "$SKIP_TESTS" != true ] && make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Remove static library.
+		rm -fv "$DESTDIR/usr/lib/libz.a"
+    popd || return
+}

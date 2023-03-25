@@ -1,0 +1,64 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="bzip2"
+version="1.0.8"
+
+source_base="$name-$version"
+
+sources=(
+    "/sources/$source_base.tar.gz"
+    "/sources/$source_base-install_docs-1.patch"
+)
+md5sums=(
+    '67e051268d0c475ea773822f7500d0e5'
+    '6a5ac7e89b791aae556de0f745916f7f'
+)
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+        # Patch to install documentation.
+        patch -Np1 -i "$SRCDIR/$source_base-install_docs-1.patch"
+
+        # Ensure that symbolic links are relative.
+        # shellcheck disable=SC2016
+        sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
+
+        # Ensure that man-pages are installed into the correct location.
+        sed -i 's@(PREFIX)/man@(PREFIX)/share/man@g' Makefile
+
+        # Prepare dynamically linked compilation.
+        make -f Makefile-libbz2_so
+        make clean
+    popd || return
+}
+
+build()
+{
+    PREFIX="$DESTDIR/usr"
+
+    pushd "$SRCDIR/$source_base" || return
+		make
+
+		make PREFIX="$PREFIX" install
+
+		# Install shared library.
+        install -d "$PREFIX/lib"
+		cp -av libbz2.so.* "$PREFIX/lib"
+		ln -sv libbz2.so.1.0.8 "$PREFIX/lib/libbz2.so"
+
+		# Install shared multi-function binary.
+        install -d "$PREFIX/bin"
+		cp -v bzip2-shared "$PREFIX/bin/bzip2"
+
+		for tool in "$PREFIX/bin/"{bzcat,bunzip2}
+        do
+			ln -sfv bzip2 "$tool"
+		done
+
+		# Remove static library.
+		rm -fv "$PREFIX/lib/libbz2.a"
+    popd || return
+}
