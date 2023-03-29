@@ -447,6 +447,8 @@ pkg_link() # name version
 	local data_dir="$PKG_DATA/$name" cache_dir="$PKG_CACHE/$name"
 	local archive="pkg$TAR_PKG_EXT"
 
+	mkdir -pv "$data_dir" "$cache_dir"
+
 	ln -sfv "$data_dir/$version/$name.pkg" "$data_dir/$name.pkg"
 	ln -sfv "$cache_dir/$version/$archive" "$cache_dir/$archive"
 	ln -sfv "$cache_dir/$version/$archive.md5" "$cache_dir/$archive.md5"
