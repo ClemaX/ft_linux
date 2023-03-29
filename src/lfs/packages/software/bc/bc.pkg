@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="bc"
-version="5.0.0"
+version="6.2.4"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('8345bb81c576ddfc8c27e0842370603c')
+md5sums=('5245ff400df17b66be7621c7a6498953')
 
 build()
 {
