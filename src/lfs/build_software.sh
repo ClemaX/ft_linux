@@ -110,7 +110,7 @@ pushd /tmp
 	rm -rf /tmp/*
 
 	# Remove libtool archives.
-	find /usr/lib /usr/libexec -name \*.la -delete
+	find /usr/lib /usr/libexec -name '*.la' -delete
 
 	# Remove the temporary compiler.
 	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" -exec rm -rf {} \;

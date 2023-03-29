@@ -24,7 +24,7 @@ lfs_prepare_fs() # dst
 	dst="$1"
 
 	info "Preparing lfs file hierarchy in $LFS..."
-	# Create the bases folder structure
+	# Create the bases folder structure.
 	mkdir -pv "$dst"/{etc,var} "$dst"/usr/{bin,lib,sbin}
 
 	# Link the bin lib and sbin directories to their /usr/... counterparts.

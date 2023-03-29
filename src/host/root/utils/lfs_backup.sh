@@ -13,7 +13,6 @@ lfs_backup() # root dest
 	backup_dir=$(dirname "$dest")
 	backup_file=$(basename "$dest")
 
-	# TODO: add md5sum and check md5sum on source_fetch
 	info "Backing up $root to $dest..."
 	pushd "$root"
 		tar -cJpf "$dest" .
@@ -63,6 +62,7 @@ lfs_restore() # root src
 			mount -v "$boot" boot
 		fi
 
+		# TODO: Check if --no-same-owner is correct
 		debug "Restoring backup..."
 		tar --no-same-owner -xpf "$src"
 	popd
