@@ -43,6 +43,8 @@ ENV ROOT_PASSWORD=toor
 
 # Skip test suites
 ENV SKIP_TESTS=true
+# Default xz options: -T0: Use as many threads as there are processor cores.
+ENV XZ_DEFAULTS="-T0"
 
 # Strip unnecessary symbols off binaries
 ENV STRIP_BINARIES=true

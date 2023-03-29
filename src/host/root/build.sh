@@ -88,7 +88,9 @@ else
 	# Build LFS toolchain.
 	pushd /home/lfs
 		# shellcheck disable=SC2088
-		env -i LFS="$LFS" BASH_ENV='~/.bashrc' su lfs -c '~/build_toolchain.sh'
+		env -i \
+			LFS="$LFS" XZ_DEFAULTS="$XZ_DEFAULTS" BASH_ENV='~/.bashrc' \
+			su lfs -c '~/build_toolchain.sh'
 	popd
 
 	# Reset root permissions.

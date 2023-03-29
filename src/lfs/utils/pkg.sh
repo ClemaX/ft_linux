@@ -2,17 +2,25 @@
 
 set -euo pipefail
 
+# Processor core count
 NPROC=$(nproc || echo 1)
 
+# Pager command to show error logs when running interactively
 PAGER=$(command -v less || command -v more || command -v tail || command -v cat || :)
 
+# Skip test-suites when available
 export SKIP_TESTS="${SKIP_TESTS:-false}"
-export MAKEFLAGS="-j$NPROC"
+# Makefile flags: Run as many tasks as there are processor cores
+export MAKEFLAGS="${MAKEFLAGS:--j$NPROC}"
+# xz options: -T N: Use N threads, -N: Compression preset
+export XZ_OPT="${XZ_OPT:--T${NPROC:-0} -6}"
 
+# Temporary variables for build script interaction
 PKG_VARS=(pkg_dir pkg_file name version sources md5sums cache_dir data_dir)
 
+# Temporary interface functions
 PKG_BUILD_FUNS=(prepare build)
-PKG_INSTALL_FUNS=(pre_isntall post_install)
+PKG_INSTALL_FUNS=(pre_install post_install)
 PKG_UNINSTALL_FUNS=(pre_uninstall post_uninstall)
 PKG_FUNS=(
 	"${PKG_BUILD_FUNS[@]}"
@@ -20,20 +28,31 @@ PKG_FUNS=(
 	"${PKG_UNINSTALL_FUNS[@]}"
 )
 
+# Target root directory
 ROOT="${ROOT:-/}"
 
+# Package management database directory
 PKG_DATA="$ROOT/var/lib/pkg"
+# Package cache directory
 PKG_CACHE="$ROOT/var/cache/pkg"
 
+# Temporary build directory
 PKG_TMP="/tmp"
 
-TAR_XFLAGS=-xf
+# tar extraction parameters: x: Extract
+TAR_XFLAGS=(-x)
+# tar compression parameters: c: Compress, J: Filter the archive through xz
+TAR_CFLAGS=(-cJ)
 
-TAR_PKG_CFLAGS=-cJf
-TAR_PKG_XFLAGS="$TAR_XFLAGS"
+# Package extension
 TAR_PKG_EXT=.tar.xz
 
-TAR_SRC_XFLAGS="$TAR_XFLAGS"
+# Package flags
+TAR_PKG_CFLAGS=("${TAR_CFLAGS[@]}")
+TAR_PKG_XFLAGS=("${TAR_XFLAGS[@]}" --keep-directory-symlink)
+
+# Source flags
+TAR_SRC_XFLAGS=("${TAR_XFLAGS[@]}" --no-same-owner)
 
 
 fatal() # [msg]...
@@ -55,12 +74,14 @@ Where action is one of:
 	help:       Print this help message." >&2
 }
 
+# Create runtime directories
 pkg_init()
 {
 	mkdir -p "$PKG_DATA"
 	mkdir -p "$PKG_CACHE"
 }
 
+# Check if given variables have been set
 pkg_has_var() # [name]...
 {
 	until [ $# -eq 0 ]
@@ -71,6 +92,7 @@ pkg_has_var() # [name]...
 	done
 }
 
+# Check if given functions have been defined
 pkg_has_fun() # [name]...
 {
 	while [ $# -gt 0 ]
@@ -81,6 +103,7 @@ pkg_has_fun() # [name]...
 	done
 }
 
+# Assert that given variables have been set
 pkg_assert_var() # pkg_file [name]...
 {
 	local pkg_file="$1"; shift
@@ -97,6 +120,7 @@ pkg_assert_var() # pkg_file [name]...
 	done
 }
 
+# Assert that given functions have been defined
 pkg_assert_fun() # pkg_file [name]...
 {
 	local pkg_file="$1"; shift
@@ -112,6 +136,7 @@ pkg_assert_fun() # pkg_file [name]...
 	done
 }
 
+# Run a given function
 pkg_run() # pkg_fun
 {
 	local log
@@ -142,8 +167,8 @@ pkg_run() # pkg_fun
 	done
 }
 
-# Fetch an archive at "proto://repo:branch" and create a tar archive and a
-# md5 hash.
+# Fetch a repo at "url" as "proto://repo:branch", create a tar archive and an
+# md5 sum and store it's name in a variable named "name_dst".
 pkg_src_fetch_git() # url name_dst
 {
 	local url="$1"
@@ -176,6 +201,8 @@ pkg_src_fetch_git() # url name_dst
 	fi
 }
 
+# Fetch a file using HTTP at "url" and store it's name in a variable named
+# "name_dst".
 pkg_src_fetch_http() # url name_dst
 {
 	local url="$1"
@@ -191,6 +218,7 @@ pkg_src_fetch_http() # url name_dst
 	name_dst="$name"
 }
 
+# Fetch a file at "url" and store it's name in a variable named "name_dst".
 pkg_src_fetch() # url name_dst
 {
 	local url="$1"
@@ -200,14 +228,16 @@ pkg_src_fetch() # url name_dst
 
 	echo "Fetching $url..."
 
-	# Fetch git repo or http file.
 	if [[ "$url" =~ ^[^:]+://[^:]+\.git:.* ]]
 	then
+		# Fetch git repo.
 		pkg_src_fetch_git "$url" name
 	elif [[ "$url" =~ ^[^:]+://[^:]+.* ]]
 	then
+		# Fetch http file.
 		pkg_src_fetch_http "$url" name
 	else
+		# Fetch local file.
 		name="${url##*/}"
 
 		if [ "$url" != "${url#/}" ]
@@ -221,6 +251,7 @@ pkg_src_fetch() # url name_dst
 	echo "$url -> $name"
 }
 
+# Check "src_name" integrity given an md5 "expected_sum"
 pkg_src_check() # src_name expected_sum
 {
 	local src_name="$1"
@@ -232,18 +263,22 @@ pkg_src_check() # src_name expected_sum
 	[ "$actual_sum" == "$expected_sum" ] || return 1
 }
 
+# Archive a package's "build_dir" to "archive_path" and store it's md5 sum to
+# "archive_path".md5
 pkg_archive() # archive_path build_dir
 {
 	local archive_path="$1"
 	local build_dir="$2"
 
 	pushd "$build_dir"
-		tar "$TAR_PKG_CFLAGS" "$archive_path" .
+		tar "${TAR_PKG_CFLAGS[@]}" -f "$archive_path" .
 	popd
 
 	md5sum "$archive_path" > "$archive_path.md5"
 }
 
+# Extract a package at "archive_path" to "install_dir" after checking the md5
+# sum at "archive_path".md5
 pkg_extract() # archive_path install_dir
 {
 	local archive_path="$1"
@@ -252,10 +287,11 @@ pkg_extract() # archive_path install_dir
 	md5sum --quiet --check "$archive_path.md5"
 
 	pushd "$install_dir"
-		tar "$TAR_PKG_XFLAGS" "$archive_path"
+		tar "${TAR_PKG_XFLAGS[@]}" -f "$archive_path"
 	popd
 }
 
+# List the files in "archive_path" rebased onto "root" or '/' by default
 pkg_archive_files() # archive_path [root]
 {
 	local archive_path="$1"
@@ -264,7 +300,9 @@ pkg_archive_files() # archive_path [root]
 	tar -tf "$archive_path" | sed -e "s|^./|$root|g" -e '/^$/d'
 }
 
-# assigns pkg_dir pkg_file name version sources md5sums cache_dir data_dir
+# Load a package script
+#
+# Assigns pkg_dir pkg_file name version sources md5sums cache_dir data_dir
 pkg_load() # pkg_file
 {
 	pkg_file="$1"
@@ -304,6 +342,7 @@ pkg_load() # pkg_file
 	data_dir="$PKG_DATA/$name/$version"
 }
 
+# Unloads a package script
 pkg_unload()
 {
 	unset "${PKG_VARS[@]}"
@@ -311,6 +350,7 @@ pkg_unload()
 	unset -f "${PKG_FUNS[@]}" 2>/dev/null || :
 }
 
+# Prepare a package for building
 pkg_prepare() # src_dir
 {
 	local src_dir="$1"
@@ -374,15 +414,15 @@ pkg_prepare() # src_dir
 						if [ -z "$dst" ]
 						then
 							echo "Extracting $src..."
-							tar --no-same-owner "$TAR_SRC_XFLAGS" "$src"
+							tar "${TAR_SRC_XFLAGS[@]}" -f "$src"
 						else
 
 							echo "Extracting $src to $dst..."
 
 							mkdir -p "./$dst"
 							pushd "./$dst"
-								tar --no-same-owner --strip-components=1 \
-									"$TAR_SRC_XFLAGS" "$src"
+								tar --strip-components=1 \
+									"${TAR_SRC_XFLAGS[@]}" -f "$src"
 							popd
 						fi
 					fi
@@ -398,6 +438,7 @@ pkg_prepare() # src_dir
 	popd
 }
 
+# Link an installed package to it's current version
 pkg_link() # name version
 {
 	local name="$1"
@@ -411,6 +452,7 @@ pkg_link() # name version
 	ln -sfv "$cache_dir/$version/$archive.md5" "$cache_dir/$archive.md5"
 }
 
+# Build given packages
 pkg_build() # [pkg]...
 {
 	local "${PKG_VARS[@]}"
@@ -473,6 +515,7 @@ pkg_build() # [pkg]...
 	done
 }
 
+# Check if given packages are installed
 pkg_installed() # [pkg]...
 {
 	local pkg
@@ -483,6 +526,7 @@ pkg_installed() # [pkg]...
 	done
 }
 
+# Check if given packages have been built
 pkg_built() # [pkg]...
 {
 	local pkg pkg_archive
@@ -505,7 +549,8 @@ pkg_built() # [pkg]...
 	done
 }
 
-pkg_assert_installed() # pkg
+# Assert that the given packages have been installed
+pkg_assert_installed() # [pkg...]
 {
 	local pkg
 
@@ -515,6 +560,7 @@ pkg_assert_installed() # pkg
 	done
 }
 
+# Assert that the given packages have been built
 pkg_assert_built() # [pkg]...
 {
 	local pkg
@@ -525,7 +571,7 @@ pkg_assert_built() # [pkg]...
 	done
 }
 
-
+# List a package's files
 pkg_files() # pkg
 {
 	local pkg="${1%.pkg}"
@@ -533,6 +579,7 @@ pkg_files() # pkg
 	grep "$PKG_DATA/$pkg/files" -e '[^/]$'
 }
 
+# List a package's directories
 pkg_dirs() # pkg
 {
 	local pkg="${1%.pkg}"
@@ -540,6 +587,7 @@ pkg_dirs() # pkg
 	grep "$PKG_DATA/$pkg/files" -v -e '[^/]$'
 }
 
+# Uninstall the given packages
 pkg_uninstall() # [pkg]...
 {
 	local pkg
@@ -585,6 +633,7 @@ pkg_uninstall() # [pkg]...
 	done
 }
 
+# Install the given packages
 pkg_install() # [pkg]...
 {
 	local pkg pkg_archive
@@ -616,6 +665,7 @@ pkg_install() # [pkg]...
 	done
 }
 
+# List the installed packages
 pkg_list()
 {
 	local data_dir
@@ -629,6 +679,7 @@ pkg_list()
 	done
 }
 
+# List the given packages's files
 pkg_list_files() # [pkg]...
 {
 	local pkg
@@ -643,7 +694,7 @@ pkg_list_files() # [pkg]...
 	done
 }
 
-
+# Parse action
 action="${1:-}"
 [ $# -gt 0 ] && shift
 
