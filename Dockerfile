@@ -52,6 +52,6 @@ ENV STRIP_BINARIES=true
 # Image destination
 ENV IMG_DST=/dist/disk.img
 # Image size in MiB
-ENV IMG_SIZE=4096
+ENV IMG_SIZE=8192
 
 CMD ./build.sh
