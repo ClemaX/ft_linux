@@ -15,21 +15,24 @@ build()
 	local version_minor="${version%.*}"
 	local version_major="${version_minor%%.*}"
 
-	local perl_path="/usr/lib/perl$version_major/$version_minor/"
+	local perl_path="/usr/lib/perl$version_major/$version_minor"
 
     pushd "$SRCDIR/$source_base" || return
-		sh Configure \
-			-des \
-			-Dprefix=/usr \
-			-Dvendorprefix=/usr \
+		sh Configure -des \
+			-Dprefix="/usr" \
+			-Dvendorprefix="/usr" \
 			-Dprivlib="$perl_path/core_perl" \
 			-Darchlib="$perl_path/core_perl" \
 			-Dsitelib="$perl_path/site_perl" \
 			-Dsitearch="$perl_path/site_perl" \
 			-Dvendorlib="$perl_path/vendor_perl" \
-			-Dvendorarch="$perl_path/vendor_perl"
+			-Dvendorarch="$perl_path/vendor_perl" \
+			-Dman1dir="/usr/share/man/man1" \
+			-Dman3dir="/usr/share/man/man3"
 
 		make
+
+		install -d "$DESTDIR/usr/share/man/"{man1,man3}
 
 		make DESTDIR="$DESTDIR" install
     popd || return

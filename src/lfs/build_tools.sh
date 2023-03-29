@@ -27,11 +27,11 @@ chmod -v 600  /var/log/btmp
 
 # Build additional temporary tools.
 pushd "$SCRIPTDIR/packages/temporary-tools"
-	"$SCRIPTDIR/utils/pkg.sh" build gettext bison perl python \
-		texinfo util-linux
-
-	"$SCRIPTDIR/utils/pkg.sh" install gettext bison perl python \
-	texinfo util-linux
+	for pkg in gettext bison perl python texinfo util-linux
+	do
+		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
+		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
+	done
 popd
 
 info "Cleaning up..."
