@@ -46,7 +46,11 @@ loop_setup() # img
 	local try=3
 
 
-	[ -e "$LOOP_DEV" ] && rm "$LOOP_DEV"
+	if [ -e "$LOOP_DEV" ]
+	then
+		losetup -d "$LOOP_DEV"
+		rm "$LOOP_DEV"
+	fi
 
 	debug "Creating loop device at $LOOP_DEV..."
 	mknod "$LOOP_DEV" b 7 0
@@ -55,11 +59,8 @@ loop_setup() # img
 
 	until [ "$((try -= 1))" -eq 0 ] || losetup --partscan "$LOOP_DEV" "$img"
 	do
-		[ -e "$LOOP_DEV" ] && rm "$LOOP_DEV"
-		sleep 1
+		losetup -d "$LOOP_DEV"
 
-		debug "Creating loop device at $LOOP_DEV..."
-		mknod "$LOOP_DEV" b 7 0
 		sleep 1
 
 		info "Setting up $LOOP_DEV..."
