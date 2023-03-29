@@ -474,39 +474,36 @@ pkg_build() # [pkg]...
 
 			archive="$cache_dir/pkg$TAR_PKG_EXT"
 
-			if pkg_built "$pkg"
+			if ! pkg_built "$pkg"
 			then
-				echo "$name has already been built!"
+				pkg_prepare "$src_dir"
 
-				pkg_link "$name" "$version"
-				continue
-			fi
+				pushd "$build_dir"
+					echo "Building $pkg_file..."
 
-			pkg_prepare "$src_dir"
+					# shellcheck disable=SC2034
+					DESTDIR="$build_dir" USRLIBDIR="/usr/lib" USRBINDIR="/usr/bin"
+					# TODO: Make constants read-only
 
-			pushd "$build_dir"
-				echo "Building $pkg_file..."
+					pkg_run build
 
-				# shellcheck disable=SC2034
-				DESTDIR="$build_dir" USRLIBDIR="/usr/lib" USRBINDIR="/usr/bin"
-				# TODO: Make constants read-only
+					if [ -d "$src_dir" ]
+					then
+						echo "Removing source directory..."
+						rm -rf "$src_dir"
+					fi
+				popd
 
-				pkg_run build
+				echo "Packaging $pkg_file..."
+				pkg_archive "$archive" "$build_dir"
 
-				if [ -d "$src_dir" ]
+				if [ -d "$build_dir" ]
 				then
-					echo "Removing source directory..."
-					rm -rf "$src_dir"
+					echo "Removing build directory..."
+					rm -rf "$build_dir"
 				fi
-			popd
-
-			echo "Packaging $pkg_file..."
-			pkg_archive "$archive" "$build_dir"
-
-			if [ -d "$build_dir" ]
-			then
-				echo "Removing build directory..."
-				rm -rf "$build_dir"
+			else
+				echo "$name has already been built!"
 			fi
 
 			echo "Storing $pkg_file..."
