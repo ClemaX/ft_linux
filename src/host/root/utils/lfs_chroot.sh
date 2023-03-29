@@ -38,10 +38,16 @@ lfs_chroot_teardown() # root
 		then
 			info "Tearing down kernel filesystems in $root..."
 
+			# Unlink package cache.
+			rm -vf var/cache/pkg
+
+			# Unmount kernel filesystems and bind mounts.
 			lfs_chroot_umount "$root" dev/pts {sys,proc,run} dev cache tmp
 
+			# Remove console devices.
 			rm -vf dev/{console,null}
 
+			# Remove temporary cache mountpoint.
 			[ -d cache ] && rmdir -v cache
 		fi
 	popd
@@ -79,6 +85,10 @@ lfs_chroot() # root [cmd]
 
 		# Mount /tmp.
 		mount -v --bind /tmp		tmp
+
+		# Link package cache.
+		mkdir -vp cache/pkg
+		ln -vs /cache/pkg var/cache
 
 		[ $# -eq 0 ] && set -- /bin/bash --login +h
 
