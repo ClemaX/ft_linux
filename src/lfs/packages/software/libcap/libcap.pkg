@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="libcap"
-version="2.53"
+version="2.67"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('094994d4554c6689cf98ae4f717b8e19')
+md5sums=('06333f4301657298890fd8d6f1fb4793')
 
 prepare()
 {
@@ -26,8 +26,5 @@ build()
 		[ "$SKIP_TESTS" != true ] && make test
 
 		make DESTDIR="$DESTDIR" prefix=/usr lib=lib install
-
-		# Adjust permissions of shared libraries.
-		chmod -v 755 "$DESTDIR/usr/lib/lib"{cap,psx}".so.$version"
     popd || return
 }
