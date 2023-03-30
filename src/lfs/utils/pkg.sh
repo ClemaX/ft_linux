@@ -77,8 +77,8 @@ Where action is one of:
 # Create runtime directories
 pkg_init()
 {
-	mkdir -p "$PKG_DATA"
-	mkdir -p "$PKG_CACHE"
+	mkdir -vp "$PKG_DATA"
+	mkdir -vp "$PKG_CACHE"
 }
 
 # Check if given variables have been set
@@ -361,7 +361,7 @@ pkg_prepare() # src_dir
 	export SRCDIR="$src_dir"
 	export PKGDIR="$pkg_dir"
 
-	mkdir -p "$cache_dir"
+	mkdir -vp "$cache_dir"
 	pushd "$cache_dir"
 		if pkg_has_var sources
 		then
@@ -447,7 +447,7 @@ pkg_link() # name version
 	local data_dir="$PKG_DATA/$name" cache_dir="$PKG_CACHE/$name"
 	local archive="pkg$TAR_PKG_EXT"
 
-	mkdir -pv "$data_dir" "$cache_dir"
+	mkdir -vp "$data_dir" "$cache_dir"
 
 	ln -sfv "$data_dir/$version/$name.pkg" "$data_dir/$name.pkg"
 	ln -sfv "$cache_dir/$version/$archive" "$cache_dir/$archive"
