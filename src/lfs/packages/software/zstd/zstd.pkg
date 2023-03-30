@@ -15,7 +15,7 @@ build()
     pushd "$SRCDIR/$source_base" || return
 		make prefix="/usr"
 
-		make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make prefix="$DESTDIR/usr" install
 
