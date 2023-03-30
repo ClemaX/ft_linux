@@ -3,7 +3,7 @@
 # shellcheck disable=SC2034
 
 name="shadow"
-version="4.9"
+version="4.13"
 
 source_base="$name-$version"
 
@@ -24,14 +24,12 @@ prepare()
 		# Change the obsolete /var/spool/mail to /var/mail.
 		# Remove /bin and /sbin symlinks from PATH.
 		sed -e 's:#ENCRYPT_METHOD DES:ENCRYPT_METHOD SHA512:' \
+			-e 's@#\(SHA_CRYPT_..._ROUNDS 5000\)@\100@' \
 			-e 's:/var/spool/mail:/var/mail:' \
 			-e '/PATH=/{s@/sbin:@@;s@/bin:@@}' \
 			-i etc/login.defs
 
 		# TODO: Think about adding cracklib support.
-
-		# Fix a programming error.
-		sed -e "224s/rounds/min_rounds/" -i libmisc/salt.c
     popd || return
 }
 
@@ -40,8 +38,10 @@ build()
     pushd "$SRCDIR/$source_base" || return
         install -d "$DESTDIR/usr/bin"
 		touch "$DESTDIR/usr/bin/passwd"
+
 		./configure \
 			--sysconfdir=/etc \
+            --disable-static  \
 			--with-group-name-max-length=32
 
 		make
