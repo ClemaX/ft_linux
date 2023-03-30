@@ -396,43 +396,36 @@ pkg_prepare() # src_dir
 			done
 		fi
 
-		echo "Initializing source directory..."
+		echo "Copying cached sources to $src_dir..."
+		mkdir -vp "$src_dir"
 
-		if [ -d "$cache_dir" ]
-		then
-			echo "Copying cached sources to $src_dir..."
-			cp -a "$cache_dir/." "$src_dir"
-
-			pushd "$src_dir"
-				for src in "${sources[@]}"
-				do
-					if [[ "$src" =~ ^([^:]*\.tar[^:]*)(:.\+)?$ ]]
-					then
-						src="${BASH_REMATCH[1]}"
-						dst="${BASH_REMATCH[2]}"
-
-						if [ -z "$dst" ]
-						then
-							echo "Extracting $src..."
-							tar "${TAR_SRC_XFLAGS[@]}" -f "$src"
-						else
-
-							echo "Extracting $src to $dst..."
-
-							mkdir -p "./$dst"
-							pushd "./$dst"
-								tar --strip-components=1 \
-									"${TAR_SRC_XFLAGS[@]}" -f "$src"
-							popd
-						fi
-					fi
-				done
-			popd
-		else
-			mkdir -p "$src_dir"
-		fi
+		cp -a . "$src_dir"
 
 		pushd "$src_dir"
+			for src in "${sources[@]}"
+			do
+				if [[ "$src" =~ ^([^:]*\.tar[^:]*)(:.\+)?$ ]]
+				then
+					src="${BASH_REMATCH[1]}"
+					dst="${BASH_REMATCH[2]}"
+
+					if [ -z "$dst" ]
+					then
+						echo "Extracting $src..."
+						tar "${TAR_SRC_XFLAGS[@]}" -f "$src"
+					else
+
+						echo "Extracting $src to $dst..."
+
+						mkdir -p "./$dst"
+						pushd "./$dst"
+							tar --strip-components=1 \
+								"${TAR_SRC_XFLAGS[@]}" -f "$src"
+						popd
+					fi
+				fi
+			done
+		
 			pkg_run prepare
 		popd
 	popd
