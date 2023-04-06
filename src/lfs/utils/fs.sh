@@ -21,7 +21,7 @@ fs_hierarchy()
 	ln -sfv /run/lock /var/lock
 
 	# Restrict root home directory permissions.
-	install -dv -m 0750 /root
+	install -vd -m 0750 /root
 	# Make /tmp available to anyone.
-	install -dv -m 1777 /tmp /var/tmp
+	install -vd -m 1777 /tmp /var/tmp
 }

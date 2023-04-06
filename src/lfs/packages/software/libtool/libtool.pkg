@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="libtool"
-version="2.4.6"
+version="2.4.7"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('1bfb9b923f2c1339b4d2ce1807064aa5')
+md5sums=('2fc0b6ddcd66a89ed6e45db28fa44232')
 
 build()
 {
@@ -17,7 +17,7 @@ build()
 
 		make
 
-		[ "$SKIP_TESTS" != true ] && make check
+		[ "$SKIP_TESTS" != true ] && make TESTSUITEFLAGS="$MAKEFLAGS" -k check
 
 		make DESTDIR="$DESTDIR" install
 

@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="libffi"
-version="3.4.2"
+version="3.4.4"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('294b921e6cf9ab0fbaea4b639f8fdbe8')
+md5sums=('0da1a5ed7786ac12dcbaf0d499d8a049')
 
 build()
 {
@@ -16,7 +16,7 @@ build()
 		local optimize="${HOST_OPTIMIZE:-false}"
 		local gcc_arch="native"
 
-		[ "$optimize" != "true" ] && gcc_arch="x86_64"
+		[ "$optimize" != true ] && gcc_arch="x86_64"
 
 		./configure \
 			--prefix=/usr \

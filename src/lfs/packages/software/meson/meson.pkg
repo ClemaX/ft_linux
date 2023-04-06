@@ -3,20 +3,29 @@
 # shellcheck disable=SC2034
 
 name="meson"
-version="0.59.1"
+version="1.0.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('9c8135ecde820094be2f42f457fb6535')
+md5sums=('009b78125467cd9ee4d467175a5c12e1')
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		python3 setup.py build
+		pip3 wheel \
+			-w dist \
+			--no-build-isolation \
+			--no-deps \
+			"$PWD"
 
-		python3 setup.py install --root=dest
-		cp -rv dest/* "$DESTDIR"
+		pip3 install \
+			--root="$DESTDIR" \
+			--no-index \
+			--find-links dist \
+			meson
+
+		# Install interactive shell completions.
 		install -vDm644 data/shell-completions/bash/meson \
 			"$DESTDIR/usr/share/bash-completion/completions/meson"
 		install -vDm644 data/shell-completions/zsh/_meson \

@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="kbd"
-version="2.4.0"
+version="2.5.1"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.xz")
-md5sums=('3cac5be0096fcf7b32dcbd3c53831380')
+sources=("/sources/$source_base.tar.xz" "/sources/$source_base-backspace-1.patch")
+md5sums=('10f10c0a9d897807733f2e2419814abb' 'f75cca16a38da6caa7d52151f7136895')
 
 prepare()
 {
@@ -35,7 +35,7 @@ build()
 		make DESTDIR="$DESTDIR" install
 
 		# Install documentation
-		mkdir -vp			"$DESTDIR/usr/share/doc/$source_base"
+		install -vd			"$DESTDIR/usr/share/doc/$source_base"
 		cp -R -v docs/doc*	"$DESTDIR/usr/share/doc/$source_base"
     popd || return
 }

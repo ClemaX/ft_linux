@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="openssl"
-version="1.1.1l"
+version="3.0.8"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('ac0d4387f3ba0ad741b0580dd45f6ff3')
+md5sums=('61e017cf4fea1b599048f621f1490fbd')
 
 build()
 {
@@ -34,9 +34,9 @@ build()
 		make DESTDIR="$DESTDIR" MANSUFFIX=ssl install
 
 		# Add the version to the documentation directory, to be consistent.
-		mv -v /usr/share/doc/openssl "$DESTDIR/usr/share/doc/$source_base"
+		mv -v "$DESTDIR/usr/share/doc/openssl" "$DESTDIR/usr/share/doc/$source_base"
 
 		# Install additional documentation.
-		cp -vfr doc/* "/usr/share/doc/$source_base"
+		cp -vfr doc/* "$DESTDIR/usr/share/doc/$source_base"
     popd || return
 }

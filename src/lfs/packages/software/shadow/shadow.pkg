@@ -8,7 +8,7 @@ version="4.13"
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('126924090caf72f3de7e9261fd4e10ac')
+md5sums=('b1ab01b5462ddcf43588374d57bec123')
 
 prepare()
 {
@@ -36,7 +36,7 @@ prepare()
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-        install -d "$DESTDIR/usr/bin"
+        install -vd "$DESTDIR/usr/bin"
 		touch "$DESTDIR/usr/bin/passwd"
 
 		./configure \
@@ -64,6 +64,9 @@ post_install()
     # Make the shadow file writeable by the root user.
     chmod -v 600 /etc/shadow
 
-    # Set default root password.
-    chpasswd <<< "root:$ROOT_PASSWORD"
+	if [ -n "$ROOT_PASSWORD" ]
+    then
+		# Set default root password.
+		chpasswd <<< "root:$ROOT_PASSWORD"
+	fi
 }

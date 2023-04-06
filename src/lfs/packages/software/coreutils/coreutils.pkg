@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="coreutils"
-version="8.32"
+version="9.1"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz" "/sources/$source_base-i18n-1.patch")
-md5sums=('022042695b7d5bcf1a93559a9735e668' 'cd8ebed2a67fff2e231026df91af6776')
+md5sums=('8b1ca4e018a7dce9bb937faec6618671' 'c1ac7edf095027460716577633da9fc5')
 
 prepare()
 {
@@ -46,6 +46,8 @@ build()
 		make DESTDIR="$DESTDIR" install
 
 		# Move programs to locations specified by the FHS.
+		install -vd "$DESTDIR/usr/sbin" "$DESTDIR/usr/share/man/man8"
+
 		mv -v "$DESTDIR/usr/bin/chroot" "$DESTDIR/usr/sbin"
 		mv -v "$DESTDIR/usr/share/man/man1/chroot.1" "$DESTDIR/usr/share/man/man8/chroot.8"
 		sed -i 's/"1"/"8"/' "$DESTDIR/usr/share/man/man8/chroot.8"

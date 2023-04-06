@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="gettext"
-version="0.21"
+version="0.21.1"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('40996bbaf7d1356d3c22e33a8b255b31')
+md5sums=('27fcc8a42dbc8f334f23a08f1f2fe00a')
 
 build()
 {

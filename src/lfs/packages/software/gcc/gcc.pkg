@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="gcc"
-version="11.2.0"
+version="12.2.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('31c86f2ced76acac66992eeedce2fce2')
+md5sums=('73bafd0af874439dcdb9fc063b6fb069')
 
 prepare()
 {
@@ -36,6 +36,8 @@ build()
 				--prefix=/usr \
 				LD=ld \
 				--enable-languages=c,c++ \
+				--enable-default-pie \
+				--enable-default-ssp \
 				--disable-multilib \
 				--disable-bootstrap \
 				--with-system-zlib
@@ -61,9 +63,6 @@ build()
 
 			make DESTDIR="$DESTDIR" install
 
-			# Remove unneeded directory.
-			rm -rf "$DESTDIR/usr/lib/gcc/$(gcc -dumpmachine)/$version/include-fixed/bits/"
-
 			# Restore root permissions on installed headers.
 			chown -v -R root:root \
 				"$DESTDIR/usr/lib/gcc/"*"linux-gnu/$version/include"{,-fixed}
@@ -72,7 +71,9 @@ build()
 			ln -svr /usr/bin/cpp "$DESTDIR/usr/lib"
 
 			# Create compatibility symlink to enable Link Time Optimization.
-			ln -sfv "../../libexec/gcc/$(gcc -dumpmachine)/$version/liblto_plugin.so" \
+			install -vd "$DESTDIR/usr/lib/bfd-plugins"
+
+			ln -sfv "../../libexec/gcc/"*"linux-gnu/$version/liblto_plugin.so" \
 				"$DESTDIR/usr/lib/bfd-plugins/"
 
 			if [ "$SKIP_TESTS" != true ]

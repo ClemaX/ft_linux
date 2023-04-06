@@ -20,6 +20,8 @@ build()
 		[ "$SKIP_TESTS" != true ] && make check
 
 		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
 		make -C doc DESTDIR="$DESTDIR" install-html \
 			docdir="/usr/share/doc/$source_base"
     popd || return

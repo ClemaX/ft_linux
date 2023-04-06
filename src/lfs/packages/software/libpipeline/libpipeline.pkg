@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="libpipeline"
-version="1.5.3"
+version="1.5.7"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('dad443d0911cf9f0f1bd90a334bc9004')
+md5sums=('1a48b5771b9f6c790fb4efdb1ac71342')
 
 build()
 {

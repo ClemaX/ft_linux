@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="diffutils"
-version="3.8"
+version="3.9"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('50fcafcecde5a380415b12e9c574e0b2')
+md5sums=('cf0a65266058bf22fe3feb69e57ffc5b')
 
 build()
 {

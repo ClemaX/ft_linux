@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="kmod"
-version="29"
+version="30"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('e81e63acd80697d001c8d85c1acb38a0')
+md5sums=('85202f0740a75eb52f2163c776f9b564')
 
 build()
 {
@@ -16,6 +16,7 @@ build()
 		./configure \
 			--prefix=/usr \
 			--sysconfdir=/etc \
+			--with-openssl \
 			--with-xz \
 			--with-zstd \
 			--with-zlib
@@ -25,7 +26,9 @@ build()
 		make DESTDIR="$DESTDIR" install
 
 		# Create symlinks for backward compatibility with Module-Init-Tools.
-		for target in depmod insmod modinfo modprobe rmmod; do
+		install -vd "$DESTDIR/usr/sbin"
+		for target in depmod insmod modinfo modprobe rmmod
+		do
 			ln -sfv ../bin/kmod "$DESTDIR/usr/sbin/$target"
 		done
 

@@ -7,7 +7,7 @@ version="1.22.4"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.xz")
+sources=("/sources/$source_base.tar.gz")
 md5sums=('08fb04335e2f5e73f23ea4c3adbf0c5f')
 
 build()
@@ -17,7 +17,7 @@ build()
 
 		PAGE="$page" ./configure --prefix=/usr
 
-		make -j1
+		make
 
 		make DESTDIR="$DESTDIR" install
     popd || return

@@ -3,17 +3,22 @@
 # shellcheck disable=SC2034
 
 name="findutils"
-version="4.8.0"
+version="4.9.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('eeefe2e6380931a77dfa6d9350b43186')
+md5sums=('4a4a547e888a944b2f3af31d789a1137')
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		./configure --prefix=/usr --localstatedir=/var/lib/locate
+		case "$(uname -m)" in
+			i?86)	TIME_T_32_BIT_OK=yes ./configure --prefix=/usr \
+				--localstatedir=/var/lib/locate ;;
+			x86_64)	./configure --prefix=/usr \
+				--localstatedir=/var/lib/locate ;;
+		esac
 
 		make
 

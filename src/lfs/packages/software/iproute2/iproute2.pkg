@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="iproute2"
-version="5.13.0"
+version="6.1.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('15fc3786303a173a14e180afe4cd2ecd')
+md5sums=('f3ff4461e25dbc5ef1fb7a9167a9523d')
 
 prepare()
 {
@@ -26,12 +26,11 @@ prepare()
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		make
+		make NETNS_RUN_DIR=/run/netns
 
 		make DESTDIR="$DESTDIR" SBINDIR=/usr/sbin install
 
 		# Install documentation
-		mkdir -vp				"$DESTDIR/usr/share/doc/$source_base"
-		cp -v COPYING README*	"$DESTDIR/usr/share/doc/$source_base"
+		install -vD COPYING README*	-t "$DESTDIR/usr/share/doc/$source_base"
     popd || return
 }

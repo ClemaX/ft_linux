@@ -3,17 +3,17 @@
 # shellcheck disable=SC2034
 
 name="ninja"
-version="1.10.2"
+version="1.11.1"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('639f75bc2e3b19ab893eaf2c810d4eb4')
+md5sums=('32151c08211d7ca3c1d832064f6939b0')
 
 prepare()
 {
     pushd "$SRCDIR/$source_base" || return
-        # Patch to add NINJAOBS variable.
+        # Patch to add NINJAJOBS variable.
 		sed -i '/int Guess/a \
   int   j = 0;\
   char* jobs = getenv( "NINJAJOBS" );\
@@ -35,8 +35,10 @@ build()
 			./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
 		fi
 
-		install -vm755 ninja "$DESTDIR/usr/bin/"
-		install -vDm644 misc/bash-completion "$DESTDIR/usr/share/bash-completion/completions/ninja"
-		install -vDm644 misc/zsh-completion  "$DESTDIR/usr/share/zsh/site-functions/_ninja"
+		install -vDm755 ninja -t "$DESTDIR/usr/bin"
+		install -vDm644 misc/bash-completion \
+			"$DESTDIR/usr/share/bash-completion/completions/ninja"
+		install -vDm644 misc/zsh-completion \
+			"$DESTDIR/usr/share/zsh/site-functions/_ninja"
     popd || return
 }

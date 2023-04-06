@@ -3,39 +3,37 @@
 # shellcheck disable=SC2034
 
 name="perl"
-version="5.34.0"
+version="5.36.0"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.xz" "/sources/$source_base-upstream_fixes-1.patch")
-md5sums=('df7ecb0653440b26dc951ad9dbfab517' 'fb42558b59ed95ee00eb9f1c1c9b8056')
-
-prepare()
-{
-	pushd "$SRCDIR/$source_base" || return
-		patch -Np1 -i "$SRCDIR/$source_base-upstream_fixes-1.patch"
-    popd || return
-}
+sources=("/sources/$source_base.tar.xz")
+md5sums=('826e42da130011699172fd655e49cfa2')
 
 build()
 {
+	local version_minor="${version%.*}"
+	local version_major="${version_minor%%.*}"
+
+	local perl_path="/usr/lib/perl$version_major/$version_minor"
+
+	# Use system libraries.
+	local BUILD_ZLIB=False BUILD_BZIP2=0
+
+	export BUILD_ZLIB BUILD_BZIP2
+
 	pushd "$SRCDIR/$source_base" || return
-		# Use system libraries.
-		local BUILD_ZLIB=False BUILD_BZIP2=0
-
-		export BUILD_ZLIB BUILD_BZIP2
-
 		sh Configure -des \
-			-Dprefix=/usr \
-			-Dvendorprefix=/usr \
-			-Dprivlib=/usr/lib/perl5/5.34/core_perl \
-			-Darchlib=/usr/lib/perl5/5.34/core_perl \
-			-Dsitelib=/usr/lib/perl5/5.34/site_perl \
-			-Dsitearch=/usr/lib/perl5/5.34/site_perl \
-			-Dvendorlib=/usr/lib/perl5/5.34/vendor_perl \
-			-Dvendorarch=/usr/lib/perl5/5.34/ \
-			-Dman1dir=/usr/share/man/man1 \
-			-Dman3dir=/usr/share/man/man3 \
+			-Dprefix="/usr" \
+			-Dvendorprefix="/usr" \
+			-Dprivlib="$perl_path/core_perl" \
+			-Darchlib="$perl_path/core_perl" \
+			-Dsitelib="$perl_path/site_perl" \
+			-Dsitearch="$perl_path/site_perl" \
+			-Dvendorlib="$perl_path/vendor_perl" \
+			-Dvendorarch="$perl_path/vendor_perl" \
+			-Dman1dir="/usr/share/man/man1" \
+			-Dman3dir="/usr/share/man/man3" \
 			-Dpager="/usr/bin/less -isR" \
 			-Duseshrplib \
 			-Dusethreads

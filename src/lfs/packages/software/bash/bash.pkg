@@ -3,29 +3,29 @@
 # shellcheck disable=SC2034
 
 name="bash"
-version="5.1.8"
+version="5.2.15"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('23eee6195b47318b9fd878e590ccb38c')
+md5sums=('4281bb43497f3905a308430a8d6a30a5')
 
 build()
 {
 	pushd "$SRCDIR/$source_base" || return
 		./configure \
 			--prefix=/usr \
-            --docdir="/usr/share/doc/$source_base" \
             --without-bash-malloc \
-            --with-installed-readline
+            --with-installed-readline \
+            --docdir="/usr/share/doc/$source_base"
 
 		make
 
-		# Run tests.
-		chown -Rv tester .
-
 		if [ "$SKIP_TESTS" != true ]
 		then
+			# Run tests.
+			chown -Rv tester .
+			
 			su -s /usr/bin/expect tester <<'EOF'
 set timeout -1
 spawn make tests

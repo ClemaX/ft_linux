@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="gdbm"
-version="1.20"
+version="1.23"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('006c19b8b60828fd6916a16f3496bd3c')
+md5sums=('8551961e36bf8c70b7500d255d3658ec')
 
 build()
 {
@@ -22,7 +22,7 @@ build()
 
 		if [ "$SKIP_TESTS" != true ]
 		then
-			make -k check || :
+			make check
 		fi
 
 		make DESTDIR="$DESTDIR" install

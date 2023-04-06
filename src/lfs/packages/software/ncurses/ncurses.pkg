@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="ncurses"
-version="6.2"
+version="6.4"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('e812da327b1c2214ac1aed440ea3ae8d')
+md5sums=('5a62487b5d4ac6b132fe2bf9f8fad29b')
 
 build()
 {
@@ -20,7 +20,8 @@ build()
 			--without-debug \
 			--without-normal \
 			--enable-pc-files \
-			--enable-widec
+			--enable-widec \
+			--with-pkg-config-libdir=/usr/lib/pkgconfig
 
 		make
 
@@ -30,7 +31,7 @@ build()
 		for lib in ncurses form panel menu ; do
 			rm -vf						"$DESTDIR/usr/lib/lib$lib.so"
 			echo "INPUT(-l${lib}w)"		>"$DESTDIR/usr/lib/lib$lib.so"
-			ln -sfv ${lib}w.pc			"$DESTDIR/usr/lib/pkgconfig/$lib.pc"
+			ln -sfv "${lib}w.pc"		"$DESTDIR/usr/lib/pkgconfig/$lib.pc"
 		done
 
 		# Backward compatibility for -lcurses.
@@ -38,11 +39,8 @@ build()
 		echo "INPUT(-lncursesw)"	>"$DESTDIR/usr/lib/libcursesw.so"
 		ln -sfv libncurses.so		"$DESTDIR/usr/lib/libcurses.s"
 
-		# Remove a static library that is not handled by configure.
-		rm -fv "$DESTDIR/usr/lib/libncurses++w.a"
-
 		# Install the ncurses documentation.
-		mkdir -v		"$DESTDIR/usr/share/doc/$source_base"
+		install -vd		"$DESTDIR/usr/share/doc/$source_base"
 		cp -v -R doc/*	"$DESTDIR/usr/share/doc/$source_base"
 
 		# TODO: Add option for non-wide ncurses library

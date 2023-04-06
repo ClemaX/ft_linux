@@ -99,6 +99,6 @@ user_add() # user uid [shell] [desc]
 		echo "$user:x:$uid:$gid:$desc:$home:$shell" >> /etc/passwd
 
 		# Create the user's home directory.
-		install -o "$user" -d "$home"
+		install -vo "$user" -d "$home"
 	fi
 }

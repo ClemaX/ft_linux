@@ -3,13 +3,13 @@
 # shellcheck disable=SC2034
 
 name="python"
-version="3.9.6"
+version="3.11.2"
 
 source_base="Python-$version"
 doc_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz" "/sources/$doc_base-docs-html.tar.bz2")
-md5sums=('ecc29a7688f86e550d29dba2ee66cf80' '0dae29e4c38af1b6b1a86b35c9e48923')
+md5sums=('a957cffb58a89303b62124896881950b' 'eb4132c780b60b5782a4f66b29b08d5c')
 
 build()
 {
@@ -19,20 +19,17 @@ build()
 			--enable-shared \
 			--with-system-expat \
 			--with-system-ffi \
-			--with-ensurepip=yes \
 			--enable-optimizations
 
 		make
 
 		make DESTDIR="$DESTDIR" install
-
-		install -v -dm755 "/usr/share/doc/$doc_base/html"
-
-		# Install preformatted documentation
-		tar --strip-components=1 \
-			--no-same-owner \
-			--no-same-permissions \
-			-C "/usr/share/doc/$doc_base/html" \
-			-xvf "../$doc_base-docs-html.tar.bz2"
     popd || return
+
+	pushd "$SRCDIR/$doc_base-docs-html" || return
+		# Install preformatted documentation.
+		install -v -dm755 "$DESTDIR/usr/share/doc/$doc_base/html"
+
+		cp -r ./* "$DESTDIR/usr/share/doc/$doc_base/html"
+	popd || return
 }

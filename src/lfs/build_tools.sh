@@ -19,6 +19,8 @@ source "$SCRIPTDIR/utils/logger.sh"
 source "$SCRIPTDIR/utils/package.sh"
 source "$SCRIPTDIR/utils/packages_tools.sh"
 
+PACKAGES=(gettext bison perl python texinfo util-linux)
+
 # Initialize log files.
 touch /var/log/{btmp,lastlog,faillog,wtmp}
 chgrp -v utmp /var/log/lastlog
@@ -27,7 +29,7 @@ chmod -v 600  /var/log/btmp
 
 # Build additional temporary tools.
 pushd "$SCRIPTDIR/packages/temporary-tools"
-	for pkg in gettext bison perl python texinfo util-linux
+	for pkg in "${PACKAGES[@]}"
 	do
 		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
 		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
@@ -37,10 +39,18 @@ popd
 info "Cleaning up..."
 
 # Remove installed documentations to save space.
-rm -rfv /usr/share/{info,man,doc}/*
+rm -vrf /usr/share/{info,man,doc}/*
 
 # Remove libtool .la files that are harmful when using dynamic linking.
 find /usr/{lib,libexec} -name '*.la' -delete
 
 # Remove cross-compilation tools.
-rm -rf /tools
+rm -vrf /tools
+
+# Remove temporary tools build cache.
+pushd /cache/pkg/
+	for pkg in "${PACKAGES[@]}"
+	do
+		rm -vrf "$pkg/" 
+	done
+popd

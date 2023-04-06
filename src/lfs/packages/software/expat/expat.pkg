@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="expat"
-version="2.4.1"
+version="2.5.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('a4fb91a9441bcaec576d4c4a56fa3aa6')
+md5sums=('ac6677b6d1b95d209ab697ce8b688704')
 
 build()
 {
@@ -24,7 +24,8 @@ build()
 
 		make DESTDIR="$DESTDIR" install
 
-		install -v -m644 doc/*.{html,png,css} \
+		# Install documentation.
+		install -v -m644 doc/*.{html,css} \
 			"$DESTDIR/usr/share/doc/$source_base"
     popd || return
 }

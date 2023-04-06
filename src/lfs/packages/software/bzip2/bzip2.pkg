@@ -45,12 +45,12 @@ build()
 		make PREFIX="$PREFIX" install
 
 		# Install shared library.
-        install -d "$PREFIX/lib"
+        install -vd "$PREFIX/lib"
 		cp -av libbz2.so.* "$PREFIX/lib"
 		ln -sv libbz2.so.1.0.8 "$PREFIX/lib/libbz2.so"
 
 		# Install shared multi-function binary.
-        install -d "$PREFIX/bin"
+        install -vd "$PREFIX/bin"
 		cp -v bzip2-shared "$PREFIX/bin/bzip2"
 
 		for tool in "$PREFIX/bin/"{bzcat,bunzip2}

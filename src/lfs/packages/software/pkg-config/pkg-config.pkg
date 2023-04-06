@@ -7,7 +7,7 @@ version="0.29.2"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.xz")
+sources=("/sources/$source_base.tar.gz")
 md5sums=('f6e931e319531b736fadc017f470e68a')
 
 build()

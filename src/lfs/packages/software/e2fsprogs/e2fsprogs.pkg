@@ -3,17 +3,18 @@
 # shellcheck disable=SC2034
 
 name="e2fsprogs"
-version="1.46.4"
+version="1.47.0"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('128f5b0f0746b28d1e3ca7e263c57094')
+md5sums=('6b4f18a33873623041857b4963641ee9')
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
 		mkdir -v build
+
 		pushd build || return
 			../configure \
 				--prefix=/usr \

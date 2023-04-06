@@ -500,7 +500,7 @@ pkg_build() # [pkg]...
 			fi
 
 			echo "Storing $pkg_file..."
-			install -D "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
+			install -vD "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
 
 			pkg_link "$name" "$version"
 		popd; pkg_unload
@@ -576,7 +576,8 @@ pkg_dirs() # pkg
 {
 	local pkg="${1%.pkg}"
 
-	grep "$PKG_DATA/$pkg/files" -v -e '[^/]$'
+	grep "$PKG_DATA/$pkg/files" -v -e '[^/]$' \
+	| sort -r
 }
 
 # Uninstall the given packages
@@ -584,6 +585,8 @@ pkg_uninstall() # [pkg]...
 {
 	local pkg
 	local pkg_files
+
+	local file directory
 
 	local "${PKG_VARS[@]}"
 
@@ -605,14 +608,24 @@ pkg_uninstall() # [pkg]...
 				pkg_run pre_uninstall
 
 				pkg_files "$pkg" \
-				| xargs --delimiter=$'\n' \
-					rm -f
+				| while read -r file
+				do
+					! [ -h ]
+					rm -f -- "$file"
+				done
 
 				pkg_dirs "$pkg" \
-				| xargs --delimiter=$'\n' \
-					rmdir --ignore-fail-on-non-empty
+				| while read -r directory
+				do
+					directory="${directory%/}"
 
-				rm "$pkg_files"
+					if [ -d "$directory" ] && ! [ -h "$directory" ]
+					then
+						rmdir --ignore-fail-on-non-empty -- "$directory" 
+					fi
+				done
+
+				rm -- "$pkg_files"
 
 				pkg_run post_uninstall
 

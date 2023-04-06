@@ -32,7 +32,7 @@ build()
 
 		make
 
-		install -d "$DESTDIR/usr/share/man/"{man1,man3}
+		install -vd "$DESTDIR/usr/share/man/"{man1,man3}
 
 		make DESTDIR="$DESTDIR" install
     popd || return

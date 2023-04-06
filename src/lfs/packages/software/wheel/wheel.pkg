@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="wheel"
+version="0.38.4"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('83bb4e7bd4d687d398733f341a64ab91')
+
+build()
+{
+    pushd "$SRCDIR/$source_base" || return
+        PYTHONPATH=src pip3 wheel \
+			-w dist \
+			--no-build-isolation \
+			--no-deps \
+			"$PWD"
+
+		pip3 install \
+			--root="$DESTDIR" \
+			--no-index \
+			--find-links=dist \
+			wheel
+	popd || return
+}

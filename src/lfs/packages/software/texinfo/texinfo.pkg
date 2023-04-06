@@ -3,20 +3,17 @@
 # shellcheck disable=SC2034
 
 name="texinfo"
-version="6.8"
+version="7.0.2"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('a91b404e30561a5df803e6eb3a53be71')
+md5sums=('be9500f3a361525622850ecb1b1fc024')
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
        	./configure --prefix=/usr
-
-		sed -e 's/__attribute_nonnull__/__nonnull/' \
-   			-i gnulib/lib/malloc/dynarray-skeleton.c
 
 		make
 
@@ -24,7 +21,7 @@ build()
 
 		make DESTDIR="$DESTDIR" install
 
-		# Install TeX components
+		# Install TeX components.
 		make DESTDIR="$DESTDIR" TEXMF=/usr/share/texmf install-tex
     popd || return
 }

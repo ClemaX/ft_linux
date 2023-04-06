@@ -24,7 +24,7 @@ prepare()
 		sed -i '/{OLDSUFF}/c:' support/shlib-install
 
 		# Fix a problem identified upstream.
-		patch -Np1 -i "../$source_base-upstream_fix-1.patch"
+		patch -Np1 -i "$SRCDIR/$source_base-upstream_fix-1.patch"
     popd || return
 }
 

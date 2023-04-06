@@ -49,7 +49,7 @@ build()
 			fi
 
 			# Create dynamic linker configuration file.
-			install -d "$DESTDIR/etc"
+			install -vd "$DESTDIR/etc"
 			touch "$DESTDIR/etc/ld.so.conf"
 
 			# Remove an unneeded sanity check that fails in a partial environment.
@@ -62,17 +62,17 @@ build()
 			sed '/RTLDLIST=/s@/usr@@g' -i "$DESTDIR/usr/bin/ldd"
 
 			# Install the configuration file and runtime directory for nscd.
-			install -D ../nscd/nscd.conf "$DESTDIR/etc/nscd.conf"
-			install -d "$DESTDIR/var/cache/nscd"
+			install -vD ../nscd/nscd.conf "$DESTDIR/etc/nscd.conf"
+			install -vd "$DESTDIR/var/cache/nscd"
 
 			# Install default locale list.
-			install -D "$SRCDIR/locale.gen" "$DESTDIR/etc/locale.gen"
+			install -vD "$SRCDIR/locale.gen" "$DESTDIR/etc/locale.gen"
 
 			# Install locale generator.
-			install -D "$SRCDIR/locale-gen.sh" "$DESTDIR/usr/bin/locale-gen"
+			install -vD "$SRCDIR/locale-gen.sh" "$DESTDIR/usr/bin/locale-gen"
 
 			# Install locale archive directory.
-			install -d "$DESTDIR/usr/lib/locale"
+			install -vd "$DESTDIR/usr/lib/locale"
 		popd || return
     popd || return
 }

@@ -99,10 +99,12 @@ lfs_chroot() # root [cmd]
 			TERM="$TERM" \
 			PS1="$LFS_PS1" \
 			PATH=/usr/bin:/usr/sbin \
-			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
-			SKIP_TESTS="$SKIP_TESTS" \
-			STRIP_BINARIES="$STRIP_BINARIES" \
 			PAGE="$PAGE" \
+			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
+			ROOT_PASSWORD="$ROOT_PASSWORD" \
+			SKIP_TESTS="$SKIP_TESTS" \
+			XZ_DEFAULTS="$XZ_DEFAULTS" \
+			STRIP_BINARIES="$STRIP_BINARIES" \
 			"$@"
 
 		lfs_chroot_teardown "$root"

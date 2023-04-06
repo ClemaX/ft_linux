@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="man-db"
-version="2.9.4"
+version="2.11.2"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.gz")
-md5sums=('6e233a555f7b9ae91ce7cd0faa322bce')
+sources=("/sources/$source_base.tar.xz")
+md5sums=('a7d59fb2df6158c44f8f7009dcc6d875')
 
 build()
 {

@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="gzip"
-version="1.10"
+version="1.12"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('691b1221694c3394f1c537df4eee39d3')
+md5sums=('9608e4ac5f061b2a6479dc44e917a5db')
 
 build()
 {

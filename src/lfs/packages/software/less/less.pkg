@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="less"
-version="590"
+version="608"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.gz")
-md5sums=('f029087448357812fba450091a1172ab')
+md5sums=('1cdec714569d830a68f4cff11203cdba')
 
 build()
 {

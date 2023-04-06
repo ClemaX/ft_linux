@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="elfutils"
-version="0.186"
+version="0.188"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.bz2")
-md5sums=('2b6e94c2eebc1f2194173e31bca9396e')
+md5sums=('efb25a91873b2eec4df9f31e6a4f4e5c')
 
 build()
 {
@@ -24,7 +24,8 @@ build()
 
 		# Install only libelf
 		make DESTDIR="$DESTDIR" -C libelf install
-		install -vm644 config/libelf.pc "$DESTDIR/usr/lib/pkgconfig"
+
+		install -vDm644 config/libelf.pc -t "$DESTDIR/usr/lib/pkgconfig"
 		rm "$DESTDIR/usr/lib/libelf.a"
     popd || return
 }

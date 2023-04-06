@@ -3,20 +3,21 @@
 # shellcheck disable=SC2034
 
 name="util-linux"
-version="2.37.2"
+version="2.38.1"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('d659bf7cd417d93dc609872f6334b019')
+md5sums=('cd11456f4ddd31f7fbfdd9488c0c0d02')
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		./configure\
-			 ADJTIME_PATH=/var/lib/hwclock/adjtime \
+		./configure \
+			ADJTIME_PATH=/var/lib/hwclock/adjtime \
+			--bindir=/usr/bin \
 			--libdir=/usr/lib \
-			--docdir="/usr/share/doc/$source_base" \
+			--sbindir=/usr/sbin \
 			--disable-chfn-chsh \
 			--disable-login \
 			--disable-nologin \
@@ -28,15 +29,12 @@ build()
 			--without-python \
 			--without-systemd \
 			--without-systemdsystemunitdir \
-			runstatedir=/run
+			--docdir="/usr/share/doc/$source_base"
 
 		make
 
 		if [ "$SKIP_TESTS" != true ]
 		then
-			# Remove a test that is hanging when in chroot.
-			rm tests/ts/lsns/ioctl_ns
-
 			# Run tests.
 			chown -Rv tester .
 			su tester -c "make -k check"

@@ -3,12 +3,12 @@
 # shellcheck disable=SC2034
 
 name="bison"
-version="3.7.6"
+version="3.8.2"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('d61aa92e3562cb7292b004ce96173cf7')
+md5sums=('c28f119f405a2304ff0a7ccdcc629713')
 
 build()
 {

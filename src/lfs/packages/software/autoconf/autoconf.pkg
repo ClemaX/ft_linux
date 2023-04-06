@@ -7,8 +7,18 @@ version="2.71"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.gz")
+sources=("/sources/$source_base.tar.xz")
 md5sums=('12cfa1687ffa2606337efe1a64416106')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Fix several problems with tests caused by bash 5.2 and later.
+		sed -e 's/SECONDS|/&SHLVL|/' \
+			-e '/BASH_ARGV=/a\        /^SHLVL=/ d' \
+			-i.orig tests/local.at
+    popd || return
+}
 
 build()
 {
@@ -17,7 +27,7 @@ build()
 
 		make
 
-		[ "$SKIP_TESTS" != true ] && make check
+		[ "$SKIP_TESTS" != true ] && make TESTSUITEFLAGS="$MAKEFLAGS" check
 
 		make DESTDIR="$DESTDIR" install
     popd || return

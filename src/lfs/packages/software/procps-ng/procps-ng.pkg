@@ -3,12 +3,20 @@
 # shellcheck disable=SC2034
 
 name="procps-ng"
-version="2.9.4"
+version="4.0.2"
 
 source_base="$name-$version"
 
 sources=("/sources/$source_base.tar.xz")
-md5sums=('d60613e88c2f442ebd462b5a75313d56')
+md5sums=('691748c4767f19b9d94ed9d088e40c4d')
+
+prepare()
+{
+    pushd "$SRCDIR/$source_base" || return
+		# Fix typo on AC_CHECK_FUNCS causing build failure.
+		sed -i 's/AC_CHECK_FUNC(/AC_CHECK_FUNCS(/' configure.ac
+    popd || return
+}
 
 build()
 {

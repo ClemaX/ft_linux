@@ -26,7 +26,13 @@ source "$SCRIPTDIR/utils/packages_software.sh"
 # Install basic system software.
 pushd "$SCRIPTDIR/packages/software"
 	for pkg in man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
-		flex tcl
+		flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow \
+		gcc pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
+		gperf expat inetutils less perl xml-parser intltool autoconf automake \
+		openssl kmod elfutils libffi python wheel ninja meson coreutils \
+		check diffutils gawk findutils groff gzip iproute2 kbd libpipeline \
+		make patch tar texinfo vim eudev man-db procps-ng util-linux e2fsprogs \
+		sysklogd sysvinit
 	do
 		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
 		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
@@ -34,17 +40,6 @@ pushd "$SCRIPTDIR/packages/software"
 popd
 
 pushd /tmp
-	for pkg in expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow gcc \
-		pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
-		gperf expat inetutils less perl XML-Parser intltool autoconf automake \
-		kmod elfutils libffi openssl Python ninja meson coreutils check \
-		diffutils gawk findutils groff gzip iproute kbd libpipeline make \
-		patch tar texinfo vim eudev man-db procps-ng util-linux e2fsprogs \
-		sysklogd sysvinit
-	do
-		pkg_extract /sources/$pkg*.tar* pkg_build_$pkg
-	done
-
 	# TODO: Install UEFI grub
 
 	if [ "$STRIP_BINARIES" = true ]
