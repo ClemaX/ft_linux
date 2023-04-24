@@ -1,0 +1,130 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on unifont, efibootmgr-18, freetype-2.13.0
+
+name="grub"
+version="2.06"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$source_base-upstream_fixes-1.patch"
+)
+md5sums=(
+	'cf0fd928b1e5479c8108ee52cb114363'
+	'da388905710bb4cbfbc7bd7346ff9174'
+)
+
+prepare()
+{
+	pushd "$SRCDIR" || return
+		pushd "$source_base"
+			# Fix an issue causing grub-install to fail when the boot partition
+			# is created by e2fsprogs-1.47.0 or later.
+			patch -Np1 -i "$SRCDIR/$source_base-upstream_fixes-1.patch"
+		popd || return
+	popd || return
+}
+
+# TODO: Support 32-bit build.
+build()
+{
+	# Unset any environment variables which may affecty the build.
+	unset {C,CPP,CXX,LD}FLAGS
+
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--disable-efiemu \
+			--enable-grub-mkfont \
+			--with-platform=efi \
+			--target=x86_64 \
+			--disable-werror
+
+		unset TARGET_CC
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Move bash completion to correct location.
+		install -d "$DESTDIR/usr/share/bash-completion/completions"
+		mv -v "$DESTDIR/etc/bash_completion.d/grub" \
+			"$DESTDIR/usr/share/bash-completion/completions"
+	popd || return
+}
+
+post_install()
+{
+	local lfs_version="${LFS_VERSION:-11.3}"
+	local kernel_version=6.1.11
+	local kernel_localversion=chamada
+	
+	local esp_dir=/boot
+	
+	local dev_boot_id dev_root_id
+
+	local kernel_entry_name
+	local kernel kernel_cmdline
+	
+	dev_boot_id="PARTUUID=$(findmnt /boot -no PARTUUID)"
+	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
+
+	kernel_entry_name="GNU/Linux, Linux $kernel_version-lfs-$lfs_version-$kernel_localversion"
+
+	kernel="/vmlinuz-$kernel_version-lfs-$lfs_version-$kernel_localversion"
+	kernel_cmdline="root=$dev_root_id ro"
+
+	# Add boot device to fstab.
+	echo "$dev_boot_id /boot vfat defaults 0 1" >> /etc/fstab
+
+	# Ensure efivars are mounted.
+	#mountpoint /sys/firmware/efi/efivars \
+	#|| mount -v -t efivarfs efivarfs /sys/firmware/efi/efivars
+
+	# Add efivars to fstab.
+	#echo "efivarfs /sys/firmware/efi/efivars efivarfs defaults 0 0" >> /etc/fstab
+
+	# Create EFI directory.
+	install -vd "$esp_dir/EFI"
+
+	# Install grub for removable device.
+	grub-install --efi-directory="$esp_dir" --target=x86_64-efi --removable
+
+	# Configure the grub boot menu.
+	cat > /boot/grub/grub.cfg << EOF
+# Grub menu configuration file.
+
+# Default entry.
+set default=0
+# Menu timeout.
+set timeout=5
+
+# Load modules.
+insmod part_gpt
+insmod ext2
+
+# Set root partition.
+set root=(hd0,1)
+
+# Load unicode font.
+if loadfont /grub/fonts/unicode.pf2; then
+  set gfxmode=auto
+  insmod all_video
+  terminal_output gfxterm
+fi
+
+# LFS menu entry.
+menuentry "$kernel_entry_name"  {
+  linux $kernel $kernel_cmdline
+}
+
+# Firmware setup menu entry.
+menuentry "Firmware Setup" {
+  fwsetup
+}
+EOF
+}

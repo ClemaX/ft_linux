@@ -1,0 +1,29 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on efivar-38, popt-1.19
+
+name="efibootmgr"
+version="18"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'e170147da25e1d5f72721ffc46fe4e06'
+)
+
+build()
+{
+	local efidir='LFS'
+	local efi_loader='grubx64.efi'
+
+	pushd "$SRCDIR/$source_base" || return
+		make EFIDIR="$efidir" EFI_LOADER="$efi_loader"
+
+		make DESTDIR="$DESTDIR" EFIDIR="$efidir" install
+	popd || return
+}

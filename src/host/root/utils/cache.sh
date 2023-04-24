@@ -58,5 +58,7 @@ cache_link() # dst [cache] [user]
 	local cache="${2:-$PWD}"
 	local user="${3:-root}"
 
-	cache_list "$cache" | su "$user" -c "xargs --no-run-if-empty -I{} ln -s '$cache/{}' '$dst'"
+	cache_list "$cache" \
+	| su "$user" -c \
+		"xargs --no-run-if-empty -I{} ln -sf '$cache/{}' '$dst'"
 }

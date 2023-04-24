@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libpng"
+version="1.6.39"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$source_base-apng.patch.gz"
+)
+md5sums=(
+	'aa1ae92e172417039bda072b702f6326'
+	'cd63b667723d6cc75e95eca3224f33f7'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Apply patch for animated PNG support.
+		gzip -cd "$SRCDIR/$source_base-apng.patch.gz" | patch -p1
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--disable-static
+
+		make
+
+		[ "$SKIP_TESTS" != true ] || make check
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
+		install -vD README libpng-manual.txt \
+			-t "$DESTDIR/usr/share/doc/$source_base"
+	popd || return
+}

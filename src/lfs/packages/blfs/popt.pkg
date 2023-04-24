@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on mandoc
+
+# TODO: Add doxygen support
+
+name="popt"
+version="1.19"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'eaa2135fddb6eb03f2c87ee1823e5a78'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static &&
+        
+        make
+		
+        #sed -i 's@\./@src/@' Doxyfile &&
+        #doxygen
+
+		make DESTDIR="$DESTDIR" install
+
+        #install -v -m755 -d "/usr/share/doc/$source_base"
+        #install -v -m644 doxygen/html/* "/usr/share/doc/$source_base"
+	popd || return
+}

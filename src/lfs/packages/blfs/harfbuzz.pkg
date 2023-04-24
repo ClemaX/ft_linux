@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on freetype-2.13.0
+
+name="harfbuzz"
+version="18"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'e170147da25e1d5f72721ffc46fe4e06'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		meson --prefix=/usr \
+			--buildtype=release \
+			-Dgraphite2=enabled
+
+		ninja
+	popd || return
+}

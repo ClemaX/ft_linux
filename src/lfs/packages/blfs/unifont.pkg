@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on efibootmgr-18, freetype-2.13.0
+
+name="unifont"
+version="15.0.01"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.pcf.gz"
+)
+md5sums=(
+	'c371b9b4a8a51228c468cc7efccec098'
+)
+
+prepare()
+{
+	pushd "$SRCDIR" || return
+		gunzip -c "$source_base.pcf.gz" > unifont.pcf
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR" || return
+        install -vD unifont.pcf -t "$DESTDIR/usr/share/fonts/unifont/"
+	popd || return
+}

@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libpng-1.6.39, which-2.21
+
+name="freetype"
+version="2.13.0"
+
+source_base="$name-$version"
+doc_base="$name-doc-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$doc_base.tar.xz"
+)
+md5sums=(
+	'fe73327ebbf0b629f3ad24be656d59de'
+	'139f7e7690469da503d40ba4ce59a9fa'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		sed -ri "s:.*(AUX_MODULES.*valid):\1:" modules.cfg
+
+		sed -r "s:.*(#.*SUBPIXEL_RENDERING) .*:\1:" \
+			-i include/freetype/config/ftoption.h 
+
+		./configure --prefix=/usr \
+			--enable-freetype-config \
+			--disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
+		install -v -m755 -d "$DESTDIR/usr/share/doc/$source_base"
+		cp -v -R docs/*     "$DESTDIR/usr/share/doc/$source_base"
+		rm -v "$DESTDIR/usr/share/doc/$source_base/freetype-config.1"
+	popd || return
+}

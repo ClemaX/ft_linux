@@ -13,7 +13,6 @@ md5sums=('e64685d046cd0dfe94b5c66e294cf9ef')
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		install -vd ./etc
-        cp -v services protocols ./etc
+		install -vD services protocols -t "$DESTDIR/etc"
     popd || return
 }

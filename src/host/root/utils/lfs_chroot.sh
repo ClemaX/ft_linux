@@ -99,6 +99,7 @@ lfs_chroot() # root [cmd]
 			TERM="$TERM" \
 			PS1="$LFS_PS1" \
 			PATH=/usr/bin:/usr/sbin \
+			LFS_VERSION="$LFS_VERSION" \
 			PAGE="$PAGE" \
 			HOST_OPTIMIZE="$HOST_OPTIMIZE" \
 			ROOT_PASSWORD="$ROOT_PASSWORD" \

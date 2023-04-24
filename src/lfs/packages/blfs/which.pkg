@@ -1,0 +1,27 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="which"
+version="2.21"
+
+source_base="$name-$version"
+doc_base="$name-doc-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'097ff1a324ae02e0a3b0369f07a7544a'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+        
+        make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

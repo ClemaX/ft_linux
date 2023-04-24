@@ -7,7 +7,7 @@ version="3.06"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.xz" "/sources/$source_base-consolidated-1.patch")
+sources=("/sources/$source_base.tar.xz" "/sources/$source_base-consolidated-1.patch" "inittab")
 md5sums=('96771d0a88315c91199830ea49b859ca' '17ffccbb8e18c39e8cedc32046f3a475')
 
 prepare()
@@ -24,5 +24,7 @@ build()
 		make
 
 		make DESTDIR="$DESTDIR" install
+
+		install -vD "$SRCDIR/inittab" -t "$DESTDIR/etc"
 	popd || return
 }

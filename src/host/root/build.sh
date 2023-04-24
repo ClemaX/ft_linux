@@ -65,11 +65,14 @@ disk_partition "$LOOP_DEV"
 loop_partitions
 
 progress "Initializing partitions"
-mkfs.ext4 -L EFI "${LOOP_DEV}p1"
+mkfs.fat -F32 -n EFI "${LOOP_DEV}p1"
 mkfs.ext4 -L root "${LOOP_DEV}p2"
 
 progress "Mounting disk"
 disk_mount "$LOOP_DEV" "$LFS"
+
+# Set root folder permissions
+chmod u+rwx,go+rx "$LFS"
 
 if [ -f "$lfs_backup_file" ]
 then
@@ -89,7 +92,10 @@ else
 	pushd /home/lfs
 		# shellcheck disable=SC2088
 		env -i \
-			LFS="$LFS" XZ_DEFAULTS="$XZ_DEFAULTS" BASH_ENV='~/.bashrc' \
+			LFS="$LFS" \
+			LFS_VERSION="$LFS_VERSION" \
+			XZ_DEFAULTS="$XZ_DEFAULTS" \
+			BASH_ENV='~/.bashrc' \
 			su lfs -c '~/build_toolchain.sh'
 	popd
 
@@ -120,6 +126,3 @@ cp -r chroot/* "$LFS/build"
 progress "Building system software"
 
 lfs_chroot "$LFS" /bin/bash --login +h /build/build_software.sh
-
-# TODO: Uncomment when stable
-#disk_umount "$LOOP_DEV"

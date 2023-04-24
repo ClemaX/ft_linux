@@ -1,0 +1,9 @@
+# Begin /etc/shells
+
+# This file contains a list of login shells on the system.
+# Applications use this file to determine whether a shell is valid. 
+
+/bin/sh
+/bin/bash
+
+# End /etc/shells

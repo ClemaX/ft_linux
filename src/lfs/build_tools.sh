@@ -17,7 +17,6 @@ SCRIPTDIR=/build
 
 source "$SCRIPTDIR/utils/logger.sh"
 source "$SCRIPTDIR/utils/package.sh"
-source "$SCRIPTDIR/utils/packages_tools.sh"
 
 PACKAGES=(gettext bison perl python texinfo util-linux)
 

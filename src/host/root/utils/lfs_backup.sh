@@ -62,8 +62,7 @@ lfs_restore() # root src
 			mount -v "$boot" boot
 		fi
 
-		# TODO: Check if --no-same-owner is correct
 		debug "Restoring backup..."
-		tar --no-same-owner -xpf "$src"
+		tar -xpf "$src"
 	popd
 }

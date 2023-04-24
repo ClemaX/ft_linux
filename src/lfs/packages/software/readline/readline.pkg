@@ -10,6 +10,7 @@ source_base="$name-$version"
 sources=(
     "/sources/$source_base.tar.gz"
     "/sources/$source_base-upstream_fix-1.patch"
+	"inputrc"
 )
 md5sums=(
     '4aa1b31be779e6b84f9a96cb66bc50f6'
@@ -44,5 +45,7 @@ build()
 		# Install documentation.
 		install -v -m644 doc/*.{ps,pdf,html,dvi} \
             "$DESTDIR/usr/share/doc/$source_base"
+
+		install -vD "$SRCDIR/inputrc" -t "$DESTDIR/etc"
     popd || return
 }

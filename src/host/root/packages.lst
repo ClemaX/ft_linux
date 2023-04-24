@@ -4,6 +4,7 @@ binutils=2.35.2-2
 bison
 bzip2
 coreutils
+dosfstools
 findutils
 gawk
 gcc=4:10.2.1-1

@@ -82,7 +82,7 @@ sources_fetch_git() # proto://repo:branch dst [user]
 		fi
 
 		info "Linking $PWD/$package_name to $dst..."
-		su "$user" -c "ln -sv '$PWD/$package_name.tar' '$dst'"
+		su "$user" -c "ln -vsf '$PWD/$package_name.tar' '$dst'"
 	else
 		error "Invalid url format: $1" && false
 	fi
@@ -168,6 +168,9 @@ sources_fetch() # url dst [cache] [user]
 
 		# Fetch LFS sources.
 		sources_fetch_list lfs "$dst" "$cache" "$user"
+
+		# Fetch beyond LFS sources.
+		sources_fetch_list "$HOME/sources/blfs" "$dst" "$cache" "$user"
 
 		# Fetch Linux kernel.
 		sources_fetch_git "$KERNEL_SOURCE" "$dst" "$user"

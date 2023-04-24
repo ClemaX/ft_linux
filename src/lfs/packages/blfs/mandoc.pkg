@@ -1,0 +1,30 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="mandoc"
+version="1.14.6"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'f0adf24e8fdef5f3e332191f653e422a'
+)
+
+# TODO: Use additional patch for 32-bit support.
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure
+ 
+		make mandoc
+
+		[ "$SKIP_TESTS" != true ] && make regress
+
+		install -vDm755 mandoc   -t "$DESTDIR/usr/bin"
+		install -vDm644 mandoc.1 -t "$DESTDIR/usr/share/man/man1"
+	popd || return
+}

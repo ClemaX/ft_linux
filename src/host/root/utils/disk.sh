@@ -9,7 +9,7 @@ disk_mount() # dev mnt
 	mount -v -t ext4 "${dev}p2" "$mnt"
 
 	[ -d "$mnt/boot" ] || mkdir -v "$mnt/boot"
-	mount -v -t ext4 "${dev}p1" "$mnt/boot"
+	mount -v -t vfat "${dev}p1" "$mnt/boot"
 }
 
 disk_umount() # dev

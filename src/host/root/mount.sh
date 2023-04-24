@@ -12,3 +12,10 @@ set +eEu
 
 loop_setup "$IMG_DST"
 disk_mount "$LOOP_DEV" "$LFS"
+
+# chroot
+source "$SCRIPTDIR/utils/lfs_chroot.sh"
+
+set +eEu
+
+lfs_chroot

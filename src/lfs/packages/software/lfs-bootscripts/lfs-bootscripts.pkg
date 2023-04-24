@@ -1,0 +1,22 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="lfs-bootscripts"
+version="20230101"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'569217b0b56f98fd267d38d72ee20132'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

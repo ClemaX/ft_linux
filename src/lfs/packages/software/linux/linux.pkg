@@ -1,0 +1,65 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="linux"
+branch="stable"
+version="6.1.11"
+
+source_base="$name-$branch-v$version"
+
+sources=("/sources/$source_base.tar" "kernel.config")
+md5sums=('85d028b6777633e36b04bbb7651a53e3')
+
+prepare()
+{
+	pushd "$SRCDIR" || return
+		pushd "$source_base" || return
+			# Prepare for compilation.
+			make mrproper
+		popd || return
+
+		# Set configuration.
+		cp kernel.config "$source_base/.config"
+	popd || return
+}
+
+build()
+{
+	local lfs_version="${LFS_VERSION:-11.3}"
+	local kernel_localversion=chamada
+
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		# Install kernel modules.
+		make INSTALL_MOD_PATH="$DESTDIR" modules_install
+
+		# Install kernel.
+		install -vD arch/x86/boot/bzImage "$DESTDIR/boot/vmlinuz-$version-lfs-$lfs_version-$kernel_localversion"
+	
+		# Install kernel symbol file.
+		install -vD System.map "$DESTDIR/boot/System.map-$version"
+	
+		# Install kernel config file.
+		install -vD .config "$DESTDIR/boot/config-$version"
+
+		# Install documentation.
+		install -vd "$DESTDIR/usr/share/doc/$source_base"
+		cp -vr Documentation/* "$DESTDIR/usr/share/doc/$source_base"
+	popd || return
+}
+
+post_install()
+{
+	# Configure USB module load order.
+	install -v -m755 -d /etc/modprobe.d
+	cat > /etc/modprobe.d/usb.conf << "EOF"
+# Begin /etc/modprobe.d/usb.conf
+
+install ohci_hcd /sbin/modprobe ehci_hcd ; /sbin/modprobe -i ohci_hcd ; true
+install uhci_hcd /sbin/modprobe ehci_hcd ; /sbin/modprobe -i uhci_hcd ; true
+
+# End /etc/modprobe.d/usb.conf
+EOF
+}

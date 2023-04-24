@@ -61,8 +61,8 @@ post_install()
     pwconv
     grpconv
 
-    # Make the shadow file writeable by the root user.
-    chmod -v 600 /etc/shadow
+    # Make the shadow files writeable by the root user.
+    chmod -v 600 /etc/{,g}shadow
 
 	if [ -n "$ROOT_PASSWORD" ]
     then

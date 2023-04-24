@@ -373,9 +373,8 @@ pkg_prepare() # src_dir
 
 			while [ "$i" -lt "${#sources[@]}" ]
 			do
-				src="${sources[$i]%:*}"
+				src="${sources[$i]}"
 				src_file=$(basename "$src")
-
 
 				if [ "$i" -ge "${#md5sums[@]}" ] \
 				|| ! [ -f "$src_file" ] \

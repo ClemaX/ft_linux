@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on mandoc
+
+name="efivar"
+version="38"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'243fdbc48440212695cb9c6e6fd0f44f'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Fix an issue causing the package to be rebuilt during installation.
+		sed '/prep :/a\\ttouch prep' -i src/Makefile
+	popd || return
+}
+
+# TODO: Use additional patch for 32-bit support.
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		[ "$SKIP_TESTS" != true ] && make TESTSUITEFLAGS="$MAKEFLAGS" check
+
+		make DESTDIR="$DESTDIR" LIBDIR=/usr/lib install
+	popd || return
+}

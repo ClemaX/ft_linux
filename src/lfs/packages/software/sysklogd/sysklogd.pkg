@@ -26,7 +26,9 @@ build()
     pushd "$SRCDIR/$source_base" || return
 		make
 
-		make DESTDIR="$DESTDIR" BINDIR=/sbin install
+		install -vd "$DESTDIR/sbin" "$DESTDIR/usr/share/man/man"{5,8}
+
+		make prefix="$DESTDIR" BINDIR="$DESTDIR/sbin" install
 		
 		# Install default configuration.
 		# TODO: Do this on post install, after checking for an exisiting file.
