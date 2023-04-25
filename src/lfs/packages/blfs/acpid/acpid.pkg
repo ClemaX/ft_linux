@@ -1,0 +1,54 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="acpid"
+version="2.0.34"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"power"
+	"acpid"
+	"power.sh"
+)
+md5sums=(
+	'988c2e3fd5ba0ea4492d3ba7273af295'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install event directory.
+		install -vd -m755 "$DESTDIR/etc/acpi/events"
+
+		# Install samples.
+		cp -r samples "$DESTDIR/usr/share/doc/$source_base"
+
+		# Install service script.
+		install -vD "$SRCDIR/acpid" -t "$DESTDIR/etc/init.d"
+
+		# Install default configuration.
+		install -vD "$SRCDIR/power.sh" -t "$DESTDIR/etc/acpi"
+		install -vD "$SRCDIR/power" -t "$DESTDIR/etc/acpi/events"
+	popd || return
+}
+
+post_install()
+{
+	# Enable service at boot.
+	if [ -d /etc/rc.d/rcS.d ] && ! [ -f /etc/rc.d/rcS.d/S99acpid ]
+	then
+		pushd /etc/rc.d/rcS.d || return
+			ln -sv ../init.d/acpid S99acpid
+		popd || return
+	fi
+}

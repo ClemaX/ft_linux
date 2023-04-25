@@ -2,8 +2,6 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on efivar-38, popt-1.19
-
 name="dhcpcd"
 version="10.0.1"
 
