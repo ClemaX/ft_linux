@@ -1,0 +1,39 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on efivar-38, popt-1.19
+
+name="dhcpcd"
+version="10.0.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"dhcpcd"
+)
+md5sums=(
+	'002d3c7bfa057248f23b2b2f33f02f5a'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Configure without privilege separation.
+		./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--libexecdir=/usr/lib/dhcpcd \
+			--dbdir=/var/lib/dhcpcd \
+			--runstatedir=/run \
+			--disable-privsep
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install dhcpcd service script.
+		install -vd -m755 "$DESTDIR/lib/services"
+		install -v -m754 "$SRCDIR/dhcpcd" "$DESTDIR/lib/services"
+	popd || return
+}

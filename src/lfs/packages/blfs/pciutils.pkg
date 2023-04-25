@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on efivar-38, popt-1.19
+
+name="pciutils"
+version="3.7.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'e6e20482b4f25c5186e6a753c5edc361'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make PREFIX=/usr \
+			SHAREDIR=/usr/share/hwdata \
+			SHARED=yes
+
+		make DESTDIR="$DESTDIR" \
+			PREFIX=/usr \
+			SHAREDIR=/usr/share/hwdata \
+			SHARED=yes \
+			install install-lib
+
+		chmod -v 755 "$DESTDIR/usr/lib/libpci.so"
+	popd || return
+}

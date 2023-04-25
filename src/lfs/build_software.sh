@@ -44,7 +44,8 @@ info "Installing beyond LFS software..."
 
 # Install beyond LFS software.
 pushd "$SCRIPTDIR/packages/blfs"
-	for pkg in unifont mandoc efivar popt efibootmgr libpng which freetype grub
+	for pkg in unifont mandoc efivar popt efibootmgr libpng which freetype \
+		grub pciutils dhcpcd
 	do
 		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
 		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
