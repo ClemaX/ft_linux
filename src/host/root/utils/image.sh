@@ -1,5 +1,7 @@
 # shellcheck shell=bash
 
+# TODO: Replace size in MiB with conversion using numfmt
+
 # Create an empty image of a specific size.
 img_new() # dst size
 {
@@ -11,6 +13,38 @@ img_new() # dst size
 	[ -f "$dst" ] && rm -fv "$dst"
 
 	fallocate -l "${size}M" "$dst"
+}
+
+# Shrink an image to the last allocated sector.
+img_shrink() # dst
+{
+	local dst="$1"
+
+	local disk_sector_size
+	local disk_sector_count
+	local disk_end_sector
+	local size
+	local layout_script
+
+	disk_sector_size=$(fdisk -l "$dst" | grep '^Sector size' | sed 's/.*:\s*\([0-9]\+\)\s*bytes.*/\1/')
+
+	disk_end_sector=$(fdisk -l "$dst" -o End | tail -n1)
+
+	# Sector indices start at 0 and 33 sectors are needed internally for GPT.
+	disk_sector_count=$((disk_end_sector + 1 + 33))
+	size=$((disk_sector_count * disk_sector_size))
+
+	layout_script=$(mktemp)
+
+	info "Shrinking disk image at $dst to $((size / 1000000)) MiB..."
+
+	truncate --size="$size" "$dst"
+
+	# Fix partition table.
+	gdisk "$dst" <<EOF
+w
+Y
+EOF
 }
 
 # Create additional devices for a loop device's partitions.

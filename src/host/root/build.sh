@@ -48,9 +48,9 @@ trap 'exit_handler' EXIT
 # Initialize progress bar
 if [ -f "$lfs_backup_file" ]
 then
-	progress_init 6
+	progress_init 7
 else
-	progress_init 10
+	progress_init 11
 fi
 
 # Create a new disk image.
@@ -78,6 +78,19 @@ if [ -f "$lfs_backup_file" ]
 then
 	progress "Restoring backup"
 	lfs_restore "$LFS" "$lfs_backup_file"
+
+	# TODO: Remove when stable
+		chown -v lfs "$LFS/sources" "$LFS"
+
+		info "Fetching sources"
+		# Make files readable by anyone
+		umask 022
+
+		# Fetch sources.
+		sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
+
+		chown -v root "$LFS" "$LFS/sources"
+	#
 else
 	progress "Fetching sources"
 	# Make files readable by anyone
@@ -126,3 +139,10 @@ cp -r chroot/* "$LFS/build"
 progress "Building system software"
 
 lfs_chroot "$LFS" /bin/bash --login +h /build/build_software.sh
+
+progress "Shrinking image"
+
+disk_umount "$LOOP_DEV"
+
+disk_shrink "$LOOP_DEV" 2
+img_shrink "$IMG_DST"

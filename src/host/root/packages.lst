@@ -28,3 +28,4 @@ wget
 ca-certificates
 parallel
 git
+gdisk
