@@ -40,5 +40,12 @@ do
 done < "$LOCALE_GEN_FILE"
 
 # Define mandatory locales.
-[ "$has_c_utf8" != true ] && localedef -i POSIX -f UTF-8 C.UTF-8 || :
-[ "$has_ja_sijs" != true ] && localedef -i ja_JP -f SHIFT_JIS ja_JP.SIJS || :
+if [ "$has_c_utf8" != true ]
+then
+	localedef -i POSIX -f UTF-8 C.UTF-8 || :
+fi
+
+if [ "$has_ja_sijs" != true ]
+then
+	localedef -i ja_JP -f SHIFT_JIS ja_JP.SIJS || :
+fi

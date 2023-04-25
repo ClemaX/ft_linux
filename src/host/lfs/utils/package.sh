@@ -57,7 +57,7 @@ pkg_build_gcc() # name
 	local glibc_version
 	local name="$1"
 	local libgcc gcc_include
-	
+
 	glibc_version=$(basename "$LFS/sources/glibc-"*.tar*)
 	glibc_version=${glibc_version%%.tar.*}
 	glibc_version=${glibc_version##glibc-}
@@ -331,7 +331,7 @@ pkg_build_file() # name
 		make DESTDIR="$LFS" install
 
 		# Remove harmful static archive.
-		rm -v $LFS/usr/lib/libmagic.la
+		rm -v "$LFS/usr/lib/libmagic.la"
 	popd
 }
 
@@ -487,6 +487,7 @@ pkg_build_binutils_pass2() # name
 
 	pushd "$name"
 		# Workaround lack of sysroot support to fix library linking.
+		# shellcheck disable=SC2016
 		sed '6009s/$add_dir//' -i ltmain.sh
 
 		[ -d build ] && rm -rf build
@@ -508,7 +509,7 @@ pkg_build_binutils_pass2() # name
 			make DESTDIR="$LFS" install -j1
 
 			# Remove harmful and unnecessary static libraries.
-			rm -v $LFS/usr/lib/lib{bfd,ctf,ctf-nobfd,opcodes}.{a,la}
+			rm -v "$LFS/usr/lib/lib"{bfd,ctf,ctf-nobfd,opcodes}.{a,la}
 		popd
 	popd
 }

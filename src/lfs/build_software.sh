@@ -59,6 +59,7 @@ bash /usr/lib/udev/init-net-rules.sh
 pushd /tmp
 	if [ "$STRIP_BINARIES" = true ]
 	then
+		# shellcheck disable=SC2207
 		save_usrlib=(
 			$(cd /usr/lib; ls ld-linux*[^g])
 			libc.so.6
@@ -75,6 +76,7 @@ pushd /tmp
 			strip
 		)
 
+		# shellcheck disable=SC2207
 		online_usrlib=(
 			libbfd-2.40.so
 			libsframe.so.0.0.0
@@ -139,7 +141,8 @@ pushd /tmp
 	find /usr/lib /usr/libexec -name '*.la' -delete
 
 	# Remove the temporary compiler.
-	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" | xargs rm -rf --
+	find /usr -print0 -depth -name "$(uname -m)-lfs-linux-gnu*" \
+	| xargs -0 rm -rf --
 
 	# Remove the temporary test user.
 	userdel -r tester
@@ -151,7 +154,7 @@ pushd /tmp
 	# TODO: Optionally create swap
 	#dev_swap="PARTUUID="
 
-	cat > /etc/fstab << EOF | column -t
+	column -t > /etc/fstab << EOF
 #file-system 	mount-point	type		options				dump	fsck-order
 $dev_root_id	/			ext4		defaults			1		1
 #<swap_device>	swap		swap		pri=1				0		0

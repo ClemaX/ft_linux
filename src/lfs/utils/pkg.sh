@@ -315,7 +315,7 @@ pkg_load() # pkg_file
 		[ "$pkg_file" != "${pkg_file#/}" ] \
 		&& pkg_dir="$(dirname "$pkg_file")" \
 		|| pkg_dir="$PWD/$(dirname "$pkg_file")" \
-		
+
 		pkg_file="${pkg_file##*/}"
 		pkg_file="${pkg_file%.pkg}.pkg"
 
@@ -389,7 +389,7 @@ pkg_prepare() # src_dir
 					fatal "$src_file: File does not match md5sum!"
 				fi
 
-				sources[$i]="$src_file"
+				sources[i]="$src_file"
 
 				((i += 1))
 			done
@@ -424,7 +424,7 @@ pkg_prepare() # src_dir
 					fi
 				fi
 			done
-		
+
 			pkg_run prepare
 		popd
 	popd
@@ -609,7 +609,6 @@ pkg_uninstall() # [pkg]...
 				pkg_files "$pkg" \
 				| while read -r file
 				do
-					! [ -h ]
 					rm -f -- "$file"
 				done
 
@@ -620,7 +619,7 @@ pkg_uninstall() # [pkg]...
 
 					if [ -d "$directory" ] && ! [ -h "$directory" ]
 					then
-						rmdir --ignore-fail-on-non-empty -- "$directory" 
+						rmdir --ignore-fail-on-non-empty -- "$directory"
 					fi
 				done
 

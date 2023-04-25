@@ -24,7 +24,6 @@ img_shrink() # dst
 	local disk_sector_count
 	local disk_end_sector
 	local size
-	local layout_script
 
 	disk_sector_size=$(fdisk -l "$dst" | grep '^Sector size' | sed 's/.*:\s*\([0-9]\+\)\s*bytes.*/\1/')
 
@@ -33,8 +32,6 @@ img_shrink() # dst
 	# Sector indices start at 0 and 33 sectors are needed internally for GPT.
 	disk_sector_count=$((disk_end_sector + 1 + 33))
 	size=$((disk_sector_count * disk_sector_size))
-
-	layout_script=$(mktemp)
 
 	info "Shrinking disk image at $dst to $((size / 1000000)) MiB..."
 

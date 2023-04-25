@@ -50,6 +50,6 @@ rm -vrf /tools
 pushd /cache/pkg/
 	for pkg in "${PACKAGES[@]}"
 	do
-		rm -vrf "$pkg/" 
+		rm -vrf "./${pkg:?}/"
 	done
 popd
