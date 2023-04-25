@@ -141,8 +141,8 @@ pushd /tmp
 	find /usr/lib /usr/libexec -name '*.la' -delete
 
 	# Remove the temporary compiler.
-	find /usr -print0 -depth -name "$(uname -m)-lfs-linux-gnu*" \
-	| xargs -0 rm -rf --
+	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" \
+	| xargs rm -rf --
 
 	# Remove the temporary test user.
 	userdel -r tester

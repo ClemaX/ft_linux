@@ -11,6 +11,9 @@ source_base="$name-$branch-v$version"
 sources=("/sources/$source_base.tar" "kernel.config")
 md5sums=('85d028b6777633e36b04bbb7651a53e3')
 
+kernel_localversion="${LFS_LOCALVERSION:-chamada}"
+kernel_hostname="${LFS_HOSTNAME:-lfs}"
+
 prepare()
 {
 	pushd "$SRCDIR" || return
@@ -20,14 +23,15 @@ prepare()
 		popd || return
 
 		# Set configuration.
-		cp kernel.config "$source_base/.config"
+		sed kernel.config > "$source_base/.config" \
+			-e 's/^\s*CONFIG_LOCALVERSION="[^"]*"\s*$/CONFIG_LOCALVERSION="'"$kernel_localversion"'"/' \
+			-e 's/^\s*CONFIG_DEFAULT_HOSTNAME="[^"]*"\s*$/CONFIG_DEFAULT_HOSTNAME="'"$kernel_hostname"'"/'
 	popd || return
 }
 
 build()
 {
 	local lfs_version="${LFS_VERSION:-11.3}"
-	local kernel_localversion=chamada
 
 	pushd "$SRCDIR/$source_base" || return
 		make
@@ -37,10 +41,10 @@ build()
 
 		# Install kernel.
 		install -vD arch/x86/boot/bzImage "$DESTDIR/boot/vmlinuz-$version-lfs-$lfs_version-$kernel_localversion"
-	
+
 		# Install kernel symbol file.
 		install -vD System.map "$DESTDIR/boot/System.map-$version"
-	
+
 		# Install kernel config file.
 		install -vD .config "$DESTDIR/boot/config-$version"
 

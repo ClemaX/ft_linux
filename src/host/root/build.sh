@@ -107,6 +107,8 @@ else
 		env -i \
 			LFS="$LFS" \
 			LFS_VERSION="$LFS_VERSION" \
+			LFS_LOCALVERSION="$LFS_LOCALVERSION" \
+			LFS_HOSTNAME="$LFS_HOSTNAME" \
 			XZ_DEFAULTS="$XZ_DEFAULTS" \
 			BASH_ENV='~/.bashrc' \
 			su lfs -c '~/build_toolchain.sh'

@@ -42,6 +42,9 @@ ENV HOST_OPTIMIZE=false
 # Password for the root user
 ENV ROOT_PASSWORD=toor
 
+# Default kernel version suffix and hostname
+ENV LFS_LOCALVERSION=chamada LFS_HOSTNAME=chamada
+
 # Skip test suites
 ENV SKIP_TESTS=true
 # Default xz options: -T0: Use as many threads as there are processor cores.
@@ -50,9 +53,7 @@ ENV XZ_DEFAULTS="-T0"
 # Strip unnecessary symbols off binaries
 ENV STRIP_BINARIES=true
 
-# Image destination
-ENV IMG_DST=/dist/disk.img
-# Image size in MiB
-ENV IMG_SIZE=8192
+# Image destination and size in MiB
+ENV IMG_DST=/dist/disk.img IMG_SIZE=8192
 
 CMD ./build.sh
