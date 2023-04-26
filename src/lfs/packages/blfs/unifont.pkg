@@ -26,6 +26,6 @@ prepare()
 build()
 {
 	pushd "$SRCDIR" || return
-        install -vD unifont.pcf -t "$DESTDIR/usr/share/fonts/unifont/"
+        install -vD -m644 unifont.pcf -t "$DESTDIR/usr/share/fonts/unifont/"
 	popd || return
 }

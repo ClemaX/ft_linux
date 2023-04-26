@@ -38,7 +38,7 @@ build()
 
 		# Install default configuration.
 		install -vD "$SRCDIR/power.sh" -t "$DESTDIR/etc/acpi"
-		install -vD "$SRCDIR/power" -t "$DESTDIR/etc/acpi/events"
+		install -vD -m644 "$SRCDIR/power" -t "$DESTDIR/etc/acpi/events"
 	popd || return
 }
 

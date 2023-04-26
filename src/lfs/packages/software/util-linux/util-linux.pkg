@@ -42,7 +42,7 @@ build()
 
 		make DESTDIR="$DESTDIR" install
 
-		install -vD "$SRCDIR/clock" -t "$DESTDIR/etc/sysconfig"
-		install -vD "$SRCDIR/shells" -t "$DESTDIR/etc"
+		install -vD -m644 "$SRCDIR/clock" -t "$DESTDIR/etc/sysconfig"
+		install -vD -m644 "$SRCDIR/shells" -t "$DESTDIR/etc"
     popd || return
 }

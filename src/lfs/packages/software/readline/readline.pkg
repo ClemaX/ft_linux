@@ -46,6 +46,6 @@ build()
 		install -v -m644 doc/*.{ps,pdf,html,dvi} \
             "$DESTDIR/usr/share/doc/$source_base"
 
-		install -vD "$SRCDIR/inputrc" -t "$DESTDIR/etc"
+		install -vD -m644 "$SRCDIR/inputrc" -t "$DESTDIR/etc"
     popd || return
 }
