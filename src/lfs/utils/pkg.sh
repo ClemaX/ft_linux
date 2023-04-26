@@ -49,7 +49,7 @@ TAR_PKG_EXT=.tar.xz
 
 # Package flags
 TAR_PKG_CFLAGS=("${TAR_CFLAGS[@]}")
-TAR_PKG_XFLAGS=("${TAR_XFLAGS[@]}" --keep-directory-symlink)
+TAR_PKG_XFLAGS=("${TAR_XFLAGS[@]}" --keep-directory-symlink --no-overwrite-dir)
 
 # Source flags
 TAR_SRC_XFLAGS=("${TAR_XFLAGS[@]}" --no-same-owner)

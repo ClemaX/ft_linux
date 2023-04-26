@@ -71,13 +71,13 @@ mkfs.ext4 -L root "${LOOP_DEV}p2"
 progress "Mounting disk"
 disk_mount "$LOOP_DEV" "$LFS"
 
-# Set root folder permissions
-chmod u+rwx,go+rx "$LFS"
-
 if [ -f "$lfs_backup_file" ]
 then
 	progress "Restoring backup"
 	lfs_restore "$LFS" "$lfs_backup_file"
+
+	# TODO: Fix permission in backup and remove this
+	chmod 755 "$LFS"
 
 	# TODO: Remove when stable
 		chown -v lfs "$LFS/sources" "$LFS"
