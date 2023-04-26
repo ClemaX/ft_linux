@@ -1,0 +1,53 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libtasn1-4.16.0, make-ca-1.7
+
+name="p11-kit"
+version="0.23.22"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'03f93a4eb62127b5d40e345c624a0665'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Prepare the distribution specific achor hook.
+		sed '20,$ d' -i trust/trust-extract-compat
+
+		cat >> trust/trust-extract-compat << "EOF"
+# Copy existing anchor modifications to /etc/ssl/local
+/usr/libexec/make-ca/copy-trust-modifications
+
+# Generate a new trust store
+/usr/sbin/make-ca -f -g
+EOF
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--with-trust-paths=/etc/pki/anchors
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Link the anchor hook.
+	ln -sfv /usr/libexec/p11-kit/trust-extract-compat \
+        /usr/bin/update-ca-certificates
+}

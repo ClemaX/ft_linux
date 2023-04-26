@@ -1,0 +1,91 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="fcron"
+version="3.2.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.src.tar.gz"
+	"fcron"
+	"run-parts"
+)
+md5sums=(
+	'bd4996e941a40327d11efc5e3fd1f839'
+)
+
+periodic_jobs=(
+	"&bootrun 01 * * * * root run-parts /etc/cron.hourly"
+	"&bootrun 02 4 * * * root run-parts /etc/cron.daily"
+	"&bootrun 22 4 * * 0 root run-parts /etc/cron.weekly"
+	"&bootrun 42 4 1 * * root run-parts /etc/cron.monthly"
+)
+
+prepare()
+{
+	# Add fcron group and user.
+	groupadd -g 22 fcron
+	useradd -d /dev/null -c "Fcron User" -g fcron -s /bin/false -u 22 fcron
+}
+
+build()
+{
+	local job parts_folder
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--localstatedir=/var \
+			--without-sendmail \
+			--with-boot-install=no \
+			--with-systemdsystemunitdir=no
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install service script.
+		install -vD -m754 "$SRCDIR/fcron" -t "$DESTDIR/etc/init.d"
+
+		# Install periodic jobs.
+		install -vD -m755 "$SRCDIR/run-parts" -t "$DESTDIR/usr/bin"
+
+		#install -vd -m770 "$DESTDIR/var/spool/fcron/"
+
+		for job in "${periodic_jobs[@]}"
+		do
+			parts_folder="${job##* }"
+
+			install -vd -m754 "$DESTDIR/$parts_folder"
+			echo "$job" >> "$DESTDIR/var/spool/fcron/systab.orig"
+		done
+	popd || return
+}
+
+post_install()
+{
+	if [ -e /etc/syslog.conf ]
+	then
+		# Add cron logging facility to syslog.
+		cat >> /etc/syslog.conf << "EOF"
+# Begin fcron addition to /etc/syslog.conf
+
+cron.* -/var/log/cron.log
+
+# End fcron addition
+EOF
+	fi
+
+	# if [ -e /etc/rc.d/init.d/sysklogd ]
+	# then
+	# 	# Reload sysklogd.
+	# 	/etc/rc.d/init.d/sysklogd reload
+	# fi
+
+	# # Start fcron service.
+	# /etc/init.d/fcron start
+
+	# Generate the systab file.
+	fcrontab -z -u systab
+}

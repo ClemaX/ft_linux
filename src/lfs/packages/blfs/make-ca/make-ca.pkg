@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on p11-kit-0.23.22, fcron-3.2.1
+
+name="make-ca"
+version="1.7"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"update-pki.sh"
+)
+md5sums=(
+	'e0356f5ae5623f227a3f69b5e8848ec6'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make DESTDIR="$DESTDIR" install
+
+		install -vd -m755 "$DESTDIR/etc/ssl/local"
+
+		# Install peridoic cron job to update the store.
+		install -vD -m754 "$SRCDIR/update-pki.sh" -t "$DESTDIR/etc/cron.weekly/update-pki.sh"
+	popd || return
+}
+

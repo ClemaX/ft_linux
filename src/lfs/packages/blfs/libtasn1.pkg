@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libtasn1"
+version="4.16.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'531208de3729d42e2af0a32890f08736'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		make -C doc/reference DESTDIR="$DESTDIR" install-data-local
+	popd || return
+}

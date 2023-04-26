@@ -1,0 +1,39 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on: make-ca-1.7
+
+name="curl"
+version="7.76.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'41178ceea57c863f883b6fe2c3ac276f'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--disable-static \
+			--enable-threaded-resolver \
+			--with-ca-path=/etc/ssl/certs
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Clean documentation files.
+		rm -rf docs/examples/.deps
+		find docs \( -name Makefile\* -o -name \*.1 -o -name \*.3 \) -exec rm {} \; &&
+
+		# Install documentation.
+		install -vd -m755 "$DESTDIR/usr/share/doc/$source_base"
+		cp -v -R docs/* "$DESTDIR/usr/share/doc/$source_base"
+	popd || return
+}
