@@ -23,7 +23,7 @@ disk_umount() # dev
 disk_partition() # dev
 {
 	local dev="$1"
-	
+
 	# TODO: Replace with sgdisk script
 
 	gdisk "$dev" <<EOF
@@ -52,13 +52,13 @@ disk_shrink() # device part_index [part_type]
 	local part_type="${3:-8304}"
 
 	local part="${device}p${part_index}"
-	
+
 	local disk_sector_size
 	local part_block_count part_block_size
 	local part_size part_size_padded
 	local part_sector_count
 	local part_uuid
-	
+
 	# Discard unused blocks.
 	#fstrim
 
