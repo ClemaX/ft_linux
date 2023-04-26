@@ -7,7 +7,13 @@ version="5.2.15"
 
 source_base="$name-$version"
 
-sources=("/sources/$source_base.tar.gz")
+sources=(
+	"/sources/$source_base.tar.gz"
+	"profile.d/"{dircolors,extrapaths,i18n,readline,umask}.sh
+	"skel/."{bash_logout,bash_profile,bashrc,profile}
+	"bashrc"
+	"profile"
+)
 md5sums=('4281bb43497f3905a308430a8d6a30a5')
 
 build()
@@ -25,7 +31,7 @@ build()
 		then
 			# Run tests.
 			chown -Rv tester .
-			
+
 			su -s /usr/bin/expect tester <<'EOF'
 set timeout -1
 spawn make tests
@@ -37,4 +43,40 @@ EOF
 
 		make DESTDIR="$DESTDIR" install
     popd || return
+
+	pushd "$SRCDIR" || return
+		# Install profile and bashrc.
+		install -vD -m644 profile bashrc -t "$DESTDIR/etc"
+
+		install -vD -m644 {dircolors,extrapaths,i18n,readline,umask}.sh \
+			-t "$DESTDIR/etc/profile.d"
+
+		# Install default user configuration.
+		install -vD -m644 .{bash_logout,bash_profile,bashrc,profile} \
+			-t "$DESTDIR/etc/skel"
+	popd || return
+}
+
+post_install()
+{
+	if ! [ -e /etc/dircolors ]
+	then
+		# Generate dircolors configuration.
+		dircolors -p > /etc/dircolors
+		dircolors -p > /etc/skel/.dircolors
+	fi
+
+	if [ -d /root ]
+	then
+		# Install default root configuration.
+		pushd /etc/skel || return
+			for file in .bash{_logout,_profile,rc} profile
+			do
+				if [ -e "$file" ] && ! [ -e "/root/$file" ]
+				then
+					install -v -m644 "$file" /root
+				fi
+			done
+		popd || return
+	fi
 }
