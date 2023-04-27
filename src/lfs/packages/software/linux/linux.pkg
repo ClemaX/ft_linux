@@ -11,8 +11,10 @@ source_base="$name-$branch-v$version"
 sources=("/sources/$source_base.tar" "kernel.config")
 md5sums=('85d028b6777633e36b04bbb7651a53e3')
 
-kernel_localversion="${LFS_LOCALVERSION:-chamada}"
+kernel_localversion="${LFS_LOCALVERSION:--chamada}"
 kernel_hostname="${LFS_HOSTNAME:-lfs}"
+
+kernel_image_name="vmlinuz-$version$kernel_localversion"
 
 prepare()
 {
@@ -40,7 +42,7 @@ build()
 		make INSTALL_MOD_PATH="$DESTDIR" modules_install
 
 		# Install kernel.
-		install -vD arch/x86/boot/bzImage "$DESTDIR/boot/vmlinuz-$version-lfs-$lfs_version-$kernel_localversion"
+		install -vD arch/x86/boot/bzImage "$DESTDIR/boot/$kernel_image_name"
 
 		# Install kernel symbol file.
 		install -vD System.map "$DESTDIR/boot/System.map-$version"

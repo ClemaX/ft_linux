@@ -43,7 +43,7 @@ ENV HOST_OPTIMIZE=false
 ENV ROOT_PASSWORD=toor
 
 # Default kernel version suffix and hostname
-ENV LFS_LOCALVERSION=chamada LFS_HOSTNAME=chamada
+ENV LFS_LOCALVERSION=-chamada LFS_HOSTNAME=chamada
 
 # Skip test suites
 ENV SKIP_TESTS=true

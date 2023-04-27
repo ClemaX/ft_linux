@@ -60,8 +60,11 @@ build()
 post_install()
 {
 	local lfs_version="${LFS_VERSION:-11.3}"
+
 	local kernel_version=6.1.11
-	local kernel_localversion=chamada
+	local kernel_localversion="${LFS_LOCALVERSION:--chamada}"
+
+	local kernel_image_name="vmlinuz-$version$kernel_localversion"
 
 	local esp_dir=/boot
 
@@ -70,16 +73,16 @@ post_install()
 	local kernel_entry_name
 	local kernel kernel_cmdline
 
-	dev_boot_id="PARTUUID=$(findmnt /boot -no PARTUUID)"
+	dev_boot_id="PARTUUID=$(findmnt "$esp_dir" -no PARTUUID)"
 	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
 
-	kernel_entry_name="GNU/Linux, Linux $kernel_version-lfs-$lfs_version-$kernel_localversion"
+	kernel_entry_name="ft_linux (LFS $lfs_version), Linux $kernel_version$kernel_localversion"
 
-	kernel="/vmlinuz-$kernel_version-lfs-$lfs_version-$kernel_localversion"
+	kernel_image_path="/vmlinuz-$kernel_version$kernel_localversion"
 	kernel_cmdline="root=$dev_root_id ro"
 
 	# Add boot device to fstab.
-	echo "$dev_boot_id /boot vfat defaults 0 1" >> /etc/fstab
+	echo "$dev_boot_id $esp_dir vfat defaults 0 1" >> /etc/fstab
 
 	# Ensure efivars are mounted.
 	#mountpoint /sys/firmware/efi/efivars \
@@ -95,7 +98,7 @@ post_install()
 	grub-install --efi-directory="$esp_dir" --target=x86_64-efi --removable
 
 	# Configure the grub boot menu.
-	cat > /boot/grub/grub.cfg << EOF
+	cat > "$esp_dir/grub/grub.cfg" << EOF
 # Grub menu configuration file.
 
 # Default entry.
@@ -119,7 +122,7 @@ fi
 
 # LFS menu entry.
 menuentry "$kernel_entry_name"  {
-  linux $kernel $kernel_cmdline
+  linux $kernel_image_path $kernel_cmdline
 }
 
 # Firmware setup menu entry.
