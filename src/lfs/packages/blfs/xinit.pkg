@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-libraries
+
+name="xinit"
+version="1.4.2"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'0e9a1b9a82b84ab229c709c0f939c113'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=2086
+		./configure $XORG_CONFIG --with-xinitdir=/etc/X11/app-defaults
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+
+	# Enable user-setuid bit for root on Xorg.
+	chmod u+s "$XORG_PREFIX/libexec/Xorg"
+
+	# Modify the startx script to run Xorg on another tty.
+	# shellcheck disable=SC2016
+	sed -i '/$serverargs $vtarg/ s/serverargs/: #&/' "$XORG_PREFIX/bin/startx"
+}

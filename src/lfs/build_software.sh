@@ -81,7 +81,7 @@ EOF
 		xcb-util-keysyms xcb-util-renderutil xcb-util-wm xcb-util-cursor mesa \
 		xbitmaps xorg-applications xcursor-themes xorg-font-util \
 		xorg-fonts-encodings xorg-fonts xkeyboard-config libtirpc libepoxy \
-		xorg-server
+		xorg-server twm xterm xinit libevdev mtdev libinput xf86-input-libinput
 	do
 		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
 		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"

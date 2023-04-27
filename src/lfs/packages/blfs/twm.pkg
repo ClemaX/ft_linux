@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-server-21.1.7
+
+name="twm"
+version="1.0.12"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'805ee08b5a87e1103dfe2eb925b613b4'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Ensure that twm is installed in the proper location.
+		sed -i -e '/^rcdir =/s,^\(rcdir = \).*,\1/etc/X11/app-defaults,' src/Makefile.in
+	popd || return
+}
+
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

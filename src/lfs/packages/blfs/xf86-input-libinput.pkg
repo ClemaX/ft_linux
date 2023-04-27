@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libinput-1.22.1, xorg-server-21.1.7
+
+name="xf86-input-libinput"
+version="1.2.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'c6e942a1d639ebe2621905cc84eb26b9'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update shared library cache.
+	/sbin/ldconfig
+}

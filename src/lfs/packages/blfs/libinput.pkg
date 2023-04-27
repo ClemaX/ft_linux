@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libevdev
+
+name="libinput"
+version="1.22.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'd164313f9a92162df7af3505b6915c76'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix="$XORG_PREFIX" \
+				--buildtype=release \
+				-Ddebug-gui=false \
+				-Dtests=false \
+				-Dlibwacom=false \
+				-Dudev-dir=/usr/lib/udev \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

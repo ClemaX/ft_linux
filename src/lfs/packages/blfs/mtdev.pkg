@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="mtdev"
+version="1.1.6"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'bf8ef2482e84a00b5db8fbd3ce00e249'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	/sbin/ldconfig
+}
