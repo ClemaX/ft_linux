@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorgproto-2022.2
+
+name="libxau"
+version="1.0.11"
+
+source_base="libXau-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'7f14ba9c84a81a2b9dd023706febab38'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	# shellcheck disable=SC2089
+	export XORG_CONFIG="--prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086 disable=SC2090
+		./configure $XORG_CONFIG
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

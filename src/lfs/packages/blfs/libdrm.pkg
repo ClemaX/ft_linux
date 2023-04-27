@@ -1,0 +1,46 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on Xorg Libraries
+
+name="libdrm"
+version="2.4.115"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'5403981a20c964f4c893ff91393652bd'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	# shellcheck disable=SC2089
+	export XORG_CONFIG="--prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+
+		pushd build || return
+			# shellcheck disable=SC2086 disable=SC2090
+			meson setup --prefix=$XORG_PREFIX \
+				--buildtype=release \
+				-Dudev=true \
+				-Dvalgrind=disabled \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+	popd || return
+}

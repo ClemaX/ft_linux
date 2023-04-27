@@ -1,0 +1,29 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libarchive"
+version="3.6.2"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'72cbb3c085624c825f627bfc8f52ce53'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Remove an invalid entry.
+		sed -i 's/iconv //' "$DESTDIR/usr/lib/pkgconfig/libarchive.pc"
+	popd || return
+}

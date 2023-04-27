@@ -1,0 +1,51 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on: Xorg build environment
+
+name="libxcvt"
+version="0.1.2"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'b553fdb6024c5a137ff925bf4c337724'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="--prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix="$XORG_PREFIX" --buildtype=release .. &&
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	cat > /etc/profile.d/xorg.sh << EOF
+XORG_PREFIX="${XORG_PREFIX:-/usr}"
+XORG_CONFIG="--prefix=\$XORG_PREFIX --sysconfdir=/etc --localstatedir=/var \
+		--disable-static"
+export XORG_PREFIX XORG_CONFIG
+EOF
+
+	chmod 644 /etc/profile.d/xorg.sh
+}

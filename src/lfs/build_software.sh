@@ -45,7 +45,17 @@ info "Installing beyond LFS software..."
 # Install beyond LFS software.
 pushd "$SCRIPTDIR/packages/blfs"
 	for pkg in unifont mandoc efivar popt efibootmgr libpng which freetype \
-		grub pciutils acpid dhcpcd libtasn1 fcron make-ca p11-kit curl
+		grub pciutils acpid dhcpcd libtasn1 fcron make-ca p11-kit curl libxcvt \
+		pixman util-macros fontconfig xcb-proto xorgproto libxdmcp libxau \
+		libxcb xtrans libx11 libxext libfs libice libsm libxscrnsaver libxt \
+		libxmu libxpm libxaw libxfixes libxcomposite libxrender libxcursor \
+		libxdamage libfontenc libxfont2 libxft libxi libxinerama libxrandr \
+		libxres libxtst libxv libxvmc libxxf86dga libxxf86vm libdmx \
+		libpciaccess libxkbfile libxshmfence libdrm markupsafe mako libarchive \
+		libuv cmake llvm xcb-util xcb-util-image xcb-util-keysyms \
+		xcb-util-renderutil xcb-util-wm xcb-util-cursor mesa xbitmaps \
+		xorg-applications xcursor-themes xorg-font-util xorg-fonts-encodings \
+		xorg-fonts xkeyboard-config libtirpc libepoxy xorg-server
 	do
 		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
 		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"

@@ -32,7 +32,7 @@ build()
 
 		make
 
-		[ "$SKIP_TESTS" != true ] || make check
+		[ "$SKIP_TESTS" != true ] && make check
 
 		make DESTDIR="$DESTDIR" install
 

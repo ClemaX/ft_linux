@@ -1,0 +1,63 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-font-util
+
+name="xorg-fonts"
+version="1.0.4"
+
+source_base="$name-$version"
+
+url_base='https://www.x.org/pub/individual/font'
+
+sources=(
+	"/sources/font-alias-1.0.5.tar.xz"
+	"/sources/font-adobe-utopia-type1-1.0.5.tar.xz"
+	"/sources/font-bh-ttf-$version.tar.xz"
+	"/sources/font-bh-type1-$version.tar.xz"
+	"/sources/font-ibm-type1-$version.tar.xz"
+	"/sources/font-misc-ethiopic-1.0.5.tar.xz"
+	"/sources/font-xfree86-type1-1.0.5.tar.xz"
+)
+md5sums=(
+	'79f4c023e27d1db1dfd90d041ce89835'
+	'546d17feab30d4e3abcf332b454f58ed'
+	'063bfa1456c8a68208bf96a33f472bb1'
+	'51a17c981275439b85e15430a3d711ee'
+	'00f64a84b6c9886040241e081347a853'
+	'fe972eaf13176fa9aa7e74a12ecc801a'
+	'3b47fed2c032af3a32aad9acc1d25150'
+)
+
+build()
+{
+	local font_dir
+
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	pushd "$SRCDIR" || return
+		for source in "${sources[@]}"
+		do
+			font_dir="${source##*/}"
+			font_dir="${font_dir%.tar.?z*}"
+
+			pushd "$font_dir" || return
+				# shellcheck disable=SC2086
+				./configure $XORG_CONFIG
+
+				make
+
+				make DESTDIR="$DESTDIR" install
+			popd || return
+
+			rm -rf "./$font_dir"
+		done
+	popd || return
+}

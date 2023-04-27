@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="xorg-font-util"
+version="1.4.0"
+
+source_base="font-util-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'ec6cea7a46c96ed6be431dfbbb78f366'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

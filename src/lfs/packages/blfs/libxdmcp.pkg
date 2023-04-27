@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libxdmcp"
+version="1.1.4"
+
+source_base="libXdmcp-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'0b4056a282c1e14323d5daef8fb5345d'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	local doc_dir="--docdir=$XORG_PREFIX/share/doc/$source_base"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG --docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

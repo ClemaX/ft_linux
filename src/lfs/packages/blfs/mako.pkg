@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on MarkupSafe-2.1.2
+
+name="mako"
+version="1.2.4"
+
+source_base="Mako-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'651f365616611fcd4f2702a9002e2195'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		pip3 wheel \
+			-w dist \
+			--no-build-isolation \
+			--no-deps \
+			"$PWD"
+
+		pip3 install \
+			--root="$DESTDIR" \
+			--no-index \
+			--find-links dist \
+			--no-cache-dir \
+			--no-user \
+			Mako
+
+		# TODO: Handle pytest
+	popd || return
+}

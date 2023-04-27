@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libxdamage"
+version="1.1.6"
+
+source_base="libXdamage-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'ca55d29fa0a8b5c4a89f609a7952ebf8'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	local doc_dir="--docdir=$XORG_PREFIX/share/doc/$source_base"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG "$doc_dir"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

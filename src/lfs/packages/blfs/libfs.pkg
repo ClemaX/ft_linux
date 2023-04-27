@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libfs"
+version="1.0.9"
+
+source_base="libFS-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'742863a552ecd53cdb957b7b276213cc'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	local doc_dir="--docdir=$XORG_PREFIX/share/doc/$source_base"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086
+		./configure $XORG_CONFIG "$doc_dir"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

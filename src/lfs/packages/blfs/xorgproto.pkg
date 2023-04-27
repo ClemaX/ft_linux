@@ -1,0 +1,39 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on util-macros-1.20.0
+
+name="xorgproto"
+version="2022.2"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'3fdb11d75f7023db273f7b3e34b58338'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+
+		pushd build || return
+			# shellcheck disable=2086
+			meson setup --prefix=$XORG_PREFIX -Dlegacy=true ..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Move documentation to proper location.
+			mv -v "$DESTDIR/$XORG_PREFIX/share/doc/xorgproto"{,-2022.2}
+		popd || return
+	popd || return
+}

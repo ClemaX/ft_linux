@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libxcb-1.15
+
+name="xcb-util"
+version="0.4.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'34d749eab0fd0ffd519ac64798d79847'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	# shellcheck disable=SC2089
+	export XORG_CONFIG="--prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static"
+
+	pushd "$SRCDIR/$source_base" || return
+		# shellcheck disable=SC2086 disable=SC2090
+		./configure $XORG_CONFIG
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

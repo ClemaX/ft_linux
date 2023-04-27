@@ -1,0 +1,74 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on cmake-3.26.3
+
+name="llvm"
+version="15.0.7"
+
+source_base="$name-$version.src"
+cmake_modules_base="$name-cmake-$version.src"
+clang_base="clang-$version.src"
+
+ssp_patch="clang-$version-enable_default_ssp-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$cmake_modules_base.tar.xz"
+	"/sources/$clang_base.tar.xz"
+	"/sources/$ssp_patch"
+)
+md5sums=(
+	'c77db4c71e1eb267358204dffe2c6e10'
+	'c3647d253f67ce255e1aba014e528f5b'
+	'a6d0141e50b48f5e60c682277dac83b4'
+	'a16b457669702bd5e1e7bee2cfabe6af'
+)
+
+prepare()
+{
+	pushd "$SRCDIR" || return
+		# Rename the llvm cmake modules sources as expected.
+		mv "cmake-$version.src" cmake
+
+		# Add clang to the source tree.
+		mv "$clang_base" "$source_base/tools/clang"
+
+		pushd "$source_base" || return
+			# Replace python script shebangs with python3.
+			grep -rl '#!.*python' | xargs sed -i '1s/python$/python3/'
+
+			# Enable clang SSP (Stack-Smash Protection) by default.
+			patch -Np2 -d tools/clang < "$SRCDIR/$ssp_patch"
+		popd || return
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			CC=gcc CXX=g++ cmake -DCMAKE_INSTALL_PREFIX=/usr \
+				-DLLVM_ENABLE_FFI=ON \
+				-DCMAKE_BUILD_TYPE=Release \
+				-DLLVM_BUILD_LLVM_DYLIB=ON \
+				-DLLVM_LINK_LLVM_DYLIB=ON \
+				-DLLVM_ENABLE_RTTI=ON \
+				-DLLVM_TARGETS_TO_BUILD="host;AMDGPU;BPF" \
+				-DLLVM_BINUTILS_INCDIR=/usr/include \
+				-DLLVM_INCLUDE_BENCHMARKS=OFF \
+				-DCLANG_DEFAULT_PIE_ON_LINUX=ON \
+				-Wno-dev -G Ninja ..
+
+			ninja
+
+			# TODO: Build documentation using recommonmark
+
+			DESTDIR="$DESTDIR" ninja install
+
+			cp -v bin/FileCheck /usr/bin
+		popd || return
+	popd || return
+}

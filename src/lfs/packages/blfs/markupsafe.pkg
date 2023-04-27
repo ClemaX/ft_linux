@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="markupsafe"
+version="2.1.2"
+
+source_base="MarkupSafe-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'02f337b98aef11bd0fee9c5ae860173b'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		pip3 wheel \
+			-w dist \
+			--no-build-isolation \
+			--no-deps \
+			"$PWD"
+
+		pip3 install \
+			--root="$DESTDIR" \
+			--no-index \
+			--find-links dist \
+			--no-cache-dir \
+			--no-user \
+			markupsafe
+
+		# TODO: Handle pytest
+	popd || return
+}

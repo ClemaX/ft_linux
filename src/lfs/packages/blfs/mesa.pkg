@@ -1,0 +1,66 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-libraries, libdrm-2.4.115, mako-1.2.4
+
+name="mesa"
+version="23.0.3"
+
+source_base="$name-$version"
+
+xdemos_patch="$name-add_xdemos-2.patch"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$xdemos_patch"
+)
+md5sums=(
+	'3d5025f4f135a1d9131183ac75ba91e4'
+	'457fb749cbbc859008befe8acce8d8f5'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$xdemos_patch"
+	popd || return
+}
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static}"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix="$XORG_PREFIX" \
+				--buildtype=release \
+				-Dplatforms=x11 \
+				-Dgallium-drivers=auto \
+				-Dvulkan-drivers="" \
+				-Dvalgrind=disabled \
+				-Dlibunwind=disabled \
+				..
+
+			if [ "$SKIP_TESTS" != true ]
+			then
+				meson configure -Dbuild-tests=true
+
+				ninja test
+			fi
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Install documentation.
+			install -v -dm755 "$DESTDIR/usr/share/doc/$source_base"
+			cp -rfv ../docs/* "$DESTDIR/usr/share/doc/$source_base"
+		popd || return
+	popd || return
+}

@@ -1,0 +1,41 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libarchive-3.6.2, libuv-1.44.2
+
+name="cmake"
+version="3.26.3"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'a99c7c7d5d127834ff3923b4cd4a1612'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Patch x64 libraries installation directory.
+		sed -i '/"lib64"/s/64//' Modules/GNUInstallDirs.cmake
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./bootstrap --prefix=/usr \
+			--system-libs \
+			--mandir=/share/man \
+			--no-system-jsoncpp \
+			--no-system-librhash \
+			--docdir="/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

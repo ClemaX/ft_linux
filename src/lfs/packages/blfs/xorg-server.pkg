@@ -1,0 +1,59 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on: libxcvt-0.1.2, Pixman-0.42.2, Xorg Fonts (only font-util),
+# xorg-libinput-1.3.0
+
+name="xorg-server"
+version="21.1.8"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'79a6eb04b1b17ad6c7aab46da73944e8'
+)
+
+build()
+{
+	# Prepare build environment.
+	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
+
+	# shellcheck disable=SC2089
+	export XORG_CONFIG="--prefix=$XORG_PREFIX \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-static"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+
+		pushd build || return
+			# shellcheck disable=SC2086 disable=SC2090
+			meson setup \
+				--prefix=$XORG_PREFIX \
+				--localstatedir=/var \
+				-Dsuid_wrapper=true \
+				-Dxkb_output_dir=/var/lib/xkb \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			install -vd "$DESTDIR/etc/X11/xorg.conf.d"
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Add files to be created at boot.
+	cat >> /etc/sysconfig/createfiles << "EOF"
+/tmp/.ICE-unix dir 1777 root root
+/tmp/.X11-unix dir 1777 root root
+EOF
+}
