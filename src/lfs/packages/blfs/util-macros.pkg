@@ -18,17 +18,8 @@ md5sums=(
 
 build()
 {
-	# Prepare build environment.
-	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
-
-	# shellcheck disable=SC2089
-	export XORG_CONFIG="--prefix=$XORG_PREFIX \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--disable-static"
-
 	pushd "$SRCDIR/$source_base" || return
-		# shellcheck disable=SC2086 disable=SC2090
+		# shellcheck disable=SC2086
 		./configure $XORG_CONFIG
 
 		make DESTDIR="$DESTDIR" install

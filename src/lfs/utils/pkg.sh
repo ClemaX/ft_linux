@@ -403,10 +403,10 @@ pkg_prepare() # src_dir
 		pushd "$src_dir"
 			for src in "${sources[@]}"
 			do
-				if [[ "$src" =~ ^([^:]*\.tar[^:]*)(:.\+)?$ ]]
+				if [[ "$src" =~ ^([^:]*\.(tar|tgz)[^:]*)(:(.*))?$ ]]
 				then
 					src="${BASH_REMATCH[1]}"
-					dst="${BASH_REMATCH[2]}"
+					dst="${BASH_REMATCH[4]}"
 
 					if [ -z "$dst" ]
 					then

@@ -18,15 +18,7 @@ md5sums=(
 
 build()
 {
-	# Prepare build environment.
-	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
-
-	pushd "$SRCDIR/$source_base" || return
-		mkdir -vp build
-
-		pushd build || return
-			# shellcheck disable=2086
-			meson setup --prefix=$XORG_PREFIX -Dlegacy=true ..
+				meson setup --prefix=$XORG_PREFIX -Dlegacy=true ..
 
 			ninja
 

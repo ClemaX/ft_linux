@@ -18,14 +18,6 @@ md5sums=(
 
 build()
 {
-	# Prepare build environment.
-	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
-
-	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--disable-static}"
-
 	pushd "$SRCDIR/$source_base" || return
 		# shellcheck disable=SC2086
 		./configure $XORG_CONFIG

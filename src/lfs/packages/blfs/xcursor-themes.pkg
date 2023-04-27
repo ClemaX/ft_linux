@@ -16,14 +16,6 @@ md5sums=(
 
 build()
 {
-	# Prepare build environment.
-	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
-
-	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--disable-static}"
-
 	pushd "$SRCDIR/$source_base" || return
 		# Specifically specify /usr as prefix, to support non-Xorg DEs
 		./configure --prefix=/usr
