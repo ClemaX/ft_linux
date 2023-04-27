@@ -21,7 +21,7 @@ md5sums=(
 prepare()
 {
 	pushd "$SRCDIR" || return
-		pushd "$source_base"
+		pushd "$source_base" || return
 			# Fix an issue causing grub-install to fail when the boot partition
 			# is created by e2fsprogs-1.47.0 or later.
 			patch -Np1 -i "$SRCDIR/$source_base-upstream_fixes-1.patch"
@@ -62,14 +62,14 @@ post_install()
 	local lfs_version="${LFS_VERSION:-11.3}"
 	local kernel_version=6.1.11
 	local kernel_localversion=chamada
-	
+
 	local esp_dir=/boot
-	
+
 	local dev_boot_id dev_root_id
 
 	local kernel_entry_name
 	local kernel kernel_cmdline
-	
+
 	dev_boot_id="PARTUUID=$(findmnt /boot -no PARTUUID)"
 	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
 
