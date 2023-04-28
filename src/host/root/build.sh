@@ -65,7 +65,7 @@ disk_partition "$LOOP_DEV"
 loop_partitions
 
 progress "Initializing partitions"
-mkfs.fat -F32 -n EFI "${LOOP_DEV}p1"
+mkfs.fat -F32 -n ESP "${LOOP_DEV}p1"
 mkswap "${LOOP_DEV}p2"
 mkfs.ext4 -L root "${LOOP_DEV}p3"
 
