@@ -50,7 +50,9 @@ loop_partitions()
 	local parts
 	local part_dev
 
-	parts=$(lsblk --raw --output "MAJ:MIN" --noheadings "$LOOP_DEV" | tail -n +2)
+	parts=$(lsblk "$LOOP_DEV" --output NAME,MAJ:MIN -x NAME --noheadings \
+		| tail -n +2 \
+		| cut -d' ' -f2)
 
 	LOOP_PARTS=0
 	for part in $parts
@@ -64,7 +66,7 @@ loop_partitions()
 		then
 			part_dev="${LOOP_DEV}p${LOOP_PARTS}"
 
-			echo "Creating $part_dev..."
+			debug "Creating $part_dev..."
 			mknod "$part_dev" b "$major" "$minor"
 		fi
 	done

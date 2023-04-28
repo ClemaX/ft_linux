@@ -66,7 +66,11 @@ loop_partitions
 
 progress "Initializing partitions"
 mkfs.fat -F32 -n EFI "${LOOP_DEV}p1"
-mkfs.ext4 -L root "${LOOP_DEV}p2"
+mkswap "${LOOP_DEV}p2"
+mkfs.ext4 -L root "${LOOP_DEV}p3"
+
+export DEV_SWAP_ID
+DEV_SWAP_ID="PARTUUID=$(blkid "${LOOP_DEV}p2" -o value -s PARTUUID)"
 
 progress "Mounting disk"
 disk_mount "$LOOP_DEV" "$LFS"
@@ -146,5 +150,5 @@ progress "Shrinking image"
 
 disk_umount "$LOOP_DEV"
 
-disk_shrink "$LOOP_DEV" 2
+disk_shrink "$LOOP_DEV" 3
 img_shrink "$IMG_DST"

@@ -186,14 +186,12 @@ pushd /tmp
 	info "Creating /etc/fstab..."
 
 	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
-
-	# TODO: Optionally create swap
-	#dev_swap="PARTUUID="
+	dev_swap_id="${DEV_SWAP_ID:-#<swap_device>}"
 
 	column -t > /etc/fstab << EOF
 #file-system 	mount-point	type		options				dump	fsck-order
 $dev_root_id	/			ext4		defaults			1		1
-#<swap_device>	swap		swap		pri=1				0		0
+$dev_swap_id	swap		swap		pri=1				0		0
 proc			/proc		proc		nosuid,noexec,nodev	0		0
 sysfs			/sys		sysfs		nosuid,noexec,nodev	0		0
 devpts			/dev/pts	devpts		gid=5,mode=620		0		0

@@ -1,50 +1,50 @@
 # shellcheck shell=bash
 
+# Mount default disk partitions.
 disk_mount() # dev mnt
 {
 	local dev="$1"
 	local mnt="$2"
 
 	mkdir -pv "$mnt"
-	mount -v -t ext4 "${dev}p2" "$mnt"
+	mount -v -t ext4 "${dev}p3" "$mnt"
 
 	mkdir -pv "$mnt/boot"
 	mount -v -t vfat "${dev}p1" "$mnt/boot"
 }
 
+# Unmount default disk partitions.
 disk_umount() # dev
 {
 	local dev="$1"
 
 	umount -lv "${dev}p1"
-	umount -lv "${dev}p2"
+	umount -lv "${dev}p3"
 }
 
+# Create default disk partitions.
 disk_partition() # dev
 {
 	local dev="$1"
 
-	# TODO: Replace with sgdisk script
+	# Clear partition tables.
+	sgdisk -Z "$dev"
 
-	gdisk "$dev" <<EOF
-o
-Y
-n
+	# Number	Size	Type					Name
+	# 1			200MiB	EFI System Partition	boot
+	# 2			3.8GiB	Linux swap				swap
+	# 3			?GiB	Linux x86-64 root (/)	root
+	sgdisk "$dev" \
+		--new 1:0:+200M		--typecode 1:ef00	--change-name 1:boot \
+		--new 2:0:+3896M	--typecode 2:8200	--change-name 2:swap \
+		--largest-new 3		--typecode 3:8304	--change-name 3:root
 
-
-+200M
-ef00
-n
-
-
-
-8304
-w
-Y
-EOF
+	# Show result.
+	sgdisk "$dev" -p
 }
 
 # Shrink a disk's ext4 partition to minimal size.
+# TODO: Determine part_index automatically (must be last partition)
 disk_shrink() # device part_index [part_type]
 {
 	local device="$1"

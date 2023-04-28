@@ -108,6 +108,7 @@ lfs_chroot() # root [cmd]
 			SKIP_TESTS="$SKIP_TESTS" \
 			XZ_DEFAULTS="$XZ_DEFAULTS" \
 			STRIP_BINARIES="$STRIP_BINARIES" \
+			DEV_SWAP_ID="$DEV_SWAP_ID" \
 			"$@"
 
 		lfs_chroot_teardown "$root"

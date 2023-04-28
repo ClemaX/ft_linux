@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 # Turn off bash's hash function.
 set +h
 

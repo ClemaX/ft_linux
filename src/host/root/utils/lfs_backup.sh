@@ -30,7 +30,7 @@ lfs_restore() # root src
 
 	local backup_dir
 	local backup_file
-	local boot=""
+	local boot_dev=""
 
 	backup_dir=$(dirname "$src")
 	backup_file=$(basename "$src")
@@ -47,7 +47,7 @@ lfs_restore() # root src
 	pushd "$root"
 		if mountpoint boot
 		then
-			boot=$(findmnt -n -o SOURCE boot)
+			boot_dev=$(findmnt -n -o SOURCE boot)
 			debug "Unmounting boot partition..."
 			umount -v boot
 		fi
@@ -55,11 +55,11 @@ lfs_restore() # root src
 		debug "Cleaning file-system..."
 		rm -rf ./*
 
-		if [ -n "$boot" ]
+		if [ -n "$boot_dev" ]
 		then
 			debug "Remounting boot partition..."
 			mkdir -vp boot
-			mount -v "$boot" boot
+			mount -v "$boot_dev" boot
 		fi
 
 		debug "Restoring backup..."

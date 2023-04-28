@@ -54,6 +54,6 @@ ENV XZ_DEFAULTS="-T0"
 ENV STRIP_BINARIES=true
 
 # Image destination and size in MiB
-ENV IMG_DST=/dist/disk.img IMG_SIZE=8192
+ENV IMG_DST=/dist/disk.img IMG_SIZE=12288
 
 CMD ./build.sh
