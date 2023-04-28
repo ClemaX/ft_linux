@@ -66,8 +66,8 @@ loop_partitions()
 		then
 			part_dev="${LOOP_DEV}p${LOOP_PARTS}"
 
-			debug "Creating $part_dev..."
-			mknod "$part_dev" b "$major" "$minor"
+			debug "Creating $part_dev ($minor:$major)..."
+			mknod --mode 660 "$part_dev" b "$major" "$minor"
 		fi
 	done
 }
@@ -86,7 +86,7 @@ loop_setup() # img
 	fi
 
 	debug "Creating loop device at $LOOP_DEV..."
-	mknod "$LOOP_DEV" b 7 0
+	mknod --mode 660 "$LOOP_DEV" b 7 0
 
 	info "Setting up $LOOP_DEV..."
 
