@@ -49,7 +49,7 @@ disk_shrink() # device part_index [part_type]
 {
 	local device="$1"
 	local part_index="$2"
-	local part_type="${3:-8304}"
+	local part_type="${3:-8304}" # Defaults to Linux x86-64 root (/)
 
 	local part="${device}p${part_index}"
 
@@ -58,9 +58,6 @@ disk_shrink() # device part_index [part_type]
 	local part_size part_size_padded
 	local part_sector_count
 	local part_uuid
-
-	# Discard unused blocks.
-	#fstrim
 
 	# Resize partition to minimal size.
 	e2fsck -f "$part"
@@ -77,21 +74,14 @@ disk_shrink() # device part_index [part_type]
 
 	part_uuid=$(blkid "$part" -o value -s PARTUUID)
 
-	gdisk "$device" <<EOF
-p
-d
-$part_index
-n
-$part_index
+	sgdisk "$device" --print
 
-+$part_sector_count
-$part_type
-x
-c
-$part_index
-$part_uuid
-p
-w
-Y
-EOF
+	sgdisk "$device" \
+		--delete "$part_index" \
+		--new "$part_index:0:+$part_sector_count" \
+		--typecode "0:$part_type" \
+		--change-name 0:root \
+		--partition-guid "0:$part_uuid"
+
+	sgdisk "$device" --print
 }
