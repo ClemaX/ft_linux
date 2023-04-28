@@ -150,5 +150,5 @@ progress "Shrinking image"
 
 disk_umount "$LOOP_DEV"
 
-disk_shrink "$LOOP_DEV" 3
+disk_shrink "$LOOP_DEV" "$FS_ROOT_SIZE"
 img_shrink "$IMG_DST"

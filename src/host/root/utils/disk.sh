@@ -35,34 +35,44 @@ disk_partition() # dev
 	# 2			3.8GiB	Linux swap				swap
 	# 3			?GiB	Linux x86-64 root (/)	root
 	sgdisk "$dev" \
-		--new 1:0:+200M		--typecode 1:ef00	--change-name 1:boot \
-		--new 2:0:+3896M	--typecode 2:8200	--change-name 2:swap \
-		--largest-new 3		--typecode 3:8304	--change-name 3:root
+		--new "1:0:+${FS_ESP_SIZE}M" \
+			--typecode 1:ef00 --change-name 1:boot \
+		--new "2:0:+${FS_SWAP_SIZE}M" \
+			--typecode 2:8200 --change-name 2:swap \
+		--largest-new 3 \
+			--typecode 3:8304 --change-name 3:root
 
 	# Show result.
 	sgdisk "$dev" -p
 }
 
-# Shrink a disk's ext4 partition to minimal size.
+# Shrink a disk's last ext4 fs and partition to a given size in MiB.
 # TODO: Determine part_index automatically (must be last partition)
-disk_shrink() # device part_index [part_type]
+disk_shrink() # device fs_size [part_type]
 {
 	local device="$1"
-	local part_index="$2"
+	local fs_size="$2"
 	local part_type="${3:-8304}" # Defaults to Linux x86-64 root (/)
 
-	local part="${device}p${part_index}"
+	local part
 
 	local disk_sector_size
 	local part_block_count part_block_size
 	local part_size part_size_padded
 	local part_sector_count
-	local part_uuid
+	local part_name part_uuid
 
-	# Resize partition to minimal size.
+	# Get last partition information.
+	part_index=$(partx --raw -o NR --noheading --nr -1 "$device")
+	part_name=$(partx --raw -o Name --noheading --nr -1 "$device")
+	part_uuid=$(partx --raw -o UUID --noheading --nr -1 "$device")
+	part="${device}p${part_index}"
+
+	# Resize partition to given size.
 	e2fsck -f "$part"
-	resize2fs "$part" 4G # -M
+	resize2fs "$part" "${fs_size}M"
 
+	# Calculate new partition sector count.
 	disk_sector_size=$(<"/sys/block/${device##*/}/queue/hw_sector_size")
 
 	part_block_count=$(dumpe2fs -h "$part" | grep -i '^Block count:' | cut -d':' -f2 | tr -d ' \t')
@@ -72,15 +82,14 @@ disk_shrink() # device part_index [part_type]
 	part_size_padded=$((part_size + (part_size % disk_sector_size)))
 	part_sector_count=$((part_size_padded / disk_sector_size))
 
-	part_uuid=$(blkid "$part" -o value -s PARTUUID)
-
 	sgdisk "$device" --print
 
+	# Resize partition.
 	sgdisk "$device" \
 		--delete "$part_index" \
 		--new "$part_index:0:+$part_sector_count" \
 		--typecode "0:$part_type" \
-		--change-name 0:root \
+		--change-name "0:$part_name" \
 		--partition-guid "0:$part_uuid"
 
 	sgdisk "$device" --print

@@ -53,7 +53,10 @@ ENV XZ_DEFAULTS="-T0"
 # Strip unnecessary symbols off binaries
 ENV STRIP_BINARIES=true
 
-# Image destination and size in MiB
+# Image destination and maximal size in MiB
 ENV IMG_DST=/dist/disk.img IMG_SIZE=12288
+
+# Final swap and root sizes in MiB
+ENV FS_ESP_SIZE=512 FS_SWAP_SIZE=2048 FS_ROOT_SIZE=3584
 
 CMD ./build.sh
