@@ -22,7 +22,6 @@ sed
 tar
 texinfo
 xz-utils
-fdisk
 vim
 wget
 ca-certificates

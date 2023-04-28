@@ -25,9 +25,8 @@ img_shrink() # dst
 	local disk_end_sector
 	local size
 
-	disk_sector_size=$(fdisk -l "$dst" | grep '^Sector size' | sed 's/.*:\s*\([0-9]\+\)\s*bytes.*/\1/')
-
-	disk_end_sector=$(fdisk -l "$dst" -o End | tail -n1)
+	disk_sector_size=$(sgdisk -p "$dst" | grep -i '^Sector size' | sed 's/.*:\s*\([[:digit:]]\+\)\s*bytes.*/\1/')
+	disk_end_sector=$(partx --raw "$dst" -o End --noheadings --nr -1)
 
 	# Sector indices start at 0 and 33 sectors are needed internally for GPT.
 	disk_sector_count=$((disk_end_sector + 1 + 33))
