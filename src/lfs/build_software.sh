@@ -22,11 +22,42 @@ SCRIPTDIR=/build
 source "$SCRIPTDIR/utils/logger.sh"
 source "$SCRIPTDIR/utils/package.sh"
 
+install_pkg() # [pkg...]
+{
+	for pkg in "$@"
+	do
+		debug "Building $pkg..."
+		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
+
+		debug "Installing $pkg..."
+		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
+
+		echo
+	done
+}
+
+info "Creating /etc/fstab..."
+
+dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
+dev_swap_id="${DEV_SWAP_ID:-#<swap_device>}"
+
+column -t > /etc/fstab << EOF
+#file-system 	mount-point	type		options				dump	fsck-order
+$dev_root_id	/			ext4		defaults			1		1
+$dev_swap_id	swap		swap		pri=1				0		0
+proc			/proc		proc		nosuid,noexec,nodev	0		0
+sysfs			/sys		sysfs		nosuid,noexec,nodev	0		0
+devpts			/dev/pts	devpts		gid=5,mode=620		0		0
+tmpfs			/run		tmpfs		defaults			0		0
+devtmpfs		/dev		devtmpfs	mode=0755,nosuid	0		0
+tmpfs			/dev/shm	tmpfs		nosuid,nodev		0		0
+EOF
+
 info "Installing basic system software..."
 
 # Install basic system software.
 pushd "$SCRIPTDIR/packages/software"
-	for pkg in man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
+	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
 		flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow \
 		gcc pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
 		gperf expat inetutils less perl xml-parser intltool autoconf automake \
@@ -34,23 +65,16 @@ pushd "$SCRIPTDIR/packages/software"
 		check diffutils gawk findutils groff gzip iproute2 kbd libpipeline \
 		make patch tar texinfo vim eudev man-db procps-ng util-linux e2fsprogs \
 		sysklogd sysvinit lfs-bootscripts
-	do
-		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
-		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
-	done
 popd
+
 
 info "Installing beyond LFS software..."
 
 # Install beyond LFS software.
 pushd "$SCRIPTDIR/packages/blfs"
 	# Install useful utilities.
-	for pkg in unifont mandoc efivar popt efibootmgr libpng which freetype \
+	install_pkg unifont mandoc efivar popt efibootmgr libpng which freetype \
 		grub pciutils acpid dhcpcd libtasn1 fcron make-ca p11-kit curl
-	do
-		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
-		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
-	done
 
 	# Prepare Xorg build environment.
 	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
@@ -71,7 +95,7 @@ EOF
 	chmod 644 /etc/profile.d/xorg.sh
 
 	# Install Xorg.
-	for pkg in libxcvt pixman util-macros fontconfig xcb-proto xorgproto \
+	install_pkg libxcvt pixman util-macros fontconfig xcb-proto xorgproto \
 		libxdmcp libxau libxcb xtrans libx11 libxext libfs libice libsm \
 		libxscrnsaver libxt libxmu libxpm libxaw libxfixes libxcomposite \
 		libxrender libxcursor libxdamage libfontenc libxfont2 libxft libxi \
@@ -82,10 +106,6 @@ EOF
 		xbitmaps xorg-applications xcursor-themes xorg-font-util \
 		xorg-fonts-encodings xorg-fonts xkeyboard-config libtirpc libepoxy \
 		xorg-server twm xterm xinit libevdev mtdev libinput xf86-input-libinput
-	do
-		"$SCRIPTDIR/utils/pkg.sh" build "$pkg"
-		"$SCRIPTDIR/utils/pkg.sh" install "$pkg"
-	done
 popd
 
 info "Generating initial udev rules..."
@@ -182,23 +202,6 @@ pushd /tmp
 
 	# Remove the temporary test user.
 	userdel -r tester
-
-	info "Creating /etc/fstab..."
-
-	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
-	dev_swap_id="${DEV_SWAP_ID:-#<swap_device>}"
-
-	column -t > /etc/fstab << EOF
-#file-system 	mount-point	type		options				dump	fsck-order
-$dev_root_id	/			ext4		defaults			1		1
-$dev_swap_id	swap		swap		pri=1				0		0
-proc			/proc		proc		nosuid,noexec,nodev	0		0
-sysfs			/sys		sysfs		nosuid,noexec,nodev	0		0
-devpts			/dev/pts	devpts		gid=5,mode=620		0		0
-tmpfs			/run		tmpfs		defaults			0		0
-devtmpfs		/dev		devtmpfs	mode=0755,nosuid	0		0
-tmpfs			/dev/shm	tmpfs		nosuid,nodev		0		0
-EOF
 
 	# Build and install the linux kernel.
 	pushd "$SCRIPTDIR/packages/software"
