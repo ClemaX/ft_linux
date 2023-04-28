@@ -53,6 +53,16 @@ build()
 		# Install documentation.
 		install -vd "$DESTDIR/usr/share/doc/$source_base"
 		cp -vr Documentation/* "$DESTDIR/usr/share/doc/$source_base"
+
+		# Cleanup.
+		make distclean
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Install kernel sources.
+		install -vd "$DESTDIR/usr/src"
+
+		mv -v "$source_base" "$DESTDIR/usr/src/kernel-$version"
 	popd || return
 }
 

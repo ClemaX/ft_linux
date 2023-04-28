@@ -191,6 +191,7 @@ pushd /tmp
 
 	info "Cleaning up..."
 
+	# Remove temporary build files.
 	rm -rf /tmp/*
 
 	# Remove libtool archives.
@@ -203,11 +204,16 @@ pushd /tmp
 	# Remove the temporary test user.
 	userdel -r tester
 
+
+	info "Building the Linux kernel..."
+
 	# Build and install the linux kernel.
 	pushd "$SCRIPTDIR/packages/software"
-		"$SCRIPTDIR/utils/pkg.sh" build linux
-		"$SCRIPTDIR/utils/pkg.sh" install linux
+		install_pkg linux
 	popd
+
+	# Remove sources.
+	rm -rf /sources
 
 	# Set LFS release version.
 	echo "$LFS_VERSION" > /etc/lfs-release
@@ -229,3 +235,5 @@ PRETTY_NAME="Linux From Scratch $LFS_VERSION"
 VERSION_CODENAME="chamada"
 EOF
 popd
+
+#fstrim -v /
