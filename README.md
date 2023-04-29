@@ -19,4 +19,3 @@ Various default settings can be configured using the docker environment variable
 To build the image, simply execute `make` in the parent directory of this repository.
 
 The image should be stored by default at `dist/lfs.img`.
-```
