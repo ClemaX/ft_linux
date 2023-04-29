@@ -25,7 +25,7 @@ $(DISTDIR):
 	@echo "MKDIR $(DISTDIR)"
 	mkdir -p "$(DISTDIR)"
 
-$(DISTDIR)/$(NAME): ft_linux $(DISTDIR)## Build the LFS image.
+$(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 	@echo "RUN $(CMD)"
 	docker run --rm \
 		--cap-drop=all $(CAPS:%=--cap-add=%) \
@@ -36,6 +36,18 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR)## Build the LFS image.
 		-v "$(CACHEVOL):/cache:rw" \
 		--name=ft_linux \
 		-it ft_linux $(CMD)
+
+	@echo "CP $(NAME) $(DISTDIR)"
+	docker run --rm -d \
+		--cap-drop=all \
+		-v "$(DISTVOL):/dist:rw" \
+		--name=ft_linux-dist \
+		ft_linux \
+		tail -f /dev/null
+
+	docker cp ft_linux-dist:/dist/disk.img $(DISTDIR)/$(NAME)
+
+	docker stop ft_linux-dist
 
 check-scripts:
 	shellcheck $(shell find $(SRCDIR) -type f -name '*.sh')
