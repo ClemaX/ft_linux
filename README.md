@@ -18,14 +18,5 @@ Various default settings can be configured using the docker environment variable
 ## Building an image
 To build the image, simply execute `make` in the parent directory of this repository.
 
-## Downloading the image
-This will be done automatically in the future.
-Currently you need to start a build container using:
-```sh
-make CMD=/bin/bash
-```
-
-And then copy the file from another terminal:
-```sh
-docker cp ft_linux:/dist/disk.img dist/disk.img
+The image should be stored by default at `dist/lfs.img`.
 ```
