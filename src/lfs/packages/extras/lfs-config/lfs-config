@@ -1,0 +1,181 @@
+#!/bin/bash
+
+dialog_menu() # title [(option_id option_name)...]
+{
+	local title="$1"; shift
+	local options=("$@")
+
+	dialog --clear --stdout \
+		--menu "$title" 0 0 0 \
+			"${options[@]}" \
+	|| echo back
+}
+
+# Network interface selector
+net_interface_dialog()
+{
+	local options=()
+	local interfaces
+	
+	interfaces=$(ip -o link show | awk -F': ' '{print $2}')
+
+	for interface in $interfaces
+	do
+		options+=("$interface" "$interface")
+	done
+
+	dialog_menu "Select an interface to configure:" "${options[@]}"
+}
+
+# Existing network configuration
+net_config_exists_dialog()
+{
+	local options=(
+		edit	"Edit configuration..."
+		delete	"Delete configuration"
+	)
+
+	dialog_menu "What do you want to do?" "${options[@]}"
+}
+
+# New network service selector
+net_config_new_dialog()
+{
+	local options=()
+	local services=(dhcpcd ipv4-static)
+
+	for service in "${services[@]}"
+	do
+		options+=("$service" "Setup using $service...")
+	done
+
+	dialog_menu "Which network service do you want to use?" "${options[@]}"
+}
+
+ipv4_static_dialog() # dst_file
+{
+    # Set the form width and height
+    local width=15
+    local height=50
+
+    # Set the form labels and default values
+    local labels=(
+		"IP address"	"Gateway"		"Prefix Length"	"Broadcast"
+	)
+    local values=(
+		"192.168.1.2"	"192.168.1.1"	"24"			"192.168.1.255"
+	)
+
+	local options=()
+	local i=0
+
+	while [ "$i" -lt "${#labels[@]}" ]
+	do
+		local label="${labels[i]}"
+		local value="${values[i]}"
+
+		local label_pos=("$((i + 1))" 1)
+		local value_pos=("$((i + 1))" "$width")
+		local field_len=25
+		local input_len=0
+
+		options+=(
+			"$label:" "${label_pos[@]}"
+			"$value" "${value_pos[@]}"
+			"$field_len" "$input_len")
+
+		((i+=1))
+	done
+
+    dialog --clear --stdout \
+		--title "Static IPv4 Configuration" \
+		--form "Fill in the fields:" "$width" "$height" 0 \
+			"${options[@]}"
+}
+
+# Network configuration
+net_config()
+{
+	local interface
+	local ifconfig_file
+
+	interface=$(net_interface_dialog)
+	
+	[ "$interface" == back ] && return
+
+	ifconfig_file="/etc/sysconfig/ifconfig.$interface"
+
+	if [ -e "$ifconfig_file" ]
+	then
+		selection=$(net_config_exists_dialog)
+
+		case "$selection"
+		in
+			edit)
+				echo TODO
+				;;
+			delete)
+				rm "$ifconfig_file"
+				;;
+			*)
+				return
+				;;
+		esac
+	else
+		selection=$(net_config_new_dialog)
+
+		case "$selection"
+		in
+			ipv4-static)
+				readarray -t config < <(ipv4_static_dialog)
+
+				[ $? -eq 1 ] && return
+
+				# Store configuration
+				cat > "$ifconfig_file" << EOF
+ONBOOT=yes
+IFACE="$interface"
+SERVICE=ipv4-static
+IP="${config[0]}"
+GATEWAY="${config[1]}"
+PREFIX="${config[2]}"
+BROADCAST="${config[3]}"
+EOF
+				;;
+			dhcpcd)
+				cat > "$ifconfig_file" << EOF
+ONBOOT="yes"
+IFACE="$interface"
+SERVICE="dhcpcd"
+DHCP_START="-b -q"
+DHCP_STOP="-k"
+EOF
+				;;
+			*)
+				return
+				;;
+		esac
+	fi
+}
+
+main_dialog()
+{
+	dialog_menu "Select an option:" \
+		net_config	"Network configuration..." \
+		expand_fs	"Expand filesystem" \
+		exit		"Exit"
+}
+
+while true
+do
+	# Display menu and get user selection
+	selection=$(main_dialog)
+
+	# Process user selection
+	case "$selection"
+	in
+		net_config) net_config ;;
+		expand_fs)	echo "TODO: Expand filesystem" ;;
+		*)		 	clear; exit ;;
+	esac
+done

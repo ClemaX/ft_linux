@@ -54,8 +54,6 @@ tmpfs			/dev/shm	tmpfs		nosuid,nodev		0		0
 EOF
 
 info "Installing basic system software..."
-
-# Install basic system software.
 pushd "$SCRIPTDIR/packages/software"
 	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
 		flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow \
@@ -69,8 +67,6 @@ popd
 
 
 info "Installing beyond LFS software..."
-
-# Install beyond LFS software.
 pushd "$SCRIPTDIR/packages/blfs"
 	# Install useful utilities.
 	install_pkg unifont mandoc efivar popt efibootmgr libpng which freetype \
@@ -106,6 +102,11 @@ EOF
 		xbitmaps xorg-applications xcursor-themes xorg-font-util \
 		xorg-fonts-encodings xorg-fonts xkeyboard-config libtirpc libepoxy \
 		xorg-server twm xterm xinit libevdev mtdev libinput xf86-input-libinput
+popd
+
+info "Installing extra software..."
+pushd "$SCRIPTDIR/packages/extras"
+	install_pkg dialog lfs-config
 popd
 
 info "Generating initial udev rules..."

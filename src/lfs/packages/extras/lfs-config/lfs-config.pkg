@@ -1,0 +1,18 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="lfs-config"
+version="1.0.0"
+
+source_base="$name-$version"
+
+sources=("lfs-config")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR" || return
+		install -vD -m755 lfs-config -t "$DESTDIR/usr/bin"
+	popd || return
+}
