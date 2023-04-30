@@ -36,11 +36,8 @@ img_shrink() # dst
 
 	truncate --size="$size" "$dst"
 
-	# Fix partition table.
-	gdisk "$dst" <<EOF
-w
-Y
-EOF
+	# Restore backup partition table.
+	sgdisk --move-second-header "$dst"
 }
 
 # Create additional devices for a loop device's partitions.
