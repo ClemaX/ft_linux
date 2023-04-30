@@ -11,6 +11,49 @@ dialog_menu() # title [(option_id option_name)...]
 	|| echo back
 }
 
+dialog_procedure() # procedure title [gauge_title]
+{
+	local procedure="$1"
+	local title="$2"
+	local gauge_title="${3:-$title}"
+
+	local log_file
+	local width height
+	local widget_width
+	local tailbox_height gauge_height
+	local gauge_pos tailbox_pos
+	local padding=2
+
+	log_file=$(mktemp --tmpdir lfs-config.expand_fs.XXXX)
+	
+	width=$(tput cols)
+	height=$(tput lines)
+
+	widget_width=$((width - 3 * padding))
+	gauge_height=8
+	tailbox_height=$((height - gauge_height - 3 * padding))
+
+	gauge_pos=("$padding" "$padding")
+	tailbox_pos=("$((gauge_pos[0] + gauge_height + padding))" "$padding")
+
+	"$procedure" "$log_file" \
+	| dialog --title "$title" \
+		--begin "${tailbox_pos[@]}" \
+		--tailboxbg "$log_file" "$tailbox_height" "$widget_width" \
+		--and-widget \
+		--begin "${gauge_pos[@]}" \
+		--gauge "$gauge_title" "$gauge_height" "$widget_width" 0
+
+	rm "$log_file"
+}
+
+procedure_progress() # percentage message
+{
+	local percentage="${1}"; shift
+
+	printf 'XXX\n%d\n%s\nXXX\n' "${percentage%%%*}" "$*"
+}
+
 # Network interface selector
 net_interface_dialog()
 {
@@ -54,11 +97,11 @@ net_config_new_dialog()
 
 ipv4_static_dialog() # dst_file
 {
-    # Set the form width and height
+    # Set the form width and height.
     local width=15
     local height=50
 
-    # Set the form labels and default values
+    # Set the form labels and default values.
     local labels=(
 		"IP address"	"Gateway"		"Prefix Length"	"Broadcast"
 	)
@@ -158,6 +201,76 @@ EOF
 	fi
 }
 
+expand_fs_procedure() # [logfile]
+{
+	local log_file="${1:-/dev/null}"
+
+	local part_dev disk_dev
+	local part_index part_name part_uuid part_type
+	local part_last_sector disk_last_usable_sector
+	local part_start_sector part_sector_count
+	local disk_sector_size part_size
+
+	part_dev=$(findmnt / --raw -o SOURCE --noheadings)
+	disk_dev="/dev/$(lsblk "$part_dev" --noheadings --nodeps -o PKNAME)"
+
+	# Move the second partition header to the end of the disk.
+	procedure_progress 25% "Moving the second partition header to the end of the disk..."
+	>> "$log_file" 2>&1 sgdisk "$disk_dev" --move-second-header
+
+	part_last_sector=$(partx "$part_dev" --raw -o END --noheading)
+	disk_last_usable_sector=$(sgdisk "$disk_dev" --print \
+		| grep -i 'last usable' \
+		| sed 's/.*last usable sector is \([[:digit:]]\+\)/\1/')
+
+	# Check if there is free space left.
+	if [ "$part_last_sector" -eq "$disk_last_usable_sector" ]
+	then
+		procedure_progress 100 "No space left!"
+		
+		sleep 2
+
+		return
+	fi
+
+	part_index=$(partx "$part_dev" --raw -o NR --noheading)
+	part_name=$(partx "$part_dev" --raw -o NAME --noheading)
+	part_uuid=$(partx "$part_dev" --raw -o UUID --noheading)
+	part_type=$(partx "$part_dev" --raw -o TYPE --noheading)
+
+	# Resize partition up to last usable sector.
+	procedure_progress 50% "Resizing '$part_dev' to last usable sector..."
+	>> "$log_file" 2>&1 sgdisk "$disk_dev" \
+		--delete "$part_index" \
+		--new "$part_index:$part_start_sector:$disk_last_usable_sector" \
+		--typecode "$part_index:$part_type" \
+		--partition-guid "$part_index:$part_uuid" \
+		--change-name "$part_index:$part_name"
+
+	part_start_sector=$(partx "$part_dev" --raw -o START --noheading)
+	part_last_sector="$disk_last_usable_sector"
+	part_sector_count=$((part_last_sector - part_start_sector + 1))
+
+	disk_sector_size=$(<"/sys/block/${disk_dev##*/}/queue/hw_sector_size")
+	part_size=$((part_sector_count * disk_sector_size))
+
+	# Update kernel partition table.
+	>> "$log_file" 2>&1 partx -u "$disk_dev"
+
+	# Resize file-system.
+	procedure_progress 75% "Resizing file-system..."
+	>> "$log_file" 2>&1 resize2fs "$part_dev" "$((part_size / 512))s"
+
+	procedure_progress 100% "Done!"
+
+	sleep 2
+}
+
+expand_fs()
+{
+	dialog_procedure expand_fs_procedure "Expanding filesystem..."
+}
+
 main_dialog()
 {
 	dialog_menu "Select an option:" \
@@ -175,7 +288,7 @@ do
 	case "$selection"
 	in
 		net_config) net_config ;;
-		expand_fs)	echo "TODO: Expand filesystem" ;;
+		expand_fs)	expand_fs ;;
 		*)		 	clear; exit ;;
 	esac
 done
