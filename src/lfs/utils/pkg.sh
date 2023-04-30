@@ -499,7 +499,7 @@ pkg_build() # [pkg]...
 			fi
 
 			echo "Storing $pkg_file..."
-			install -vD "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
+			install -vD -m644 "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
 
 			pkg_link "$name" "$version"
 		popd; pkg_unload
