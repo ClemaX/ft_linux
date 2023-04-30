@@ -1,0 +1,46 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on popt-1.19
+
+name="gptfdisk"
+version="1.0.9"
+
+source_base="$name-$version"
+
+convenience_patch="$source_base-convenience-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+	"/sources/$convenience_patch"
+)
+md5sums=(
+	'01c11ecfa454096543562e3068530e01'
+	'd6c2e73c95b616b82136889151c420ba'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Add convenience build and install interface.
+		patch -Np1 -i "$SRCDIR/$convenience_patch"
+
+		# Fix the location of an installed header.
+		sed -i 's|ncursesw/||' gptcurses.cc
+		sed -i 's|sbin|usr/sbin|' Makefile
+
+		# Fix an issue introduced by a recent popt version.
+		sed -i '/UUID_H/s/^.*$/#if defined (_UUID_UUID_H) || defined (_UL_LIBUUID_UUID_H)/' guid.cc
+		sed -i "/device =/s/= \(.*\);/= strdup(\1);/" gptcl.cc
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

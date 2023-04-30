@@ -133,3 +133,5 @@ bacdad5c27dcf6e2830b3e26a1c8ed3f libtirpc-1.3.3.tar.bz2
 bf8ef2482e84a00b5db8fbd3ce00e249 mtdev-1.1.6.tar.bz2
 d164313f9a92162df7af3505b6915c76 libinput-1.22.1.tar.gz
 c6e942a1d639ebe2621905cc84eb26b9 xf86-input-libinput-1.2.1.tar.xz
+01c11ecfa454096543562e3068530e01 gptfdisk-1.0.9.tar.gz
+d6c2e73c95b616b82136889151c420ba gptfdisk-1.0.9-convenience-1.patch

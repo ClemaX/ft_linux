@@ -70,7 +70,7 @@ info "Installing beyond LFS software..."
 pushd "$SCRIPTDIR/packages/blfs"
 	# Install useful utilities.
 	install_pkg unifont mandoc efivar popt efibootmgr libpng which freetype \
-		grub pciutils acpid dhcpcd libtasn1 fcron make-ca p11-kit curl
+		grub gptfdisk pciutils acpid dhcpcd libtasn1 fcron make-ca p11-kit curl
 
 	# Prepare Xorg build environment.
 	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
