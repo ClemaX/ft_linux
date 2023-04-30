@@ -29,3 +29,8 @@ build()
 	popd || return
 }
 
+post_install()
+{
+	# Update certificate store.
+	/usr/sbin/make-ca -g
+}
