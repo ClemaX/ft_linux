@@ -466,7 +466,8 @@ pkg_build() # [pkg]...
 
 			archive="$cache_dir/pkg$TAR_PKG_EXT"
 
-			if ! pkg_built "$pkg"
+			# Check if this specific version is already built
+			if ! pkg_built_version "$pkg" "$version"
 			then
 				pkg_prepare "$src_dir"
 
@@ -538,6 +539,29 @@ pkg_built() # [pkg]...
 			return 1
 		fi
 	done
+}
+
+# Check if a specific version of a given package has been built
+pkg_built_version() # pkg version
+{
+	local pkg="$1"
+	local version="$2"
+
+	local pkg_archive
+
+	pkg_archive="$PKG_CACHE/$pkg/$version/pkg$TAR_PKG_EXT"
+
+	if [ -f "$pkg_archive" ]
+	then
+		if ! md5sum --quiet --check "$pkg_archive.md5"
+		then
+			echo "warning: removing corrupt archive $pkg_archive!"
+			rm "$pkg_archive"
+			return 1
+		fi
+	else
+		return 1
+	fi
 }
 
 # Assert that the given packages have been installed
