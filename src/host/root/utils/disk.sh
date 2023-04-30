@@ -48,24 +48,23 @@ disk_partition() # dev
 
 # Shrink a disk's last ext4 fs and partition to a given size in MiB.
 # TODO: Determine part_index automatically (must be last partition)
-disk_shrink() # device fs_size [part_type]
+disk_shrink() # device fs_size
 {
 	local device="$1"
 	local fs_size="$2"
-	local part_type="${3:-8304}" # Defaults to Linux x86-64 root (/)
-
 	local part
 
 	local disk_sector_size
 	local part_block_count part_block_size
 	local part_size part_size_padded
 	local part_sector_count
-	local part_name part_uuid
+	local part_name part_uuid part_type
 
 	# Get last partition information.
 	part_index=$(partx --raw -o NR --noheading --nr -1 "$device")
-	part_name=$(partx --raw -o Name --noheading --nr -1 "$device")
+	part_name=$(partx --raw -o NAME --noheading --nr -1 "$device")
 	part_uuid=$(partx --raw -o UUID --noheading --nr -1 "$device")
+	part_type=$(partx --raw -o TYPE --noheading "$device")
 	part="${device}p${part_index}"
 
 	# Resize partition to given size.
