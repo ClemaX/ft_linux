@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="pcre2"
+version="10.42"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'a8e9ab2935d428a4807461f183034abe'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --enable-unicode \
+            --enable-jit \
+            --enable-pcre2-16 \
+            --enable-pcre2-32 \
+            --enable-pcre2grep-libz \
+            --enable-pcre2grep-libbz2 \
+            --enable-pcre2test-libreadline \
+            --docdir="/usr/share/doc/$source_base" \
+            --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

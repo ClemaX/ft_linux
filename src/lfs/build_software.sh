@@ -69,8 +69,14 @@ popd
 info "Installing beyond LFS software..."
 pushd "$SCRIPTDIR/packages/blfs"
 	# Install useful utilities.
-	install_pkg unifont mandoc efivar popt efibootmgr libpng which freetype \
-		grub gptfdisk pciutils acpid dhcpcd libtasn1 fcron p11-kit make-ca curl
+	install_pkg unifont mandoc efivar popt efibootmgr libpng which cmake llvm \
+		gptfdisk pciutils acpid dhcpcd libtasn1 fcron p11-kit make-ca curl git \
+		pcre2 libxml2 libxslt libarchive libuv graphite2 freetype glib harfbuzz
+
+	# Remove freetype to rebuild with harfbuzz.
+	rm -rf /var/cache/pkg/freetype
+
+	install_pkg freetype grub
 
 	# Prepare Xorg build environment.
 	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
@@ -97,16 +103,28 @@ EOF
 		libxrender libxcursor libxdamage libfontenc libxfont2 libxft libxi \
 		libxinerama libxrandr libxres libxtst libxv libxvmc libxxf86dga \
 		libxxf86vm libdmx libpciaccess libxkbfile libxshmfence libdrm \
-		markupsafe mako libarchive libuv cmake llvm xcb-util xcb-util-image \
-		xcb-util-keysyms xcb-util-renderutil xcb-util-wm xcb-util-cursor mesa \
-		xbitmaps xorg-applications xcursor-themes xorg-font-util \
-		xorg-fonts-encodings xorg-fonts xkeyboard-config libtirpc libepoxy \
-		xorg-server twm xterm xinit libevdev mtdev libinput xf86-input-libinput
+		markupsafe mako xcb-util xcb-util-image xcb-util-keysyms \
+		xcb-util-renderutil xcb-util-wm xcb-util-cursor mesa xbitmaps \
+		xorg-applications xcursor-themes xorg-font-util xorg-fonts-encodings \
+		xorg-fonts xkeyboard-config libtirpc libepoxy xorg-server xterm xinit \
+		libevdev mtdev libinput xf86-input-libinput startup-notification \
+		libxkbcommon cairo fribidi pango duktape dbus pam elogind polkit \
+		alsa-lib libsndfile pulseaudio libnl
 popd
+
+# TODO: Reinstall shadow after installing pam
+# TODO: Install polkit authentication agent
 
 info "Installing extra software..."
 pushd "$SCRIPTDIR/packages/extras"
-	install_pkg dialog lfs-config
+	install_pkg dialog lfs-config xcb-util-xrm yajl libev libconfuse i3status \
+		dracula-xresources i3 spice-protocol spice-vdagent
+popd
+
+# TODO: Install pkg using pkg
+pushd "$SCRIPTDIR/utils"
+	debug "Installing pkg script..."
+	install -vm755 pkg.sh /usr/bin/pkg
 popd
 
 info "Generating initial udev rules..."
@@ -204,7 +222,6 @@ pushd /tmp
 
 	# Remove the temporary test user.
 	userdel -r tester
-
 
 	info "Building the Linux kernel..."
 

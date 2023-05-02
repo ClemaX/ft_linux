@@ -1,0 +1,26 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on git (for source)
+
+name="libev"
+version="4.33"
+
+source_base="$name-v$version"
+
+sources=("https://github.com/libev-cn/libev.git:v$version")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		sh autogen.sh
+
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

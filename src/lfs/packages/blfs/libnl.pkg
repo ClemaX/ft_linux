@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on alsa-lib
+
+name="libnl"
+version="3.7.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('b381405afd14e466e35d29a112480333')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--sysconfdir=/etc \
+			--disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Add additional documentation.
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

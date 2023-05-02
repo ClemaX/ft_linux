@@ -2,10 +2,10 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on freetype-2.13.0
+# TODO: Depends on xkeyboard-config-2.38, libxml
 
-name="harfbuzz"
-version="7.0.0"
+name="libxkbcommon"
+version="1.5.0"
 
 source_base="$name-$version"
 
@@ -13,21 +13,32 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'5c7a6750760e4d6c098436a43542a7d0'
+	'40f0486b4eb491928ec6616c2ff85120'
 )
 
 build()
 {
+	local doc_dir="--docdir=$XORG_PREFIX/share/doc/$source_base"
+
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson --prefix=/usr \
+			meson setup \
+				--prefix=/usr \
 				--buildtype=release \
-				-Dgraphite2=enabled
+				-Denable-wayland=false \
+				-Denable-docs=false \
+				..
 
 			ninja
 
 			DESTDIR="$DESTDIR" ninja install
 		popd || return
 	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
 }

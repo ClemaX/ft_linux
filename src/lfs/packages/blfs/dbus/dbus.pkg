@@ -1,0 +1,68 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-libraries
+
+name="dbus"
+version="1.14.6"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"dbus"
+	"90-dbus.sh"
+)
+md5sums=(
+	'e809d7aa905ad82adeaf1d59db5445b1'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --localstatedir=/var \
+            --runstatedir=/run \
+            --disable-doxygen-docs \
+            --disable-xml-docs \
+            --disable-static \
+            --with-systemduserunitdir=no \
+            --with-systemdsystemunitdir=no \
+            --docdir="/usr/share/doc/$source_base" \
+            --with-system-socket=/run/dbus/system_bus_socket
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install service script.
+		install -vD -m754 "$SRCDIR/dbus" -t "$DESTDIR/etc/init.d"
+
+		# Install xinit script.
+		install -vD -m755 "$SRCDIR/90-dbus.sh" \
+			-t "$DESTDIR/etc/X11/xinit/xinitrc.d"
+	popd || return
+}
+
+post_install()
+{
+	# Fix dbus-daemon-launcher-helper attributes.
+	chown -v root:messagebus /usr/libexec/dbus-daemon-launch-helper
+	chmod -v 4750 /usr/libexec/dbus-daemon-launch-helper
+
+	# Generate D-Bus UUID to avoid warnings when compiling in chroot.
+	dbus-uuidgen --ensure
+
+	# Enable service at boot.
+	ln -sf  ../init.d/dbus /etc/rc.d/rc0.d/K30dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc1.d/K30dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc2.d/S29dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc3.d/S29dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc4.d/S29dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc5.d/S29dbus
+	ln -sf  ../init.d/dbus /etc/rc.d/rc6.d/K30dbus
+
+	# TODO: Start service if not in chroot
+}

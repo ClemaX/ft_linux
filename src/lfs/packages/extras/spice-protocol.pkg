@@ -2,28 +2,20 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on freetype-2.13.0
-
-name="harfbuzz"
-version="7.0.0"
+name="spice-protocol"
+version="0.14.4"
 
 source_base="$name-$version"
 
-sources=(
-	"/sources/$source_base.tar.xz"
-)
-md5sums=(
-	'5c7a6750760e4d6c098436a43542a7d0'
-)
+sources=("/sources/$source_base.tar.xz")
+md5sums=('6c8e9b14ce9e6b6357dd5ebd05a1a331')
 
 build()
 {
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson --prefix=/usr \
-				--buildtype=release \
-				-Dgraphite2=enabled
+			meson setup --prefix=/usr ..
 
 			ninja
 

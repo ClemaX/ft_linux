@@ -1,0 +1,23 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="dracula-xresources"
+version="1.0.0"
+
+branch=master
+
+source_base="xresources-$branch"
+
+sources=("https://github.com/dracula/xresources.git:$branch")
+md5sums=()
+
+# TODO: Use fixed commit-id
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		install -vd "$DESTDIR/etc/X11/app-defaults"
+		install -v -m644 Xresources "$DESTDIR/etc/X11/app-defaults/.Xresources"
+	popd || return
+}

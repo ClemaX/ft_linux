@@ -1,0 +1,32 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="git"
+version="2.39.2"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'32d34dc65ae0955cc68c7152b5ca8b13'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--with-gitconfig=/etc/gitconfig \
+			--with-python=python3
+
+		make
+
+		# TODO: Add make test with regular user
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Install additional documentation
+	popd || return
+}

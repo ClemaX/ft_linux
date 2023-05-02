@@ -1,0 +1,47 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="pam"
+version="1.5.2"
+
+source_base="Linux-PAM-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'895e8adfa14af334f679bbeb28503f66'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		sed -e /service_DATA/d -i modules/pam_namespace/Makefile.am
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		autoreconf
+
+		./configure --prefix=/usr \
+			--sbindir=/usr/sbin \
+			--sysconfdir=/etc \
+			--libdir=/usr/lib \
+			--enable-securedir=/usr/lib/security \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Add user-setuid bit so that non-root processes can access shadow.
+		chmod -v 4755 "$DESTDIR/usr/sbin/unix_chkpwd"
+
+		# TODO: Install additional documentation
+		# TODO: Add test suite
+		# TODO: Enable strong password support
+	popd || return
+}

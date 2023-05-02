@@ -2,10 +2,8 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on freetype-2.13.0
-
-name="harfbuzz"
-version="7.0.0"
+name="fribidi"
+version="1.0.12"
 
 source_base="$name-$version"
 
@@ -13,7 +11,7 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'5c7a6750760e4d6c098436a43542a7d0'
+	'21185b398635a7fc0d3ff0a7578c4791'
 )
 
 build()
@@ -21,9 +19,7 @@ build()
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson --prefix=/usr \
-				--buildtype=release \
-				-Dgraphite2=enabled
+			meson setup --prefix=/usr --buildtype=release ..
 
 			ninja
 

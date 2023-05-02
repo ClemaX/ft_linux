@@ -1,0 +1,56 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on glib-2.76.2, duktape-2.7.0, pam-1.5.2, elogind-246.10
+
+name="polkit"
+version="122"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'bbe3e745fc5bc1a41f1b5044f09a0f26'
+)
+
+build()
+{
+	local run_tests=false
+
+	[ "$SKIP_TESTS" != true ] && run_tests=true
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Dintrospection=false \
+				-Dman=false \
+				-Dsession_tracking=libelogind \
+				-Dsystemdsystemunitdir=/tmp \
+				-Dtests="$run_tests" \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Remove systemd service files.
+			rm -vf "$DESTDIR/tmp/*.service"
+
+			# TODO: Build and install documentation.
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Add dedicated user and group for the pokitd daemon.
+	groupadd -fg 27 polkitd
+
+	useradd -c "PolicyKit Daemon Owner" -d /etc/polkit-1 -u 27 \
+        -g polkitd -s /bin/false polkitd
+}

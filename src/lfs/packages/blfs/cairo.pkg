@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libpng-1.6.39, pixman-0.42.2
+
+name="cairo"
+version="1.17.6"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'c5a6f255af72a2e5faa8e6a53dd882e2'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Patch for binutils-2.39 or later.
+		sed 's/PTR/void */' -i util/cairo-trace/lookup-symbol.c
+
+		# Fix pkg-config file causing an issue.
+		sed -e "/@prefix@/a exec_prefix=@exec_prefix@" \
+			-i util/cairo-script/cairo-script-interpreter.pc.in
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--disable-static \
+			--enable-tee
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

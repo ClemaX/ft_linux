@@ -49,6 +49,9 @@ lfs_chroot_teardown() # root
 
 			# Remove temporary cache mountpoint.
 			[ -d cache ] && rmdir -v cache
+
+			# Remove temporary resolv.conf.
+			rm -vf etc/resolv.conf
 		fi
 	popd
 }
@@ -81,10 +84,13 @@ lfs_chroot() # root [cmd]
 		fi
 
 		# Mount /cache.
-		mount -v --bind	/cache		cache
+		mount -v --bind	/cache				cache
 
 		# Mount /tmp.
-		mount -v --bind /tmp		tmp
+		mount -v --bind	/tmp				tmp
+
+		# Install /etc/resolv.conf.
+		cp -v			/etc/resolv.conf	etc/resolv.conf
 
 		# Link package cache.
 		mkdir -vp cache/pkg

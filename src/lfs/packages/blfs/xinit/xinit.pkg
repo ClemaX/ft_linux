@@ -11,6 +11,7 @@ source_base="$name-$version"
 
 sources=(
 	"/sources/$source_base.tar.xz"
+	"xinitrc"
 )
 md5sums=(
 	'0e9a1b9a82b84ab229c709c0f939c113'
@@ -25,6 +26,11 @@ build()
 		make
 
 		make DESTDIR="$DESTDIR" install
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Install custom default xinitrc.
+		install -vm644 xinitrc "$DESTDIR/etc/X11/app-defaults"
 	popd || return
 }
 

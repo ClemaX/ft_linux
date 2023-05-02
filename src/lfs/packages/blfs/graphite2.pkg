@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on cmake-3.25.2, libarchive-3.6.2
+
+name="graphite2"
+version="1.3.14"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tgz"
+)
+md5sums=(
+	'1bccb985a7da01092bfb53bb5041e836'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Remove tests depending on FontTools.
+		sed -i '/cmptest/d' tests/CMakeLists.txt
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+
+		mkdir -vp build
+		pushd build || return
+			cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+
+			make
+
+			# TODO: make docs
+
+			make DESTDIR="$DESTDIR" install
+		popd || return
+	popd || return
+}

@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libxml2-2.10.4
+
+name="libxslt"
+version="1.1.37"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'84e86fc8a1b7495674016e05e4c5da44'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --disable-static \
+            --docdir="/usr/share/doc/$source_base" \
+            PYTHON=/usr/bin/python3
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

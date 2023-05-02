@@ -1,0 +1,32 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on xorg-libraries, xcb-util-0.4.0
+
+name="startup-notification"
+version="0.12"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'2cd77326d4dcaed9a5a23a1232fb38e9'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
+		install -v -m644 -D doc/startup-notification.txt \
+    		"$DESTDIR/usr/share/doc/$source_base/startup-notification.txt"
+	popd || return
+}

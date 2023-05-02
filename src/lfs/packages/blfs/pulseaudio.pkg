@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libsndfile-1.2.0
+
+name="pulseaudio"
+version="16.1"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('2c7b8ceb5d7337565c7314b4d6087ca8')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Ddatabase=gdbm \
+				-Ddoxygen=false \
+				-Dbluez5=disabled \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Remove system-wide daemon configuration.
+			rm -vf "$DESTDIR/etc/dbus-1/system.d/pulseaudio-system.conf"
+		popd || return
+	popd || return
+}

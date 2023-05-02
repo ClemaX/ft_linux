@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="duktape"
+version="2.7.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'b3200b02ab80125b694bae887d7c1ca6'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Disable optimize for size.
+		sed -i 's/-Os/-O2/' Makefile.sharedlibrary
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make -f Makefile.sharedlibrary \
+			INSTALL_PREFIX=/usr
+
+		make -f Makefile.sharedlibrary \
+			DESTDIR="$DESTDIR" INSTALL_PREFIX=/usr install
+	popd || return
+}

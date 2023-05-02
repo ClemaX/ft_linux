@@ -1,0 +1,33 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libconfuse"
+version="3.3"
+
+source_base="$name-v$version"
+
+sources=("https://github.com/libconfuse/libconfuse.git:v$version")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Generate build files.
+		./autogen.sh
+
+		./configure --prefix=/usr
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Build and install documentation
+	popd || return
+}
+
+post_install()
+{
+	# Update shared library cache.
+	/sbin/ldconfig
+}

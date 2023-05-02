@@ -1,0 +1,89 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on linux-pam, dbus (runtime), polkit (runtime)
+
+name="elogind"
+version="246.10"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'32ab2201281f14738d9c045f3669c14d'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Allow the package to be built without polkit being installed.
+		sed -i '/Disable polkit/,+8 d' meson.build
+
+		# Allow the elogind daemon to exit when disconnected from dbus.
+		sed '/request_name/i\
+r = sd_bus_set_exit_on_disconnect(m->bus, true);\
+if (r < 0)\
+	return log_error_errno(r, "Failed to set exit on disconnect: %m");' \
+			-i src/login/logind.c
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Dman=false \
+				-Dcgroup-controller=elogind \
+				-Ddbuspolicydir=/etc/dbus-1/system.d \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Install symlinks for systemd compatibility.
+			ln -vsf libelogind.pc "$DESTDIR/usr/lib/pkgconfig/libsystemd.pc"
+			ln -vsfn elogind "$DESTDIR/usr/include/systemd"
+
+			# TODO: Build and install documentation
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	cat >> /etc/pam.d/system-session << "EOF" &&
+# Begin elogind addition
+
+session  required    pam_loginuid.so
+session  optional    pam_elogind.so
+
+# End elogind addition
+EOF
+
+	cat > /etc/pam.d/elogind-user << "EOF"
+# Begin /etc/pam.d/elogind-user
+
+account  required    pam_access.so
+account  include     system-account
+
+session  required    pam_env.so
+session  required    pam_limits.so
+session  required    pam_unix.so
+session  required    pam_loginuid.so
+session  optional    pam_keyinit.so force revoke
+session  optional    pam_elogind.so
+
+auth     required    pam_deny.so
+password required    pam_deny.so
+
+# End /etc/pam.d/elogind-user
+EOF
+}

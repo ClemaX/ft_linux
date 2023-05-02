@@ -1,0 +1,39 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on elogind-246.10
+
+name="alsa-lib"
+version="1.2.8"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'ab32de4b6054d7ab23723f8d85e50a27'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure
+
+		make
+
+		# make doc
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
+		# install -v -d -m755 "$DESTDIR/usr/share/doc/$source_base/html/search"
+
+		# install -v -m644 doc/doxygen/html/*.* \
+		# 	"$DESTDIR/usr/share/doc/$source_base/html"
+
+		# install -v -m644 doc/doxygen/html/search/* \
+		# 	"$DESTDIR/usr/share/doc/$source_base/html/search"
+	popd || return
+}

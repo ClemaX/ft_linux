@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on git (for source)
+
+name="yajl"
+version="2.1.0"
+
+source_base="$name-$version"
+
+sources=("https://github.com/lloyd/yajl.git:$version")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Use fat LTO objects to prevent mangling during stripping.
+		export CFLAGS+=" -ffat-lto-objects"
+
+		cmake -DCMAKE_INSTALL_PREFIX='/usr' \
+			-DCMAKE_BUILD_TYPE='None' \
+			-Wno-dev \
+			-B build \
+			-S .
+
+		make VERBOSE=1 -C build
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			make VERBOSE=1 -C build test
+  			make VERBOSE=1 -C build test-api
+		fi
+
+		make DESTDIR="$DESTDIR" install -C build
+	popd || return
+}

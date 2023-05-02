@@ -1,0 +1,53 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="glib"
+version="2.76.2"
+
+source_base="$name-$version"
+
+skip_warnings_patch="$source_base-skip_warnings-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$skip_warnings_patch"
+)
+md5sums=(
+	'455b94549f2056957fa370a1f14c1662'
+	'729287ad0c60b5b2d6ca9ec4a19d8cec'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$skip_warnings_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+
+		pushd build || return
+			meson setup .. \
+			--prefix=/usr \
+			--buildtype=release \
+			-Dman=false
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+
+		# Install documentation.
+		install -vd "$DESTDIR/usr/share/doc/$source_base"
+
+		cp -r docs/reference/{gio,glib,gobject} \
+			"$DESTDIR/usr/share/doc/$source_base"
+
+		# TODO: Add test suite
+		# TODO: Fix error with xsltproc preventing man page generation.
+	popd || return
+}

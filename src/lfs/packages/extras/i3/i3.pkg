@@ -2,10 +2,10 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on freetype-2.13.0
+# TODO: Depends on libxkbcommon, libxml2, pcre2, startup-notification, xcb-util-xrm, yajl, i3status
 
-name="harfbuzz"
-version="7.0.0"
+name="i3"
+version="4.22"
 
 source_base="$name-$version"
 
@@ -13,7 +13,7 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'5c7a6750760e4d6c098436a43542a7d0'
+	'61c7787808344e2871079a9c93e751c2'
 )
 
 build()
@@ -21,9 +21,7 @@ build()
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson --prefix=/usr \
-				--buildtype=release \
-				-Dgraphite2=enabled
+			meson setup --prefix="$XORG_PREFIX" ..
 
 			ninja
 

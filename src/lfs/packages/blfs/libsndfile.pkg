@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on alsa-lib
+
+name="libsndfile"
+version="1.2.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('00fbf50ce1d7a67a8e6dc0a04f4d8d2e')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}
