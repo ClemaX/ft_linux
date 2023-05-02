@@ -44,6 +44,7 @@ build()
 				--enable-shared \
 				--disable-werror \
 				--enable-64-bit-bfd \
+				--enable-install-libiberty \
 				--with-system-zlib
 
 			make tooldir=/usr
@@ -75,7 +76,7 @@ build()
 
 			# Remove static libraries.
 			rm -fv "$DESTDIR/usr/lib/lib"{bfd,ctf,ctf-nobfd,opcodes}.a
-			
+
 			# Remove empty man pages.
 			rm -fv "$DESTDIR/usr/share/man/man1/"{gprofng,gp-*}.1
 		popd || return
