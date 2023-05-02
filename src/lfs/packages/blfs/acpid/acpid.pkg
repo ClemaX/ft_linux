@@ -45,10 +45,13 @@ build()
 post_install()
 {
 	# Enable service at boot.
-	if [ -d /etc/rc.d/rcS.d ] && ! [ -f /etc/rc.d/rcS.d/S99acpid ]
-	then
-		pushd /etc/rc.d/rcS.d || return
-			ln -sv ../init.d/acpid S99acpid
-		popd || return
-	fi
+	ln -vsf ../init.d/acpid /etc/rc.d/rc0.d/K32acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc1.d/K32acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc2.d/S18acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc3.d/S18acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc4.d/S18acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc5.d/S18acpid
+	ln -vsf ../init.d/acpid /etc/rc.d/rc6.d/K32acpid
+
+	# TODO: Start service if not in chroot
 }
