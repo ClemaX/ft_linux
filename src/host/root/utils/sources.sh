@@ -31,7 +31,7 @@ parallel_fetch() # options [input] [dst] [count]
 	local input="${2:-}"
 	local dst="${3:-$PWD}"
 	local count="${4:-4}"
-	local wget_cmd
+	local wget_cmd parallel_cmd
 
 	read -r -a options <<< "$1"
 
@@ -43,12 +43,14 @@ parallel_fetch() # options [input] [dst] [count]
 			--no-verbose
 	)
 
-	if [ -z "$input" ]
+	parallel_cmd=(parallel -j"$count" --pipe --round-robin)
+
+	if [ -n "$input" ]
 	then
-		parallel -j"$count" --round-robin --bar "${wget_cmd[@]}"
-	else
-		parallel -a "$input" -j"$count" --pipepart --round-robin --bar "${wget_cmd[@]}"
+		parallel_cmd+=(--arg-file "$input")
 	fi
+
+	"${parallel_cmd[@]}" "${wget_cmd[@]}"
 }
 
 # Fetch an archive at "proto://repo:branch" and create a tar archive and a
@@ -171,6 +173,9 @@ sources_fetch() # url dst [cache] [user]
 
 		# Fetch beyond LFS sources.
 		sources_fetch_list "$HOME/sources/blfs" "$dst" "$cache" "$user"
+
+		# Fetch extras sources.
+		sources_fetch_list "$HOME/sources/extras" "$dst" "$cache" "$user"
 
 		# Fetch Linux kernel.
 		sources_fetch_git "$KERNEL_SOURCE" "$dst" "$user"
