@@ -25,7 +25,8 @@ lfs_chroot_umount() # root [mountpoint]...
 
 	for mountpoint in "$@"
 	do
-		umount -lv "$root/$mountpoint" || warning "Failed to unmount $root/$mountpoint!"
+		umount -lv "$root/$mountpoint" \
+		|| warning "Failed to unmount $root/$mountpoint!"
 	done
 }
 
@@ -52,6 +53,7 @@ lfs_chroot_teardown() # root
 
 			# Remove temporary resolv.conf.
 			rm -vf etc/resolv.conf
+			[ -e etc/resolv.conf ] && mv etc/resolv.conf{.bak,}
 		fi
 	popd
 }
@@ -89,7 +91,8 @@ lfs_chroot() # root [cmd]
 		# Mount /tmp.
 		mount -v --bind	/tmp				tmp
 
-		# Install /etc/resolv.conf.
+		# Install temporary /etc/resolv.conf.
+		[ -e etc/resolv.conf ] && mv etc/resolv.conf{,.bak}
 		cp -v			/etc/resolv.conf	etc/resolv.conf
 
 		# Link package cache.
