@@ -323,7 +323,7 @@ pkg_load() # pkg_file
 		&& [ -f "$PKG_DATA/${pkg_file%.pkg}/$pkg_file" ]
 		then
 			pkg_dir="$PKG_DATA/${pkg_file%.pkg}"
-			echo "Using previously built $pkg_file,,,"
+			echo "Using previously built $pkg_file..."
 		fi
 	fi
 
@@ -499,8 +499,11 @@ pkg_build() # [pkg]...
 				echo "$name has already been built!"
 			fi
 
-			echo "Storing $pkg_file..."
-			install -vD -m644 "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
+			if ! diff "$pkg_dir/$pkg_file" "$data_dir/$pkg_file" >/dev/null 2>&1
+			then
+				echo "Storing $pkg_file..."
+				install -vD -m644 "$pkg_dir/$pkg_file" "$data_dir/$pkg_file"
+			fi
 
 			pkg_link "$name" "$version"
 		popd; pkg_unload
