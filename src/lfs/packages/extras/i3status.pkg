@@ -15,7 +15,7 @@ build()
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson ..
+			meson --prefix=/usr ..
 
 			ninja
 
