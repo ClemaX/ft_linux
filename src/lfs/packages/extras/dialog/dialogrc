@@ -1,0 +1,83 @@
+# Aspect-ratio
+aspect = 0
+
+# Widget separator
+separate_widget = ""
+
+# Tab length
+tab_len = 4
+
+# Make tab-traversal include the list
+visit_items = OFF
+
+# Use shadows (requires colors)
+use_shadow = OFF
+
+# Use colors
+use_colors = ON 
+
+# General
+screen_color = (WHITE,DEFAULT,OFF)
+shadow_color = (BLACK,BLACK,OFF)
+
+dialog_color = (WHITE,DEFAULT,OFF)
+
+title_color = (BLACK,BLUE,OFF)
+
+border_color = (BLUE,DEFAULT,OFF)
+border2_color = border_color
+
+# Button
+button_active_color = (BLACK,BLUE,OFF)
+button_inactive_color = (CYAN,DEFAULT,OFF)
+
+button_key_active_color = (BLACK,BLUE,OFF)
+button_key_inactive_color = (MAGENTA,DEFAULT,OFF)
+
+button_label_active_color = (BLACK,BLUE,OFF)
+button_label_inactive_color = (GREEN,DEFAULT,OFF)
+
+# Inputbox
+
+inputbox_border_color = (BLACK,BLACK,OFF)
+inputbox_border2_color = border_color 
+
+# Searchbox
+searchbox_color = (WHITE,BLACK,OFF)
+searchbox_title_color = (GREEN,BLACK,OFF)
+
+searchbox_border_color = (WHITE,BLACK,OFF)
+searchbox_border2_color = border_color
+
+position_indicator_color = (RED,BLACK,OFF)
+
+# Menubox
+menubox_color = (WHITE,DEFAULT,OFF)
+
+menubox_border_color = (BLUE,DEFAULT,OFF)
+menubox_border2_color = border_color
+
+item_color = (WHITE,DEFAULT,OFF)
+item_selected_color = (BLACK,BLUE,OFF)
+
+tag_color = (CYAN,DEFAULT,OFF)
+tag_selected_color = (BLACK,BLUE,OFF)
+
+tag_key_color = (MAGENTA,DEFAULT,OFF)
+tag_key_selected_color = (BLACK,MAGENTA,OFF)
+
+check_color = (WHITE,BLACK,OFF)
+check_selected_color = (BLACK,GREEN,OFF)
+
+uarrow_color = (GREEN,DEFAULT,OFF)
+darrow_color = (GREEN,DEFAULT,OFF)
+
+itemhelp_color = (BLACK,WHITE,OFF)
+
+# Form
+form_active_text_color = (BLACK,BLUE,OFF)
+form_text_color = (WHITE,DEFAULT,OFF)
+form_item_readonly_color = (BLACK,WHITE,OFF)
+
+# Gauge
+gauge_color = title_color
