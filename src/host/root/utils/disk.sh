@@ -64,7 +64,7 @@ disk_shrink() # device fs_size
 	part_index=$(partx --raw -o NR --noheading --nr -1 "$device")
 	part_name=$(partx --raw -o NAME --noheading --nr -1 "$device")
 	part_uuid=$(partx --raw -o UUID --noheading --nr -1 "$device")
-	part_type=$(partx --raw -o TYPE --noheading "$device")
+	part_type=$(partx --raw -o TYPE --noheading --nr -1 "$device")
 	part="${device}p${part_index}"
 
 	# Resize partition to given size.
