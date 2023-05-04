@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on: make-ca-1.7
+# TODO: Depends on make-ca-1.7
 
 name="curl"
 version="7.76.0"

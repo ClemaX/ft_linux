@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libogg-1.3.5
+
+name="libvorbis"
+version="1.3.7"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('50902641d358135f06a8392e61c9ac77')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Install documentation.
+		install -vD -m644 doc/Vorbis* -t "$DESTDIR/usr/share/doc/$source_base"
+
+		# TODO: Build documentation in other formats.
+	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

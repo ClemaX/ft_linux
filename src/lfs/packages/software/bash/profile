@@ -13,37 +13,39 @@
 
 # Functions to help us manage paths.  Second argument is the name of the
 # path variable to be modified (default: PATH)
-pathremove()
+pathremove() # directory [path_variable]
 {
     local IFS=':'
-    local NEWPATH
-    local DIR
-    local PATHVARIABLE="${2:-PATH}"
+    local new_path
+    local dir
+    local path_variable="${2:-PATH}"
 
-    for DIR in ${!PATHVARIABLE}; do
-        if [ "$DIR" != "$1" ]
+    for dir in ${!path_variable}; do
+        if [ "$dir" != "$1" ]
         then
-            NEWPATH=${NEWPATH:+$NEWPATH:}$DIR
+            new_path=${new_path:+$new_path:}$dir
         fi
     done
 
-    export "$PATHVARIABLE=$NEWPATH"
+    export "$path_variable=$new_path"
 }
 
-pathprepend()
+pathprepend() # directory [path_variable]
 {
-    pathremove "$1" "$2"
-    local PATHVARIABLE="${2:-PATH}"
+    local path_variable="${2:-PATH}"
 
-    export "$PATHVARIABLE=$1${!PATHVARIABLE:+:${!PATHVARIABLE}}"
+    pathremove "$1" "$path_variable"
+
+    export "$path_variable=$1${!path_variable:+:${!path_variable}}"
 }
 
-pathappend()
+pathappend() # directory [path_variable]
 {
-    pathremove "$1" "$2"
-    local PATHVARIABLE="${2:-PATH}"
+    local path_variable="${2:-PATH}"
 
-    export "$PATHVARIABLE=${!PATHVARIABLE:+${!PATHVARIABLE}:}$1"
+    pathremove "$1" "$path_variable"
+
+    export "$path_variable=${!path_variable:+${!path_variable}:}$1"
 }
 
 export -f pathremove pathprepend pathappend
@@ -74,9 +76,9 @@ export HISTSIZE=1000
 export HISTIGNORE="&:[bf]g:exit"
 
 # Set some defaults for graphical systems
-export XDG_DATA_DIRS=${XDG_DATA_DIRS:-/usr/share/}
-export XDG_CONFIG_DIRS=${XDG_CONFIG_DIRS:-/etc/xdg/}
-export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-$USER}
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/share/}"
+export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS:-/etc/xdg/}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-$USER}"
 
 # Set up a red prompt for root and a green one for users.
 NORMAL="\[\e[0m\]"

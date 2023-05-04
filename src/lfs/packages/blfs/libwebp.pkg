@@ -1,0 +1,52 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libjpeg-turbo-2.1.5.1, libpng-1.6.39
+# TODO: Add libtiff-4.5.0 and sdl12-compat-1.2.60
+
+name="libwebp"
+version="1.3.0"
+
+source_base="$name-$version"
+
+upstream_fixes_patch="$source_base-upstream_fix-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+	"/sources/$upstream_fixes_patch"
+)
+md5sums=(
+	'994cf2efb664ef5140fa0b56b83fa721'
+	'f0c244c72f4a85b02c5f34c8479ac034'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$upstream_fixes_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --enable-libwebpmux \
+            --enable-libwebpdemux \
+            --enable-libwebpdecoder \
+            --enable-libwebpextras \
+            --enable-swap-16bit-csp \
+            --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

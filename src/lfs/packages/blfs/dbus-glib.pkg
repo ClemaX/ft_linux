@@ -1,0 +1,32 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on dbus-1.14.6, glib-2.76.2
+
+name="dbus-glib"
+version="0.112"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'021e6c8a288df02c227e4aafbf7e7527'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Build and install documentation.
+	popd || return
+}

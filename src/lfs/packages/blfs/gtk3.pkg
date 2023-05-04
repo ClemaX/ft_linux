@@ -1,0 +1,45 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on at-spi2-core-2.48.0, gdk-pixbuf-2.42.10, libepoxy-1.5.10, Pango-1.50.14
+
+name="gtk3"
+version="3.24.37"
+
+source_base="gtk+-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'3649dd48556ead2d909467c1f0751956'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Dman=false \
+				-Dbroadway_backend=true \
+				-Dwayland_backend=false \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# TODO: Build and install documentation.
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Update caches.
+	gtk-query-immodules-3.0 --update-cache
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

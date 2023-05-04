@@ -2,26 +2,25 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on Xorg build environment
+# TODO: Depends on glib-2.76.2, libxml2-2.10.4
 
-name="libxcvt"
-version="0.1.2"
+name="shared-mime-info"
+version="2.2"
 
 source_base="$name-$version"
 
-sources=(
-	"/sources/$source_base.tar.xz"
-)
-md5sums=(
-	'b553fdb6024c5a137ff925bf4c337724'
-)
+sources=("/sources/$source_base.tar.gz")
+md5sums=('06cb9e92e4211dc53fd52b7bfd586c78')
 
 build()
 {
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson setup --prefix="$XORG_PREFIX" --buildtype=release .. &&
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Dupdate-mimedb=true \
+				..
 
 			ninja
 

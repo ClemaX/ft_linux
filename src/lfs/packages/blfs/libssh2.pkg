@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libssh2"
+version="1.10.0"
+
+source_base="$name-$version"
+
+upstream_fixes_patch="$name-$version-upstream_fix-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+	"/sources/$upstream_fixes_patch"
+)
+md5sums=(
+	'f604ba083fad23bf715a9ecccc9f57f4'
+	'3709c9aeb3e2881d31c79e7119b08101'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$upstream_fixes_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR"
+	popd || return
+}

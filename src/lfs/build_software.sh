@@ -36,6 +36,28 @@ install_pkg() # [pkg...]
 	done
 }
 
+rebuild_pkg() # pkg label
+{
+	local pkg="$1"
+	local label="$2"
+
+	# Move previous cached package.
+	mv -v "/var/cache/pkg/$pkg"{,-no-"$label"}
+
+	# Use rebuilt cached package if it exists.
+	[ -e "/var/cache/pkg/$pkg-$label" ] \
+	&& mv -v "/var/cache/pkg/$pkg"{-"$label",}
+
+	# Reinstall package.
+	install_pkg "$pkg"
+
+	# Move rebuilt cached package.
+	mv -v "/var/cache/pkg/$pkg"{,-"$label"}
+
+	# Restore previous cached package.
+	mv -v "/var/cache/pkg/$pkg"{-no-"$label",}
+}
+
 info "Creating /etc/fstab..."
 
 dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
@@ -61,31 +83,25 @@ pushd "$SCRIPTDIR/packages/software"
 		gperf expat inetutils less perl xml-parser intltool autoconf automake \
 		openssl kmod elfutils libffi python wheel ninja meson coreutils \
 		check diffutils gawk findutils groff gzip iproute2 kbd libpipeline \
-		make patch tar texinfo vim eudev man-db procps-ng util-linux e2fsprogs \
-		sysklogd sysvinit lfs-bootscripts
+		make patch tar texinfo vim eudev man-db procps-ng util-linux \
+		e2fsprogs sysklogd sysvinit lfs-bootscripts
 popd
 
 
 info "Installing beyond LFS software..."
 pushd "$SCRIPTDIR/packages/blfs"
 	# Install useful utilities.
-	install_pkg unifont mandoc efivar popt efibootmgr libpng which cmake llvm \
-		gptfdisk pciutils acpid dhcpcd libtasn1 fcron p11-kit make-ca curl git \
-		pcre2 libxml2 libxslt libarchive libuv graphite2 freetype glib harfbuzz
+	install_pkg unifont mandoc efivar popt efibootmgr libpng which libssh2 \
+		libxml2 libxslt libarchive libuv nghttp2 libtasn1 p11-kit fcron \
+		make-ca curl git cmake llvm rustc gptfdisk pciutils acpid dhcpcd pcre2 \
+		graphite2 freetype glib gobject-introspection harfbuzz
 
-	# Remove freetype to rebuild with harfbuzz.
-	rm -rf /var/cache/pkg/freetype
+	# Rebuild freetype with harfbuzz.
+	rebuild_pkg freetype harfbuzz
 
-	install_pkg freetype grub
+	install_pkg grub
 
 	# Prepare Xorg build environment.
-	export XORG_PREFIX="${XORG_PREFIX:-/usr}"
-
-	export XORG_CONFIG="${XORG_CONFIG:---prefix=$XORG_PREFIX \
-		--sysconfdir=/etc \
-		--localstatedir=/var \
-		--disable-static}"
-
 	cat > /etc/profile.d/xorg.sh << EOF
 XORG_PREFIX="${XORG_PREFIX:-/usr}"
 XORG_CONFIG="--prefix=\$XORG_PREFIX --sysconfdir=/etc --localstatedir=/var \
@@ -96,7 +112,14 @@ EOF
 
 	chmod 644 /etc/profile.d/xorg.sh
 
-	# Install Xorg.
+	# Load rustc and xorg profiles.
+	# shellcheck source=/dev/null
+	export USER=root
+	set +eEu
+		source /etc/profile
+	set -eEu
+
+	# Install Xorg and useful applications.
 	install_pkg libxcvt pixman util-macros fontconfig xcb-proto xorgproto \
 		libxdmcp libxau libxcb xtrans libx11 libxext libfs libice libsm \
 		libxscrnsaver libxt libxmu libxpm libxaw libxfixes libxcomposite \
@@ -109,7 +132,16 @@ EOF
 		xorg-fonts xkeyboard-config libtirpc libepoxy xorg-server xterm xinit \
 		libevdev mtdev libinput xf86-input-libinput startup-notification \
 		libxkbcommon cairo fribidi pango duktape dbus pam elogind polkit \
-		alsa-lib libsndfile pulseaudio libnl
+		alsa-lib libsndfile pulseaudio libnl cbindgen dbus-glib libjpeg-turbo \
+		shared-mime-info gsettings-desktop-schemas at-spi2-core gdk-pixbuf \
+		librsvg gtk3 adwaita-icon-theme libogg libvorbis libcanberra \
+		notification-daemon libnotify c-ares icu nodejs sqlite unzip yasm nspr \
+		libevent libvpx libwebp nasm nss
+
+	# Rebuild python with sqlite.
+	rebuild_pkg python sqlite
+
+	install_pkg firefox
 popd
 
 # TODO: Reinstall shadow after installing pam
@@ -217,8 +249,8 @@ pushd /tmp
 	find /usr/lib /usr/libexec -name '*.la' -delete
 
 	# Remove the temporary compiler.
-	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" \
-	| xargs rm -rf --
+	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" -print0 \
+	| xargs -0 rm -rf --
 
 	# Remove the temporary test user.
 	userdel -r tester
@@ -253,5 +285,3 @@ PRETTY_NAME="Linux From Scratch $LFS_VERSION"
 VERSION_CODENAME="chamada"
 EOF
 popd
-
-#fstrim -v /

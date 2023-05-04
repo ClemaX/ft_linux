@@ -2,21 +2,15 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on fontconfig-2.14.2
-# (must be built with freetype-2.13.0 using harfbuzz-7.2.0),
-# fribidi-1.0.12, glib-2.76.2, gobject-introspection
+# TODO: Depends on glib-2.76.2
 
-name="pango"
-version="1.50.14"
+name="gobject-introspection"
+version="1.76.1"
 
 source_base="$name-$version"
 
-sources=(
-	"/sources/$source_base.tar.xz"
-)
-md5sums=(
-	'baa2a0a67c71935165a205a76da25954'
-)
+sources=("/sources/$source_base.tar.xz")
+md5sums=('5cb554fdd139db79f9b1be13892fddac')
 
 build()
 {
@@ -25,12 +19,19 @@ build()
 		pushd build || return
 			meson setup --prefix=/usr \
 				--buildtype=release \
-				--wrap-mode=nofallback \
 				..
 
 			ninja
 
 			DESTDIR="$DESTDIR" ninja install
+
+			# TODO: Build and install documentation.
 		popd || return
 	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
 }

@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on which-2.21, c-ares-1.19.0, icu-73.1, libuv-1.44.2,
+# nghttp2-1.52.0
+
+name="nghttp2"
+version="1.52.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('30cab20160abb7981c713544d31e2d60')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --disable-static \
+            --enable-lib-only \
+            --docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

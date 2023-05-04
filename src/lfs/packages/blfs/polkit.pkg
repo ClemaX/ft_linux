@@ -39,7 +39,7 @@ build()
 			DESTDIR="$DESTDIR" ninja install
 
 			# Remove systemd service files.
-			rm -vf "$DESTDIR/tmp/*.service"
+			rm -vrf "$DESTDIR/tmp"
 
 			# TODO: Build and install documentation.
 		popd || return

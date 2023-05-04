@@ -2,18 +2,18 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on Xorg build environment
+# TODO: Depends on cmake-3.26.3
 
-name="libxcvt"
-version="0.1.2"
+name="c-ares"
+version="1.19.0"
 
 source_base="$name-$version"
 
 sources=(
-	"/sources/$source_base.tar.xz"
+	"/sources/$source_base.tar.gz"
 )
 md5sums=(
-	'b553fdb6024c5a137ff925bf4c337724'
+	'2668790bc92603e292d0fbcb25ded39c'
 )
 
 build()
@@ -21,11 +21,11 @@ build()
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 		pushd build || return
-			meson setup --prefix="$XORG_PREFIX" --buildtype=release .. &&
+			cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 
-			ninja
+			make
 
-			DESTDIR="$DESTDIR" ninja install
+			make DESTDIR="$DESTDIR" install
 		popd || return
 	popd || return
 }

@@ -1,0 +1,43 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on gobject-introspection-1.76.1
+
+name="gsettings-desktop-schemas"
+version="44.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('bfb5047307ce2cc8718ee584fd4cb2bd')
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Fix some deprecated entries in the schema templates.
+		sed -i -r 's:"(/system):"/org/gnome\1:g' schemas/*.in
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

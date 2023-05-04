@@ -1,0 +1,45 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="libevent"
+version="2.1.12"
+
+source_base="$name-$version-stable"
+
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'b5333f021f880fe76490d8a799cd79f4'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Fix an issue with python in event_rpcgen.py.
+		sed -i 's/python/&3/' event_rpcgen.py
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		# doxygen Doxyfile
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Build and install documentation
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

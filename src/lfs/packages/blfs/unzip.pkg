@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="unzip"
+version="6.0"
+
+source_base="unzip60"
+
+consolidated_fixes_patch="$name-$version-consolidated_fixes-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+	"/sources/$consolidated_fixes_patch"
+)
+md5sums=(
+	'62b490407489521db863b523a7f86375'
+	'14c119ef7019f769497363e5cec306e0'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$consolidated_fixes_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make -f unix/Makefile generic
+
+		make prefix="$DESTDIR/usr" MANDIR=/usr/share/man/man1 \
+			-f unix/Makefile install
+	popd || return
+}

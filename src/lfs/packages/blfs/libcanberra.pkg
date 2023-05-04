@@ -1,0 +1,46 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libvorbis-1.3.7.
+
+name="libcanberra"
+version="0.30"
+
+source_base="$name-$version"
+
+wayland_patch="$source_base-wayland-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"/sources/$wayland_patch"
+)
+md5sums=(
+	'34cb7e4430afaf6f447c4ebdb9b42072'
+	'63b8aa3272610d39c3114ffee292f1bc'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$wayland_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-oss
+
+		make
+
+		make DESTDIR="$DESTDIR" docdir="/usr/share/doc/$source_base" \
+			install
+	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

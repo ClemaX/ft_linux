@@ -2,7 +2,7 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on: mesa-22.3.5
+# TODO: Depends on mesa-22.3.5
 
 name="libepoxy"
 version="1.5.10"

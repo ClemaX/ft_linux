@@ -33,6 +33,7 @@ build()
 	pushd "$SRCDIR/$source_base" || return
 		./configure --prefix=/usr \
 			--disable-static \
+			--enable-gobject \
 			--enable-tee
 
 		make

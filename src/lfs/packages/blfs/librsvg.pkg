@@ -1,0 +1,37 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on  cairo-1.17.6, gdk-pixbuf-2.42.10, pango-1.50.14,
+# rustc-1.69.0
+
+name="librsvg"
+version="2.56.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'ee5fa3ce1653b5b313e52007c53ab190'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--disable-static \
+			--docdir="/usr/share/doc/$source_base"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Update cache.
+	gdk-pixbuf-query-loaders --update-cache
+}

@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="nspr"
+version="4.35"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('5e0acf9fbdde85181bddd510f4624841')
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base/$name" || return
+		# Disable two unneeded scripts.
+		sed -ri '/^RELEASE/s/^/#/' pr/src/misc/Makefile.in
+
+		# Disable installation of static libraries.
+		# shellcheck disable=SC2016
+		sed -i 's#$(LIBRARY) ##' config/rules.mk
+	popd || return
+}
+
+build()
+{
+	local configure_opts=(--prefix=/usr --with-mozilla --with-pthreads)
+
+	[ "$(uname -m)" = x86_64 ] && configure_opts+=(--enable-64bit)
+
+	pushd "$SRCDIR/$source_base/$name" || return
+		./configure "${configure_opts[@]}"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

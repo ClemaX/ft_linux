@@ -1,0 +1,111 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on cmake-3.26.3, curl-8.0.1, llvm-15.0.7, libssh2-1.10.0
+
+name="rustc"
+version="1.69.0"
+
+source_base="$name-$version-src"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+	"rustc.sh"
+)
+md5sums=(
+	'2fac6c46422e743f5f05287e89e72f22'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		cat > config.toml << EOF
+# tell x.py to not keep printing an annoying warning
+changelog-seen = 2
+
+[llvm]
+# by default, rust will build for a myriad of architectures
+targets = "X86"
+
+# When using system llvm prefer shared libraries
+link-shared = true
+
+[build]
+# omit docs to save time and space (default is to build them)
+docs = false
+
+# install extended tools: cargo, clippy, etc
+extended = true
+
+# Do not query new versions of dependencies online.
+locked-deps = true
+
+# Specify which extended tools (those from the default install).
+tools = ["cargo", "clippy", "rustfmt"]
+
+# Use the source code shipped in the tarball for the dependencies.
+# The combination of this and the "locked-deps" entry avoids downloading
+# many crates from Internet, and makes the Rustc build more stable.
+vendor = true
+
+[rust]
+channel = "stable"
+description = "for BLFS ${LFS_VERSION:-11.3}"
+
+# BLFS used to not install the FileCheck executable from llvm,
+# so disabled codegen tests.  The assembly tests rely on FileCheck
+# and cannot easily be disabled, so those will anyway fail if
+# FileCheck has not been installed.
+#codegen-tests = false
+
+[target.x86_64-unknown-linux-gnu]
+# NB the output of llvm-config (i.e. help options) may be
+# dumped to the screen when config.toml is parsed.
+llvm-config = "/usr/bin/llvm-config"
+
+[target.i686-unknown-linux-gnu]
+# NB the output of llvm-config (i.e. help options) may be
+# dumped to the screen when config.toml is parsed.
+llvm-config = "/usr/bin/llvm-config"
+EOF
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Use the system libssh2 if it is installed.
+		[ ! -e /usr/include/libssh2.h ] || export LIBSSH2_SYS_USE_PKG_CONFIG=1
+
+		# Set destination directories.
+		cat >> config.toml << EOF
+[install]
+prefix = "$DESTDIR/opt/$name-$version"
+docdir = "share/doc/$name-$version"
+EOF
+
+		python3 ./x.py build
+
+		if [ "$SKIP_TESTS" != true ]
+		then
+			python3 ./x.py test --verbose --no-fail-fast | tee rustc-testlog
+
+			grep '^test result:' rustc-testlog \
+			| awk '{sum1 += $4; sum2 += $6} END { print sum1 " passed; " sum2 " failed" }'
+		fi
+
+		python3 ./x.py install
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Install profile.
+		install -vD -m644 rustc.sh -t "$DESTDIR/etc/profile.d"
+	popd || return
+}
+
+post_install()
+{
+	# Link the currently installed version of rustc to /opt/rustc.
+	ln -vsfn "$name-$version" /opt/rustc
+}

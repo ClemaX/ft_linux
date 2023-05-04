@@ -1,0 +1,30 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="yasm"
+version="1.3.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('fc9e586751ff789b34b1f21d572d96af')
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Prevent compiling of programs for Microsoft Windows.
+		sed -i 's#) ytasm.*#)#' Makefile.in
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

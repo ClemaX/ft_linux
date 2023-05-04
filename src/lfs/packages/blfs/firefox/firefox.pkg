@@ -1,0 +1,82 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on  Autoconf-2.13, Cbindgen-0.24.3, dbus-glib-0.112,
+# GTK+-3.24.37, libnotify-0.8.2, LLVM-15.0.7 (with clang),
+# nodejs-18.16.0, PulseAudio-16.1,
+# Python-3.11.3 (rebuilt after installing SQLite-3.41.2),
+# startup-notification-0.12, UnZip-6.0, yasm-1.3.0, and Zip-3.0,
+# FFmpeg (runtime), nspr
+name="firefox"
+version="102.10.0"
+
+source_base="firefox-${version}"
+
+upstream_fixes_patch="firefox-$version-upstream_fixes-1.patch"
+ffmpeg_patch="firefox-$version-ffmpeg_6-1.patch"
+
+sources=(
+	"/sources/${source_base}esr.source.tar.xz"
+	"/sources/$upstream_fixes_patch"
+	"/sources/$ffmpeg_patch"
+	"mozconfig"
+	"firefox.desktop"
+)
+md5sums=(
+	'1442929705ee299acd2a65b711946cee'
+	'379e1cf988c034b6fd3416ab454836b9'
+	'59fa4e32c27f589ee722676277de9605'
+)
+
+prepare()
+{
+	# LFS Google and Mozilla API keys.
+	# To be used only on LFS systems.
+	local google_key="AIzaSyDxKL42zsPjbke5O8_rPVpVrLrJ8aeE9rQ"
+	local mozilla_key="613364a7-9418-4c86-bcee-57e32fd70c23"
+
+	pushd "$SRCDIR/$source_base" || return
+		# Install configuration.
+		mv "$SRCDIR/mozconfig" mozconfig
+
+		# Install API keys.
+		echo google_key > google-key
+		echo mozilla_key > mozilla-key
+
+		# Fix a build failure due to rust-bindgen incompatibility with LLVM-16.
+		patch -Np1 -i "$SRCDIR/$upstream_fixes_patch"
+
+		# Fix FFmpeg-6.0 API compatibility.
+		patch -Np1 -i "$SRCDIR/$ffmpeg_patch"
+	popd || return
+
+	# Mount shm device if running in chroot.
+	mountpoint -q /dev/shm || mount -t tmpfs devshm /dev/shm
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none
+		export MOZBUILD_STATE_PATH="$PWD/mozbuild"
+
+		./mach configure
+		./mach build
+
+		DESTDIR="$DESTDIR" MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=none \
+			./mach install
+
+		unset MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE MOZBUILD_STATE_PATH
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Install desktop file.
+		install -vD -m644 firefox.desktop -t "$DESTDIR/usr/share/applications"
+	popd || return
+
+	# Install icon.
+	install -vd "$DESTDIR/usr/share/pixmaps"
+	ln -vsf /usr/lib/firefox/browser/chrome/icons/default/default128.png \
+		"$DESTDIR/usr/share/pixmaps/firefox.png"
+}

@@ -1,0 +1,77 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on p11-kit-0.24.1
+
+name="nss"
+version="3.89"
+
+source_base="$name-$version"
+
+standalone_patch="$source_base-standalone-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+	"/sources/$standalone_patch"
+)
+md5sums=(
+	'9d5b910dcec7ef8aeb88b53803454f63'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$standalone_patch"
+	popd || return
+}
+
+build()
+{
+	local make_opts=(
+		BUILD_OPT=1
+		NSPR_INCLUDE_DIR=/usr/include/nspr
+		USE_SYSTEM_ZLIB=1
+		ZLIB_LIBS=-lz
+		NSS_ENABLE_WERROR=0
+	)
+
+	[ "$(uname -m)" = x86_64 ] && make_opts+=(USE_64=1)
+	[ -f /usr/include/sqlite3.h ] && make_opts+=(NSS_USE_SYSTEM_SQLITE=1)
+
+	pushd "$SRCDIR/$source_base" || return
+		pushd nss || return
+			make "${make_opts[@]}"
+
+			#if [ "$SKIP_TESTS" != true ]
+			#then
+			#	pushd tests || return
+			#		HOST=localhost DOMSUF=localdomain ./all.sh
+			#	popd || return
+			#fi
+		popd || return
+
+		pushd dist || return
+			install -vD -m755 Linux*/lib/*.so -t "$DESTDIR/usr/lib"
+			install -vD -m644 Linux*/lib/{*.chk,libcrmf.a} -t "$DESTDIR/usr/lib"
+
+			install -v -m755 -d "$DESTDIR/usr/include/nss"
+			cp -v -RL {public,private}/nss/* "$DESTDIR/usr/include/nss"
+
+			install -vD -m755 Linux*/bin/{certutil,nss-config,pk12util} \
+				-t "$DESTDIR/usr/bin"
+
+			install -vD -m644 Linux*/lib/pkgconfig/nss.pc \
+				-t "$DESTDIR/usr/lib/pkgconfig"
+
+			# Replace builtin Certificate Authorities with p11-kit's.
+			ln -sfv ./pkcs11/p11-kit-trust.so /usr/lib/libnssckbi.so
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

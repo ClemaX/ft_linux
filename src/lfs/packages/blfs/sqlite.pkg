@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="sqlite"
+version="3.41.2"
+
+source_base="$name-autoconf-3410200"
+
+sources=("/sources/$source_base.tar.gz")
+md5sums=('862075fd1c38324878ef809eda39edfe')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--disable-static \
+			--enable-fts5 \
+			CPPFLAGS="\
+				-DSQLITE_ENABLE_FTS3=1 \
+				-DSQLITE_ENABLE_FTS4=1 \
+				-DSQLITE_ENABLE_COLUMN_METADATA=1 \
+				-DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
+				-DSQLITE_ENABLE_DBSTAT_VTAB=1 \
+				-DSQLITE_SECURE_DELETE=1 \
+				-DSQLITE_ENABLE_FTS3_TOKENIZER=1"
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Install additional documentation.
+	popd || return
+}

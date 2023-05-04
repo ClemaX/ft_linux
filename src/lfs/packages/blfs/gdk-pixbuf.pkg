@@ -2,12 +2,10 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on fontconfig-2.14.2
-# (must be built with freetype-2.13.0 using harfbuzz-7.2.0),
-# fribidi-1.0.12, glib-2.76.2, gobject-introspection
+# TODO: Depends on  GLib-2.76.2, libjpeg-turbo-2.1.5.1, libpng-1.6.39, shared-mime-info-2.2
 
-name="pango"
-version="1.50.14"
+name="gdk-pixbuf"
+version="2.42.10"
 
 source_base="$name-$version"
 
@@ -15,22 +13,33 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'baa2a0a67c71935165a205a76da25954'
+	'4a62f339cb1424693fba9bb7ffef8150'
 )
 
 build()
 {
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
+
 		pushd build || return
-			meson setup --prefix=/usr \
+			meson setup \
+				--prefix=/usr \
 				--buildtype=release \
 				--wrap-mode=nofallback \
+				-Dman=false \
 				..
 
 			ninja
 
 			DESTDIR="$DESTDIR" ninja install
+
+			# TODO: Build and install documentation.
 		popd || return
 	popd || return
+}
+
+post_install()
+{
+	# Generate missing cache.
+	gdk-pixbuf-query-loaders --update-cache
 }

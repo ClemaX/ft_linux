@@ -1,0 +1,42 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on gtk3-3.24.37, notification-daemon-3.20.0, xfce4-notifyd-0.8.2
+
+name="libnotify"
+version="0.8.2"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('ee2d2934a9dcfd5b1305188201e1cd50')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr \
+				--buildtype=release \
+				-Dgtk_doc=false \
+				-Dman=false \
+				..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+
+			# Fix documentation path.
+			#mv -v "$DESTDIR/usr/share/doc/libnotify"{,-0.8.2}
+
+			# TODO: Build and install documentation.
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

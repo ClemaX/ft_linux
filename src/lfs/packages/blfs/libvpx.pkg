@@ -1,0 +1,49 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on yasm, which
+
+name="libvpx"
+version="1.13.0"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'd5fd45a806a65a57d6635f9e7a98a1b2'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		sed -i 's/cp -p/cp/' build/make/Makefile
+	popd || return
+}
+
+build()
+{
+	local doc_dir="--docdir=$XORG_PREFIX/share/doc/$source_base"
+
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp libvpx-build
+		pushd libvpx-build || return
+			# shellcheck disable=SC2086
+			../configure --prefix=/usr \
+				--enable-shared  \
+				--disable-static
+
+			make
+
+			make DESTDIR="$DESTDIR" install
+		popd || return
+	popd || return
+}
+
+post_install()
+{
+	# Update the shared library cache.
+	/sbin/ldconfig
+}

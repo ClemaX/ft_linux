@@ -1,0 +1,33 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on gtk3-3.24.37,
+# libcanberra-0.30 (Built with gtk3-3.24.37 support).
+
+name="notification-daemon"
+version="3.20.0"
+
+source_base="$name-$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('2de7f4075352831f1d98d8851b642124')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --sysconfdir=/etc \
+            --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}
+
+post_install()
+{
+	# Generate compiled schemas.
+	glib-compile-schemas /usr/share/glib-2.0/schemas
+}

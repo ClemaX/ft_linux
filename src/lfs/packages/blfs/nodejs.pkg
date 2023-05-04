@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on which-2.21, c-ares-1.19.0, icu-73.1, libuv-1.44.2,
+# nghttp2-1.52.0
+
+name="nodejs"
+version="18.16.0"
+
+source_base="node-v$version"
+
+sources=("/sources/$source_base.tar.xz")
+md5sums=('6b46d9652b823848d8b832be5b4f5df0')
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+            --shared-cares \
+            --shared-libuv \
+            --shared-openssl \
+            --shared-nghttp2 \
+            --shared-zlib \
+            --with-intl=system-icu
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# Add documentation symlink to correct location.
+		ln -sf node "$DESTDIR/usr/share/doc/node-$version"
+	popd || return
+}

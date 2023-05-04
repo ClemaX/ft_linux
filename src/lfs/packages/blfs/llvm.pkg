@@ -68,7 +68,7 @@ build()
 
 			DESTDIR="$DESTDIR" ninja install
 
-			cp -v bin/FileCheck /usr/bin
+			cp -v bin/FileCheck "$DESTDIR/usr/bin"
 		popd || return
 	popd || return
 }

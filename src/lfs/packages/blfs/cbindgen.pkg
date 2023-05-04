@@ -1,0 +1,26 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on rustc-1.69.0
+
+name="cbindgen"
+version="0.24.3"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'6aa2991ca8411f9ebf9961e8b873e884'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		cargo build --release
+
+		install -vD -m755 target/release/cbindgen -t "$DESTDIR/usr/bin/"
+	popd || return
+}

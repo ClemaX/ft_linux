@@ -2,10 +2,8 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on Xorg build environment
-
-name="libxcb"
-version="1.15"
+name="nasm"
+version="2.16.01"
 
 source_base="$name-$version"
 
@@ -13,19 +11,18 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'39c0fc337e738ad6c908e7cce90957d0'
+	'd755ba0d16f94616c2907f8cab7c748b'
 )
 
 build()
 {
-
 	pushd "$SRCDIR/$source_base" || return
-		# shellcheck disable=SC2086 disable=SC2090
-		PYTHON=python3 ./configure $XORG_CONFIG \
-			--without-doxygen \
-			--docdir="\${datadir}/doc/$source_base" &&
+		./configure --prefix=/usr
+
 		make
 
 		make DESTDIR="$DESTDIR" install
+
+		# TODO: Build or install documentation.
 	popd || return
 }

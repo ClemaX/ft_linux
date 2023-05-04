@@ -2,10 +2,8 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on Xorg build environment
-
-name="libxcb"
-version="1.15"
+name="adwaita-icon-theme"
+version="44.0"
 
 source_base="$name-$version"
 
@@ -13,19 +11,22 @@ sources=(
 	"/sources/$source_base.tar.xz"
 )
 md5sums=(
-	'39c0fc337e738ad6c908e7cce90957d0'
+	'1abae78e6cd50d4055b5c88ffe8b56a5'
 )
 
 build()
 {
-
 	pushd "$SRCDIR/$source_base" || return
-		# shellcheck disable=SC2086 disable=SC2090
-		PYTHON=python3 ./configure $XORG_CONFIG \
-			--without-doxygen \
-			--docdir="\${datadir}/doc/$source_base" &&
+		./configure --prefix=/usr
+
 		make
 
 		make DESTDIR="$DESTDIR" install
 	popd || return
+}
+
+post_install()
+{
+	# Update icon cache.
+	gtk-update-icon-cache
 }
