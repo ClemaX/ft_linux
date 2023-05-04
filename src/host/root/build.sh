@@ -104,8 +104,8 @@ else
 	sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
 	chown -v lfs "$LFS" "$LFS/sources"
 
-	progress "Building toolchain"
 	# Build LFS toolchain.
+	progress "Building toolchain"
 	pushd /home/lfs
 		# shellcheck disable=SC2088
 		env -i \
@@ -122,11 +122,8 @@ else
 	lfs_chown root:root "$LFS"
 	chown -R root:root /tmp
 
-	progress "Initializing filesystem"
-	# Add builder scripts to the filesystem.
-	cp -r chroot "$LFS/build"
-
 	# Initialize the filesystem.
+	progress "Initializing filesystem"
 	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
 
 	# Build additional temporary tools.
@@ -137,10 +134,6 @@ else
 	progress "Backing up"
 	lfs_backup "$LFS" "$lfs_backup_file"
 fi
-
-# TODO: Remove when stable
-# Update builder scripts in the filesystem.
-cp -r chroot/* "$LFS/build"
 
 progress "Building system software"
 

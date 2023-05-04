@@ -43,7 +43,7 @@ lfs_chroot_teardown() # root
 			rm -vf var/cache/pkg
 
 			# Unmount kernel filesystems and bind mounts.
-			lfs_chroot_umount "$root" dev/pts {sys,proc,run} dev cache tmp
+			lfs_chroot_umount "$root" dev/pts {sys,proc,run} dev cache tmp build
 
 			# Remove console devices.
 			rm -vf dev/{console,null}
@@ -90,6 +90,9 @@ lfs_chroot() # root [cmd]
 
 		# Mount /tmp.
 		mount -v --bind	/tmp				tmp
+
+		# Mount /build.
+		mount -v --bind /root/chroot		build
 
 		# Install temporary /etc/resolv.conf.
 		[ -e etc/resolv.conf ] && mv etc/resolv.conf{,.bak}

@@ -34,6 +34,7 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 		-v /dev:/hostdev:ro \
 		-v "$(DISTVOL):/dist:rw" \
 		-v "$(CACHEVOL):/cache:rw" \
+		-v "$(PWD)/$(SRCDIR)/lfs:/root/chroot" \
 		--name=ft_linux \
 		-it ft_linux $(CMD)
 
