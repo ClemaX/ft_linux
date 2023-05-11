@@ -25,8 +25,6 @@ cache_check() # action [cache]
 
 	read -r -a action <<< "$1"
 
-	info "Checking cache..."
-
 	pushd "$cache"
 		md5sum --check --quiet - \
 		| grep FAILED \

@@ -37,13 +37,12 @@ parallel_fetch() # options [input] [dst] [count]
 
 	wget_cmd=(
 		wget "${options[@]}"
-			--input-file=-
 			--max-redirect="${MAX_REDIR}"
 			--directory-prefix="$dst"
 			--no-verbose
 	)
 
-	parallel_cmd=(parallel -j"$count" --pipe --round-robin)
+	parallel_cmd=(parallel -j"$count" --bar)
 
 	if [ -n "$input" ]
 	then
@@ -123,25 +122,24 @@ sources_fetch_list() # name dst [cache] [user]
 		if [ -f "$base.urls" ]
 		then
 			# Check for cache integrity.
-			until cache_complete "$cache" < "$srcs_name.md5"
+			info "Checking cache..."
+			until cache_complete < "$srcs_name.md5"
 			do
 				# Resume partial downloads.
-				parallel_fetch "--continue" < "$base.urls" \
+				cache_check < "$srcs_name.md5" \
+					"-I{} grep {}$ $base.urls" \
+				| parallel_fetch "--continue" \
 				|| warning "Warning: $? jobs failed!"
 
 				# Delete corrupted files.
-				cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
+				cache_check < "$srcs_name.md5" \
+					"-I{} rm -rfv {}"
 
 				# Download missing files.
-				parallel_fetch --no-clobber < "$base.urls"
+				cache_check < "$srcs_name.md5" \
+					"-I{} grep {}$ $base.urls" \
+				| parallel_fetch --no-clobber
 			done
-
-			# Download missing files.
-			#while parallel_fetch --no-clobber < "$base.urls" \
-			#| grep 'Downloaded:\s[0-9]* files,\s.*\sin\s.*s\s(.*\s.*/s)'
-			#do
-			#	cache_check "rm -rfv" "$cache" < "$srcs_name.md5"
-			#done
 
 			# Link to destination.
 			info "All '$base' packages have been downloaded! Linking to '$dst'..."
