@@ -441,9 +441,9 @@ pkg_link() # name version
 
 	mkdir -vp "$data_dir" "$cache_dir"
 
-	ln -sfv "$data_dir/$version/$name.pkg" "$data_dir/$name.pkg"
-	ln -sfv "$cache_dir/$version/$archive" "$cache_dir/$archive"
-	ln -sfv "$cache_dir/$version/$archive.md5" "$cache_dir/$archive.md5"
+	ln -sfv "$version/$name.pkg" "$data_dir/$name.pkg"
+	ln -sfv "$version/$archive" "$cache_dir/$archive"
+	ln -sfv "$version/$archive.md5" "$cache_dir/$archive.md5"
 }
 
 # Build given packages
