@@ -1,0 +1,58 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="sgml-common"
+version="0.6.3"
+
+source_base="$name-$version"
+
+manpage_patch="$source_base-manpage-1.patch"
+
+sources=(
+	"/sources/$source_base.tgz"
+	"/sources/$manpage_patch"
+)
+md5sums=(
+	'103c9828f24820df86e55e7862e28974'
+	'645f3c898abd270a9143036824ae121a'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -Np1 -i "$SRCDIR/$manpage_patch"
+		autoreconf -fiv
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --sysconfdir=/etc
+
+		make
+
+		make DESTDIR="$DESTDIR" docdir=/usr/share/doc install
+	popd || return
+}
+
+post_install()
+{
+	# Create centralized catalog files.
+	install-catalog --add /etc/sgml/sgml-ent.cat \
+		/usr/share/sgml/sgml-iso-entities-8879.1986/catalog &&
+
+	install-catalog --add /etc/sgml/sgml-docbook.cat \
+		/etc/sgml/sgml-ent.cat
+}
+
+pre_uninstall()
+{
+	# Remove centralized catalog files.
+	install-catalog --remove /etc/sgml/sgml-ent.cat \
+		/usr/share/sgml/sgml-iso-entities-8879.1986/catalog &&
+
+	install-catalog --remove /etc/sgml/sgml-docbook.cat \
+		/etc/sgml/sgml-ent.cat
+}

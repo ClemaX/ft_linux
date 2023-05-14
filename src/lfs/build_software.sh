@@ -94,7 +94,8 @@ pushd "$SCRIPTDIR/packages/blfs"
 	install_pkg unifont mandoc efivar popt efibootmgr libpng which libssh2 \
 		libxml2 libxslt libarchive libuv nghttp2 libtasn1 p11-kit fcron \
 		make-ca curl git cmake llvm rustc gptfdisk pciutils acpid dhcpcd pcre2 \
-		graphite2 freetype glib gobject-introspection harfbuzz
+		graphite2 freetype glib gobject-introspection harfbuzz unzip \
+		sgml-common docbook-xml docbook-xsl-nons xmlto lynx
 
 	# Rebuild freetype with harfbuzz.
 	rebuild_pkg freetype harfbuzz
@@ -135,8 +136,8 @@ EOF
 		alsa-lib libsndfile pulseaudio libnl cbindgen dbus-glib libjpeg-turbo \
 		shared-mime-info gsettings-desktop-schemas at-spi2-core gdk-pixbuf \
 		librsvg gtk3 adwaita-icon-theme libogg libvorbis libcanberra \
-		notification-daemon libnotify c-ares icu nodejs sqlite unzip yasm nspr \
-		libevent libvpx libwebp nasm nss
+		notification-daemon libnotify c-ares icu nodejs sqlite yasm nspr \
+		libevent libvpx libwebp nasm nss xdg-utils desktop-file-utils
 
 	# Rebuild python with sqlite.
 	rebuild_pkg python sqlite
@@ -150,7 +151,7 @@ popd
 info "Installing extra software..."
 pushd "$SCRIPTDIR/packages/extras"
 	install_pkg dialog lfs-config xcb-util-xrm yajl libev libconfuse i3status \
-		dracula-xresources i3 spice-protocol spice-vdagent
+		dracula-xresources dex i3 spice-protocol spice-vdagent spice-randr
 popd
 
 # TODO: Install pkg using pkg

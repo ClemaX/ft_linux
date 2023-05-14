@@ -1,0 +1,23 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="dex"
+version="0.9.0"
+
+source_base="$name-v$version"
+
+sources=("https://github.com/jceb/dex.git:v$version")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		install -vD -m755 dex -t "$DESTDIR/usr/bin"
+
+		install -vD -m644 README.rst LICENSE \
+			-t "$DESTDIR/usr/share/doc/$source_base"
+
+		# TODO: Build and install documentation
+	popd || return
+}

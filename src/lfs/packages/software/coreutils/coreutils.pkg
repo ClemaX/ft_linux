@@ -15,13 +15,14 @@ prepare()
     pushd "$SRCDIR/$source_base" || return
 		# Patch to fix non-compliances and i18n bugs.
 		patch -Np1 -i "$SRCDIR/$source_base-i18n-1.patch"
-    popd || return
+
+		autoreconf -fiv
+	popd || return
 }
 
 build()
 {
     pushd "$SRCDIR/$source_base" || return
-		autoreconf -fiv
 		FORCE_UNSAFE_CONFIGURE=1 ./configure \
 			--prefix=/usr \
 			--enable-no-install-program=kill,uptime

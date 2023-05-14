@@ -1,0 +1,106 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="docbook-xsl-nons"
+version="1.79.2"
+
+source_base="$name-$version"
+
+stack_fix_patch="$source_base-stack_fix-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+	"/sources/$stack_fix_patch"
+)
+md5sums=(
+	'2666d1488d6ced1551d15f31d7ed8c38'
+	'8457bd6ee6b06fbc6dc540e1b096f766'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Fix a problem that causes stack overflows when doing recursion.
+		patch -Np1 -i ../docbook-xsl-nons-1.79.2-stack_fix-1.patch
+	popd || return
+}
+
+build()
+{
+	local stylesheet_dir="/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+	local doc_dir="/usr/share/doc/$source_base"
+
+	pushd "$SRCDIR/$source_base" || return
+		install -v -m755 -d \
+			"$DESTDIR/$stylesheet_dir"
+
+		cp -v -R \
+			VERSION assembly common eclipse epub epub3 extensions fo \
+			highlighting html htmlhelp images javahelp lib manpages params \
+			profiling roundtrip slides template tests tools webhelp website \
+			xhtml xhtml-1_1 xhtml5 \
+			"$DESTDIR/$stylesheet_dir"
+
+		ln -s VERSION "$DESTDIR/$stylesheet_dir/VERSION.xsl"
+
+		install -vD -m644 README "$DESTDIR/$doc_dir/README.txt"
+
+		install -v -m644 RELEASE-NOTES* NEWS* \
+			"$DESTDIR/$doc_dir"
+
+		# TODO: Download and install additional documentation.
+	popd || return
+}
+
+post_install()
+{
+	local entries=(
+		"rewriteSystem,https://cdn.docbook.org/release/xsl-nons/$version,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+		"rewriteURI,https://cdn.docbook.org/release/xsl-nons/$version,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+		"rewriteSystem,https://cdn.docbook.org/release/xsl-nons/current,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+		"rewriteURI,https://cdn.docbook.org/release/xsl-nons/current,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+		"rewriteSystem,http://docbook.sourceforge.net/release/xsl/current,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+		"rewriteURI,http://docbook.sourceforge.net/release/xsl/current,/usr/share/xml/docbook/xsl-stylesheets-nons-$version"
+	)
+
+	#local compatibility_entries=(
+	#	"rewriteSystem,http://docbook.sourceforge.net/release/xsl/{version},/usr/share/xml/docbook/xsl-stylesheets-$version"
+	#	"rewriteURI,http://docbook.sourceforge.net/release/xsl/{version},/usr/share/xml/docbook/xsl-stylesheets-$version"
+	#)
+
+	# Create catalog if it does not exist.
+	[ -d /etc/xml ] || install -v -m755 -d /etc/xml
+
+	[ -f /etc/xml/catalog ] || xmlcatalog --noout --create /etc/xml/catalog
+
+	# Add entries to the catalog.
+	for entry in "${entries[@]}"
+	do
+		IFS=, read -r type orig replace <<< "$entry"
+
+		xmlcatalog --noout --add "$type" "$orig" "$replace" /etc/xml/catalog
+	done
+
+	#for entry in "${compatibility_entries[@]}"
+	#do
+	#	IFS=, read -r type orig replace <<< "$entry"
+	#
+	#	# Add backward compatibility aliases.
+	#	for compatible_version in 1.{67.2}
+	#	do
+	#		compatible_orig="${orig/\{version\}/${compatible_version}}"
+	#		compatible_replace="${replace/\{version\}/${compatible_version}}"
+	#
+	#		xmlcatalog --noout \
+	#			--add "$type" "$compatible_orig" "$compatible_replace" \
+	#			/etc/xml/docbook
+	#	done
+	#done
+}
+
+pre_uninstall()
+{
+	# Remove rewrite entries from the catalog.
+	sed -i '/rewrite/d' /etc/xml/catalog
+}

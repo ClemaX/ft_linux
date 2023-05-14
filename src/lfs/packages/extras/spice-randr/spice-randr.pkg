@@ -1,0 +1,35 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on spice-vdagent, destkop-file-utils
+
+name="spice-randr"
+version="1.0.0"
+
+branch=master
+
+source_base="$name-$version"
+
+sources=(
+	"spice-randr.c"
+	"spice-randr.desktop"
+)
+md5sums=()
+
+build()
+{
+	local autostart_dir="${XDG_CONFIG_DIRS:-/etc}/autostart"
+
+	pushd "$SRCDIR" || return
+		mkdir -vp build
+		pushd build || return
+			gcc -lX11 -lXrandr -o spice-randr ../spice-randr.c
+
+			install -vD spice-randr -t "$DESTDIR/usr/bin"
+		popd || return
+
+		desktop-file-install -m 644 --dir "$DESTDIR/$autostart_dir" \
+			spice-randr.desktop
+	popd || return
+}

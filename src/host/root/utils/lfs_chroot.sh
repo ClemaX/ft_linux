@@ -100,7 +100,7 @@ lfs_chroot() # root [cmd]
 
 		# Link package cache.
 		mkdir -vp cache/pkg
-		ln -vs /cache/pkg var/cache
+		ln -vsf /cache/pkg var/cache
 
 		[ $# -eq 0 ] && set -- /bin/bash --login +h
 

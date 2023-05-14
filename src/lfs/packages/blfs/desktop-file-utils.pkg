@@ -1,0 +1,31 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on glib-2.76.2
+
+name="desktop-file-utils"
+version="0.26"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'29739e005f5887cf41639b8450f3c23f'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -vp build
+		pushd build || return
+			meson setup --prefix=/usr --buildtype=release ..
+
+			ninja
+
+			DESTDIR="$DESTDIR" ninja install
+		popd || return
+	popd || return
+}

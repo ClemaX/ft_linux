@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+NoDisplay=true
+Name=spice-randr
+GenericName=Spice RandR
+Comment=Resize the screen when the host window resolution changes.
+Categories=Utility;
+TryExec=spice-randr
+Exec=spice-randr
+StartupNotify=false
+Terminal=false
+Icon=display

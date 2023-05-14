@@ -17,6 +17,8 @@ WARNING="${COLOR_WARNING:-}"
 ERROR="${COLOR_ERROR:-}"
 ENDL="${COLOR_DEFAULT:-}"
 
+pushd_noop=0
+
 debug()
 {
 	local caller="${CALLER:-${FUNCNAME[1]}}"
@@ -43,6 +45,12 @@ error()
 
 pushd()
 {
+	if [ $# -eq 1 ] && [ "$1" = "$PWD" ]
+	then
+		((pushd_noop+=1)) || :
+		return
+	fi
+
 	echo -n "$DEBUG${FUNCNAME[0]}: " 1>&2
 	builtin pushd "$@" 1>&2
 	echo -n "$ENDL" 1>&2
@@ -51,6 +59,12 @@ pushd()
 # shellcheck disable=SC2120
 popd()
 {
+	if [ "$pushd_noop" -gt 0 ]
+	then
+		((pushd_noop-=1)) || :
+		return
+	fi
+
 	echo -n "$DEBUG${FUNCNAME[0]}: " 1>&2
 	builtin popd "$@" 1>&2
 	echo -n "$ENDL" 1>&2

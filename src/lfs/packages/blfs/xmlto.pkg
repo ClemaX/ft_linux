@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on docbook-xml-4.5, docbook-xsl-nons-1.79.2, libxslt-1.1.37
+
+name="xmlto"
+version="0.0.28"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'93bab48d446c826399d130d959fe676f'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		LINKS="/usr/bin/links" ./configure --prefix=/usr
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

@@ -8,8 +8,6 @@ cache_complete() # [cache]
 	local cache="${1:-$PWD}"
 	local status=0
 
-	info "Checking cache..."
-
 	pushd "$cache"
 		md5sum --check --status - || status="$?"
 	popd

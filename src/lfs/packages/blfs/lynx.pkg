@@ -1,0 +1,50 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="lynx"
+version="2.8.9rel.1"
+
+source_base="$name$version"
+doc_base="$name-$version"
+
+security_fix_patch="$doc_base-security_fix-1.patch"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+	"/sources/$security_fix_patch"
+)
+md5sums=(
+	'44316f1b8a857b59099927edc26bef79'
+	'225f758ed5b0b8e38c07bd185e7b8e34'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -p1 -i "$SRCDIR/$security_fix_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr \
+			--sysconfdir=/etc/lynx \
+			--datadir="/usr/share/doc/$doc_base" \
+			--with-zlib \
+			--with-bzlib \
+			--with-ssl \
+			--with-screen=ncursesw \
+			--enable-locale-charset
+
+		make
+
+		make DESTDIR="$DESTDIR" install-full
+
+		# Correct improper group ownership on documentation files.
+		chgrp -v -R root "$DESTDIR/usr/share/doc/$doc_base/lynx_doc"
+
+		# TODO: Improve configuration for character set and multibyte editor.
+	popd || return
+}

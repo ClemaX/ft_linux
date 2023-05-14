@@ -18,14 +18,14 @@ prepare()
 {
 	pushd "$SRCDIR/$source_base" || return
 		sed -e /service_DATA/d -i modules/pam_namespace/Makefile.am
+
+		autoreconf
 	popd || return
 }
 
 build()
 {
 	pushd "$SRCDIR/$source_base" || return
-		autoreconf
-
 		./configure --prefix=/usr \
 			--sbindir=/usr/sbin \
 			--sysconfdir=/etc \

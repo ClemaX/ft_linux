@@ -1,0 +1,126 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libxml2-2.10.3, sgml-common-0.6.3, UnZip-6.0
+
+name="docbook-xml"
+version="4.5"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.zip"
+)
+md5sums=(
+	'03083e288e87a7e829e437358da7ef9e'
+)
+
+prepare()
+{
+	pushd "$SRCDIR" || return
+		unzip "./$source_base.zip"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR" || return
+		install -vd -m755 \
+			"$DESTDIR/usr/share/xml/docbook/xml-dtd-$version" \
+			"$DESTDIR/etc/xml"
+
+		chown -R root:root .
+
+		cp -v -af docbook.cat ./*.dtd ent/ ./*.mod \
+			"$DESTDIR/usr/share/xml/docbook/xml-dtd-$version"
+
+	popd || return
+}
+
+post_install()
+{
+	local entries=(
+		"public,-//OASIS//DTD DocBook XML V$version//EN,http://www.oasis-open.org/docbook/xml/$version/docbookx.dtd"
+		"public,-//OASIS//DTD DocBook XML CALS Table Model V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/calstblx.dtd"
+		"public,-//OASIS//DTD XML Exchange Table Model 19990315//EN,file:///usr/share/xml/docbook/xml-dtd-$version/soextblx.dtd"
+		"public,-//OASIS//ELEMENTS DocBook XML Information Pool V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/dbpoolx.mod"
+		"public,-//OASIS//ELEMENTS DocBook XML Document Hierarchy V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/dbhierx.mod"
+		"public,-//OASIS//ELEMENTS DocBook XML HTML Tables V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/htmltblx.mod"
+		"public,-//OASIS//ENTITIES DocBook XML Notations V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/dbnotnx.mod"
+		"public,-//OASIS//ENTITIES DocBook XML Character Entities V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/dbcentx.mod"
+		"public,-//OASIS//ENTITIES DocBook XML Additional General Entities V$version//EN,file:///usr/share/xml/docbook/xml-dtd-$version/dbgenent.mod"
+		"rewriteSystem,http://www.oasis-open.org/docbook/xml/$version,file:///usr/share/xml/docbook/xml-dtd-$version"
+		"rewriteURI,http://www.oasis-open.org/docbook/xml/$version,file:///usr/share/xml/docbook/xml-dtd-$version"
+	)
+
+	local delegate_entries=(
+		"delegatePublic,-//OASIS//ENTITIES DocBook XML,file:///etc/xml/docbook"
+		"delegatePublic,-//OASIS//DTD DocBook XML,file:///etc/xml/docbook"
+		"delegateSystem,http://www.oasis-open.org/docbook/,file:///etc/xml/docbook"
+		"delegateURI,http://www.oasis-open.org/docbook/,file:///etc/xml/docbook"
+	)
+
+	local compatibility_entries=(
+		"public,-//OASIS//DTD DocBook XML V{version}//EN,http://www.oasis-open.org/docbook/xml/{version}/docbookx.dtd"
+		"rewriteSystem,http://www.oasis-open.org/docbook/xml/{version},file:///usr/share/xml/docbook/xml-dtd-$version"
+		"rewriteURI,http://www.oasis-open.org/docbook/xml/{version},file:///usr/share/xml/docbook/xml-dtd-$version"
+		"delegateSystem,http://www.oasis-open.org/docbook/xml/{version},file:///etc/xml/docbook"
+		"delegateURI,http://www.oasis-open.org/docbook/xml/{version},file:///etc/xml/docbook"
+	)
+
+	local type orig replace compatible_orig compatible_replace
+
+	# Create docbook catalog if it does not exist.
+	if [ ! -e /etc/xml/docbook ]
+	then
+		xmlcatalog --noout --create /etc/xml/docbook
+	fi
+
+	# Add entries to the catalog.
+	for entry in "${entries[@]}"
+	do
+		IFS=, read -r type orig replace <<< "$entry"
+
+		xmlcatalog --noout --add "$type" "$orig" "$replace" /etc/xml/docbook
+	done
+
+	# Create catalog if it does not exist.
+	if [ ! -e /etc/xml/catalog ]
+	then
+		xmlcatalog --noout --create /etc/xml/catalog
+	fi
+
+	# Add entries to the catalog.
+	for entry in "${delegate_entries[@]}"
+	do
+		IFS=, read -r type orig replace <<< "$entry"
+
+		xmlcatalog --noout --add "$type" "$orig" "$replace" /etc/xml/catalog
+	done
+
+	for entry in "${compatibility_entries[@]}"
+	do
+		IFS=, read -r type orig replace <<< "$entry"
+
+		# Add backward compatibility aliases.
+		for compatible_version in 4.{1.2,2,3,4}
+		do
+			compatible_orig="${orig/\{version\}/${compatible_version}}"
+			compatible_replace="${replace/\{version\}/${compatible_version}}"
+
+			xmlcatalog --noout \
+				--add "$type" "$compatible_orig" "$compatible_replace" \
+				/etc/xml/docbook
+		done
+	done
+}
+
+pre_uninstall()
+{
+	# Remove docbook entries from XML catalog.
+	xmlcatalog --noout --del 'file:///etc/xml/docbook' /etc/xml/catalog
+
+	# Remove docbook catalog.
+	rm -v /etc/xml/docbook
+}
