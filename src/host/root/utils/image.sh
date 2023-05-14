@@ -37,7 +37,7 @@ img_shrink() # dst
 	truncate --size="$size" "$dst"
 
 	# Restore backup partition table.
-	sgdisk --move-second-header "$dst"
+	sgdisk --move-second-header "$dst" | tr -d '\a'
 }
 
 # Create additional devices for a loop device's partitions.
