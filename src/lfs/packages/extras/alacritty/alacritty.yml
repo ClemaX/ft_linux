@@ -1,0 +1,5 @@
+import:
+  # Ctrl + Click URL handling.
+  - /usr/share/alacritty/url-handling.yml
+  # Appearence theme.
+  - ~/.config/alacritty/theme.yml

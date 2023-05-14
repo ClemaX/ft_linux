@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on alacritty
+
+name="dracula-alacritty"
+version="1.0.0"
+
+branch=master
+
+source_base="alacritty-$branch"
+
+sources=("https://github.com/dracula/alacritty.git:$branch")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		install -vD -m644 dracula.yml "$DESTDIR/usr/share/alacritty/dracula.yml"
+	popd || return
+}
+
+post_install()
+{
+	# Enable theme.
+	ln -vsf dracula.yml /usr/share/alacritty/theme.yml
+}
+
+pre_uninstall()
+{
+	# Disable theme.
+	ln -vsf /dev/null /usr/share/alacritty/theme.yml
+}
