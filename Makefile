@@ -46,9 +46,13 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 		ft_linux \
 		tail -f /dev/null
 
-	docker cp ft_linux-dist:/dist/disk.img $(DISTDIR)/$(NAME)
+	docker cp --quiet=false ft_linux-dist:/dist/disk.img \
+		$(DISTDIR)/$(NAME) 2>&1 \
+	| awk '{printf "\r%s", $$0; fflush();}'
 
 	docker stop ft_linux-dist
+
+	printf '\a'
 
 check-scripts:
 	shellcheck $(shell find $(SRCDIR) -type f -name '*.sh')
