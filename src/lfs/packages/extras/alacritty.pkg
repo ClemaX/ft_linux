@@ -1,0 +1,61 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on desktop-file-utils
+
+name="alacritty"
+version="0.12.0"
+
+source_base="$name-v$version"
+
+sources=("https://github.com/alacritty/alacritty.git:v$version")
+md5sums=()
+
+build()
+{
+	local applications_dir="${XDG_CONFIG_DIRS:-/etc}/autostart"
+
+	pushd "$SRCDIR/$source_base" || return
+		cargo build --release --no-default-features --features=x11
+
+		# Install desktop file.
+		desktop-file-install -m 644 --dir "$DESTDIR/$applications_dir" \
+			extra/linux/Alacritty.desktop
+
+		# Install binary.
+		install -vD -m755 "target/release/alacritty" -t "$DESTDIR/usr/bin"
+
+		# Install man pages.
+		install -vD -m644 "extra/alacritty.man" \
+			"$DESTDIR/usr/share/man/man1/alacritty.1"
+		install -vD -m644 "extra/alacritty-msg.man" \
+			"$DESTDIR/usr/share/man/man1/alacritty-msg.1"
+
+		# Install app meta-data.
+		install -vD -m644 "extra/linux/org.alacritty.Alacritty.appdata.xml" \
+			-t "$DESTDIR/usr/share/appdata"
+
+		# Install configuration sample.
+		install -vD -m644 "alacritty.yml" \
+			-t "$DESTDIR/usr/share/doc/alacritty/example"
+
+		# Install shell completions.
+		install -vD -m644 "extra/completions/alacritty.bash" \
+			"$DESTDIR/usr/share/bash-completion/completions/alacritty"
+		install -vD -m644 "extra/completions/_alacritty" \
+			-t "$DESTDIR/usr/share/zsh/site-functions"
+		install -vD -m644 "extra/completions/alacritty.fish" \
+			-t "$DESTDIR/usr/share/fish/vendor_completions.d"
+
+		# Install icon.
+		install -vD -m644 "extra/logo/alacritty-term.svg" \
+			"$DESTDIR/usr/share/pixmaps/Alacritty.svg"
+	popd || return
+}
+
+post_install()
+{
+	# Rebuild MIME info cache.
+	update-desktop-database
+}
