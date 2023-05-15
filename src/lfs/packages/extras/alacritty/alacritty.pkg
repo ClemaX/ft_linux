@@ -86,7 +86,7 @@ post_install()
 	then
 		# Install default configuration for root.
 		pushd /etc/skel || return
-			install -vD -m644 .config/alacritty/{theme,alacritty}/.yml \
+			install -vD -m644 .config/alacritty/{theme,alacritty}.yml \
 				-t /root/.config/alacritty
 		popd || return
 	fi
