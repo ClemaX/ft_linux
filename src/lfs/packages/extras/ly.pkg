@@ -1,0 +1,24 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on pam, xcb, xorg, xorg-xauth, mcookie, tput, shutdown
+
+name="ly"
+version="v0.5.4"
+
+ref="c64f806a68af225cc95623971b5e464abb55b879"
+
+source_base="$name-$ref"
+
+sources=("https://github.com/fairyglade/ly.git:$ref")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+}

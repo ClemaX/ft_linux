@@ -158,7 +158,7 @@ info "Installing extra software..."
 pushd "$SCRIPTDIR/packages/extras"
 	install_pkg dialog lfs-config xcb-util-xrm yajl libev libconfuse i3status \
 		dracula-xresources dex i3 spice-protocol spice-vdagent spice-randr \
-		alacritty dracula-alacritty
+		alacritty dracula-alacritty ly
 popd
 
 # TODO: Install pkg using pkg
