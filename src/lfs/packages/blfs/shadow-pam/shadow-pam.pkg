@@ -1,0 +1,117 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on shadow, pam
+
+name="shadow-pam"
+version="1.0.0"
+
+sources=(
+	"chpasswd"
+	"login"
+	"newusers"
+	"passwd"
+	"su"
+	"util.template"
+)
+md5sums=()
+
+build()
+{
+	local configurations=(
+		chpasswd
+		login
+		newusers
+		passwd
+		su
+	)
+
+	local other_utils=(
+		ch{fn,gpasswd,sh}
+		group{add,del,mems,mod}
+		user{add,del,mod}
+	)
+
+	pushd "$SRCDIR" || return
+		# Install program specific PAM configuration files.
+		for configuration in "${configurations[@]}"
+		do
+			install -vD -m644 "$configuration" -t "$DESTDIR/etc/pam.d"
+		done
+
+		# Install generic PAM configuration for other utils.
+		for util in "${other_utils[@]}"
+		do
+			sed -e "s/{util}/$util/g" util.template > "$util"
+
+			install -vD -m644 "$util" -t "$DESTDIR/etc/pam.d"
+		done
+	popd || return
+}
+
+post_install()
+{
+	local disabled_features=(
+		FAIL_DELAY
+		FAILLOG_ENAB
+		LASTLOG_ENAB
+		MAIL_CHECK_ENAB
+		OBSCURE_CHECKS_ENAB
+		PORTTIME_CHECKS_ENAB
+		QUOTAS_ENAB
+		CONSOLE MOTD_FILE
+		FTMP_FILE NOLOGINS_FILE
+		ENV_HZ PASS_MIN_LEN
+		SU_WHEEL_ONLY
+		CRACKLIB_DICTPATH
+		PASS_CHANGE_TRIES
+		PASS_ALWAYS_WARN
+		CHFN_AUTH ENCRYPT_METHOD
+		ENVIRON_FILE
+	)
+	local disabled_files=(
+		/etc/login.access
+		/etc/limits
+	)
+
+	local feature
+
+	# Backup login configuration.
+	install -v -m644 /etc/login.defs{,.orig}
+
+	# Disable some login features handled by PAM.
+	for feature in "${disabled_features[@]}"
+	do
+		sed -i "s/^${feature}/# &/" /etc/login.defs
+	done
+
+	# Disable some configuration files handled by PAM.
+	for file in "${disabled_files[@]}"
+	do
+		if [ -f "$file" ]
+		then
+			mv -v "$file"{,.NOUSE}
+		fi
+	done
+}
+
+pre_uninstall()
+{
+	local disabled_files=(
+		/etc/login.access
+		/etc/limits
+	)
+
+	# Restore original login configuration.
+	mv /etc/login.defs{.orig,}
+
+	# Restore disabled configuration files.
+	for file in "${disabled_files[@]}"
+	do
+		if [ -f "$file.NOUSE" ]
+		then
+			mv -v "$file"{.NOUSE,}
+		fi
+	done
+}

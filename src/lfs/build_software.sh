@@ -77,24 +77,32 @@ EOF
 
 info "Installing basic system software..."
 pushd "$SCRIPTDIR/packages/software"
-	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 bc \
-		flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap shadow \
-		gcc pkg-config ncurses sed psmisc gettext bison grep bash libtool gdbm \
-		gperf expat inetutils less perl xml-parser intltool autoconf automake \
-		openssl kmod elfutils libffi python wheel ninja meson coreutils \
-		check diffutils gawk findutils groff gzip iproute2 kbd libpipeline \
-		make patch tar texinfo vim eudev man-db procps-ng util-linux \
-		e2fsprogs sysklogd sysvinit lfs-bootscripts
+	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 \
+		bc flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap \
+		shadow gcc pkg-config ncurses sed psmisc gettext bison grep bash \
+		libtool gdbm gperf expat inetutils less perl xml-parser intltool \
+		autoconf automake openssl kmod elfutils libffi python wheel ninja \
+		meson coreutils check diffutils gawk findutils groff gzip iproute2 kbd \
+		libpipeline make patch tar texinfo vim eudev man-db procps-ng \
+		util-linux e2fsprogs sysklogd sysvinit lfs-bootscripts
 popd
 
 
 info "Installing beyond LFS software..."
 pushd "$SCRIPTDIR/packages/blfs"
+	# Install pam.
+	install_pkg libtirpc pam
+
+	# Rebuild shadow with pam.
+	pushd "$SCRIPTDIR/packages/software"
+		rebuild_pkg shadow pam
+	popd
+
 	# Install useful utilities.
-	install_pkg unifont mandoc efivar popt efibootmgr libpng which libssh2 \
-		libxml2 libxslt libarchive libuv nghttp2 libtasn1 p11-kit fcron \
-		make-ca curl git cmake llvm rustc gptfdisk pciutils acpid dhcpcd pcre2 \
-		graphite2 freetype glib gobject-introspection harfbuzz unzip \
+	install_pkg shadow-pam unifont mandoc efivar popt efibootmgr libpng which \
+		libssh2 libxml2 libxslt libarchive libuv nghttp2 libtasn1 p11-kit \
+		fcron make-ca curl git cmake llvm rustc gptfdisk pciutils acpid dhcpcd \
+		pcre2 graphite2 freetype glib gobject-introspection harfbuzz unzip \
 		sgml-common docbook-xml docbook-xsl-nons xmlto lynx
 
 	# Rebuild freetype with harfbuzz.
@@ -130,9 +138,9 @@ EOF
 		markupsafe mako xcb-util xcb-util-image xcb-util-keysyms \
 		xcb-util-renderutil xcb-util-wm xcb-util-cursor mesa xbitmaps \
 		xorg-applications xcursor-themes xorg-font-util xorg-fonts-encodings \
-		xorg-fonts xkeyboard-config libtirpc libepoxy xorg-server xterm xinit \
+		xorg-fonts xkeyboard-config libepoxy xorg-server xterm xinit \
 		libevdev mtdev libinput xf86-input-libinput startup-notification \
-		libxkbcommon cairo fribidi pango duktape dbus pam elogind polkit \
+		libxkbcommon cairo fribidi pango duktape dbus elogind polkit \
 		alsa-lib libsndfile pulseaudio libnl cbindgen dbus-glib libjpeg-turbo \
 		shared-mime-info gsettings-desktop-schemas at-spi2-core gdk-pixbuf \
 		librsvg gtk3 adwaita-icon-theme libogg libvorbis libcanberra \
@@ -145,7 +153,6 @@ EOF
 	install_pkg firefox
 popd
 
-# TODO: Reinstall shadow after installing pam
 # TODO: Install polkit authentication agent
 
 info "Installing extra software..."

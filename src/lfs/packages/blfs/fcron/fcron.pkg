@@ -16,24 +16,30 @@ md5sums=(
 	'bd4996e941a40327d11efc5e3fd1f839'
 )
 
-periodic_jobs=(
-	"&bootrun 01 * * * * root run-parts /etc/cron.hourly"
-	"&bootrun 02 4 * * * root run-parts /etc/cron.daily"
-	"&bootrun 22 4 * * 0 root run-parts /etc/cron.weekly"
-	"&bootrun 42 4 1 * * root run-parts /etc/cron.monthly"
-)
-
-prepare()
-{
-	# Add fcron group and user.
-	groupadd -g 22 fcron
-	useradd -d /dev/null -c "Fcron User" -g fcron -s /bin/false -u 22 fcron
-}
-
 build()
 {
+	local periodic_jobs=(
+		"&bootrun 01 * * * * root run-parts /etc/cron.hourly"
+		"&bootrun 02 4 * * * root run-parts /etc/cron.daily"
+		"&bootrun 22 4 * * 0 root run-parts /etc/cron.weekly"
+		"&bootrun 42 4 1 * * root run-parts /etc/cron.monthly"
+	)
+
 	local job parts_folder
+
+	# Add temporary fcron group and user.
+	groupadd fcron \
+		--gid 22
+
+	useradd fcron \
+		--comment "Fcron User" \
+		--uid 22 \
+		--gid fcron \
+		--home-dir /dev/null \
+		--shell /bin/false
+
 	pushd "$SRCDIR/$source_base" || return
+		# TODO: Fix pam
 		./configure --prefix=/usr \
 			--sysconfdir=/etc \
 			--localstatedir=/var \
@@ -42,6 +48,9 @@ build()
 			--with-systemdsystemunitdir=no
 
 		make
+
+		# Create destination for pam configuration.
+		install -vd "$DESTDIR/etc/pam.d"
 
 		make DESTDIR="$DESTDIR" install
 
@@ -61,6 +70,23 @@ build()
 			echo "$job" >> "$DESTDIR/var/spool/fcron/systab.orig"
 		done
 	popd || return
+
+	# Remove temporary fcron user and group.
+	userdel --remove fcron || :
+}
+
+pre_install()
+{
+	# Add fcron group and user.
+	groupadd fcron \
+		--gid 22
+
+	useradd fcron \
+		--comment "Fcron User" \
+		--uid 22 \
+		--gid fcron \
+		--home-dir /dev/null \
+		--shell /bin/false
 }
 
 post_install()
@@ -78,7 +104,7 @@ EOF
 	fi
 
 	# Generate the systab file.
-	fcrontab -z -u systab
+	#fcrontab -z -u systab
 
 	# Enable service at boot.
 	ln -vsf ../init.d/fcron /etc/rc.d/rc0.d/K08fcron
@@ -99,4 +125,10 @@ EOF
 
 	# # Start fcron service.
 	# /etc/init.d/fcron start
+}
+
+post_uninstall()
+{
+	# Remove fcron user and group.
+	userdel --remove fcron || :
 }

@@ -9,6 +9,11 @@ source_base="Linux-PAM-$version"
 
 sources=(
 	"/sources/$source_base.tar.xz"
+	"other"
+	"system-account"
+	"system-auth"
+	"system-password"
+	"system-session"
 )
 md5sums=(
 	'895e8adfa14af334f679bbeb28503f66'
@@ -36,12 +41,28 @@ build()
 		make
 
 		make DESTDIR="$DESTDIR" install
-
-		# Add user-setuid bit so that non-root processes can access shadow.
-		chmod -v 4755 "$DESTDIR/usr/sbin/unix_chkpwd"
-
-		# TODO: Install additional documentation
-		# TODO: Add test suite
-		# TODO: Enable strong password support
 	popd || return
+
+	# Add user-setuid bit so that non-root processes can access shadow.
+	chmod -v 4755 "$DESTDIR/usr/sbin/unix_chkpwd"
+
+	# Move libraries to /lib and update symlinks.
+	install -vd "$DESTDIR/lib"
+
+	for file in pam pam_misc pamc
+	do
+		mv -v "$DESTDIR/usr/lib/lib$file.so."* "$DESTDIR/lib"
+		ln -sfv "../../lib/$(readlink "$DESTDIR/usr/lib/lib${file}.so")" \
+			"$DESTDIR/usr/lib/lib${file}.so"
+	done
+
+	pushd "$SRCDIR" || return
+		# Add default configuration files.
+		install -vD -m644 other system-{account,auth,password,session} \
+			-t "$DESTDIR/etc/pam.d"
+	popd || return
+
+	# TODO: Install additional documentation
+	# TODO: Add test suite
+	# TODO: Enable strong password support
 }

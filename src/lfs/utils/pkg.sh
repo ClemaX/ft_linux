@@ -682,6 +682,7 @@ pkg_install() # [pkg]...
 		pkg_assert_built "$pkg"
 
 		pkg_load "$pkg_file"
+			echo "Installing $pkg..."
 
 			pkg_run pre_install
 
