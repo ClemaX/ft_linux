@@ -18,7 +18,6 @@ md5sums=(
 
 build()
 {
-
 	pushd "$SRCDIR/$source_base" || return
 		# shellcheck disable=SC2086 disable=SC2090
 		PYTHON=python3 ./configure $XORG_CONFIG

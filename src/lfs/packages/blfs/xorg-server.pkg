@@ -19,7 +19,6 @@ md5sums=(
 
 build()
 {
-
 	pushd "$SRCDIR/$source_base" || return
 		mkdir -vp build
 
