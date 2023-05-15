@@ -2,6 +2,10 @@
 
 set -eEu
 
+SCRIPTDIR=/build
+
+source "$SCRIPTDIR/utils/logger.sh"
+
 ERROR_LOG=
 
 error_handler()
@@ -16,11 +20,6 @@ error_handler()
 }
 
 trap 'error_handler "${BASH_SOURCE[0]}" "$LINENO" "$BASH_COMMAND"' ERR
-
-SCRIPTDIR=/build
-
-source "$SCRIPTDIR/utils/logger.sh"
-source "$SCRIPTDIR/utils/package.sh"
 
 install_pkg() # [pkg...]
 {
@@ -169,128 +168,124 @@ pushd "$SCRIPTDIR/utils"
 popd
 
 info "Generating initial udev rules..."
-
 bash /usr/lib/udev/init-net-rules.sh
 
-pushd /tmp
-	if [ "$STRIP_BINARIES" = true ]
-	then
-		# shellcheck disable=SC2207
-		save_usrlib=(
-			$(cd /usr/lib; ls ld-linux*[^g])
-			libc.so.6
-			libthread_db.so.1
-			libquadmath.so.0.0.0
-			libstdc++.so.6.0.30
-			libitm.so.1.0.0
-			libatomic.so.1.2.0
-		)
+if [ "$STRIP_BINARIES" = true ]
+then
+	# shellcheck disable=SC2207
+	save_usrlib=(
+		$(cd /usr/lib; ls ld-linux*[^g])
+		libc.so.6
+		libthread_db.so.1
+		libquadmath.so.0.0.0
+		libstdc++.so.6.0.30
+		libitm.so.1.0.0
+		libatomic.so.1.2.0
+	)
 
-		online_usrbin=(
-			bash
-			find
-			strip
-		)
+	online_usrbin=(
+		bash
+		find
+		strip
+	)
 
-		# shellcheck disable=SC2207
-		online_usrlib=(
-			libbfd-2.40.so
-			libsframe.so.0.0.0
-			libhistory.so.8.2
-			libncursesw.so.6.4
-			libm.so.6
-			libreadline.so.8.2
-			libz.so.1.2.13
-			$(cd /usr/lib; find libnss*.so* -type f)
-		)
+	# shellcheck disable=SC2207
+	online_usrlib=(
+		libbfd-2.40.so
+		libsframe.so.0.0.0
+		libhistory.so.8.2
+		libncursesw.so.6.4
+		libm.so.6
+		libreadline.so.8.2
+		libz.so.1.2.13
+		$(cd /usr/lib; find libnss*.so* -type f)
+	)
 
-		info "Stripping binaries..."
+	info "Stripping binaries..."
+	pushd /usr/lib
+		for library in "${save_usrlib[@]}"
+		do
+			objcopy --only-keep-debug "$library" "$library.dbg"
+			cp "$library" "/tmp/$library"
+			strip --strip-unneeded "/tmp/$library"
+			objcopy --add-gnu-debuglink="$library.dbg" "/tmp/$library"
+			install -vm755 "/tmp/$library" /usr/lib
+			rm "/tmp/$library"
+		done
 
-		pushd /usr/lib
-			for library in "${save_usrlib[@]}"
-			do
-				objcopy --only-keep-debug "$library" "$library.dbg"
-				cp "$library" "/tmp/$library"
-				strip --strip-unneeded "/tmp/$library"
-				objcopy --add-gnu-debuglink="$library.dbg" "/tmp/$library"
-				install -vm755 "/tmp/$library" /usr/lib
-				rm "/tmp/$library"
-			done
+		for binary in "${online_usrbin[@]}"
+		do
+			cp "/usr/bin/$binary" "/tmp/$binary"
+			strip --strip-unneeded "/tmp/$binary"
+			install -vm755 "/tmp/$binary" /usr/bin
+			rm "/tmp/$binary"
+		done
 
-			for binary in "${online_usrbin[@]}"
-			do
-				cp "/usr/bin/$binary" "/tmp/$binary"
-				strip --strip-unneeded "/tmp/$binary"
-				install -vm755 "/tmp/$binary" /usr/bin
-				rm "/tmp/$binary"
-			done
+		for library in "${online_usrlib[@]}"
+		do
+			cp "/usr/lib/$library" "/tmp/$library"
+			strip --strip-unneeded "/tmp/$library"
+			install -vm755 "/tmp/$library" /usr/lib
+			rm "/tmp/$library"
+		done
 
-			for library in "${online_usrlib[@]}"
-			do
-				cp "/usr/lib/$library" "/tmp/$library"
-				strip --strip-unneeded "/tmp/$library"
-				install -vm755 "/tmp/$library" /usr/lib
-				rm "/tmp/$library"
-			done
-
-			for file in $(find /usr/lib -type f -name '*.so*' ! -name '*dbg') \
-					$(find /usr/lib -type f -name '*.a') \
-					$(find /usr/{bin,sbin,libexec} -type f)
-			do
-				case "${online_usrbin[*]} ${online_usrlib[*]} ${save_usrlib[*]}" in
-					*$(basename "$file")* )
-						;;
-					* )	strip --strip-unneeded "$file" || :
-						;;
-				esac
-			done
-		popd
-
-		unset binary library save_usrlib online_usrbin online_usrlib
-	fi
-
-	info "Cleaning up..."
-
-	# Remove temporary build files.
-	rm -rf /tmp/*
-
-	# Remove libtool archives.
-	find /usr/lib /usr/libexec -name '*.la' -delete
-
-	# Remove the temporary compiler.
-	find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" -print0 \
-	| xargs -0 rm -rf --
-
-	# Remove the temporary test user.
-	userdel -r tester
-
-	info "Building the Linux kernel..."
-
-	# Build and install the linux kernel.
-	pushd "$SCRIPTDIR/packages/software"
-		install_pkg linux
+		for file in $(find /usr/lib -type f -name '*.so*' ! -name '*dbg') \
+				$(find /usr/lib -type f -name '*.a') \
+				$(find /usr/{bin,sbin,libexec} -type f)
+		do
+			case "${online_usrbin[*]} ${online_usrlib[*]} ${save_usrlib[*]}" in
+				*$(basename "$file")* )
+					;;
+				* )	strip --strip-unneeded "$file" || :
+					;;
+			esac
+		done
 	popd
 
-	# Remove sources.
-	rm -rf /sources
+	unset binary library save_usrlib online_usrbin online_usrlib
+fi
 
-	# Set LFS release version.
-	echo "$LFS_VERSION" > /etc/lfs-release
+info "Cleaning up..."
 
-	# Set LSB release info.
-	cat > /etc/lsb-release << EOF
+# Remove temporary build files.
+rm -rf /tmp/*
+
+# Remove libtool archives.
+find /usr/lib /usr/libexec -name '*.la' -delete
+
+# Remove the temporary compiler.
+find /usr -depth -name "$(uname -m)-lfs-linux-gnu*" -print0 \
+| xargs -0 rm -rf --
+
+# Remove the temporary test user.
+userdel -r tester
+
+info "Building the Linux kernel..."
+
+# Build and install the linux kernel.
+pushd "$SCRIPTDIR/packages/software"
+	install_pkg linux
+popd
+
+# Remove sources.
+rm -rf /sources
+
+# Set LFS release version.
+echo "$LFS_VERSION" > /etc/lfs-release
+
+# Set LSB release info.
+cat > /etc/lsb-release << EOF
 DISTRIB_ID="Linux From Scratch"
 DISTRIB_RELEASE="$LFS_VERSION"
 DISTRIB_CODENAME="chamada"
 DISTRIB_DESCRIPTION="Linux From Scratch, built by chamada"
 EOF
 
-	# Set OS release info.
-	cat > /etc/os-release << EOF
+# Set OS release info.
+cat > /etc/os-release << EOF
 NAME="Linux From Scratch"
 VERSION="$LFS_VERSION"
 ID=lfs
 PRETTY_NAME="Linux From Scratch $LFS_VERSION"
 VERSION_CODENAME="chamada"
 EOF
-popd

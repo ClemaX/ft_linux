@@ -53,7 +53,6 @@ else
 	progress_init 11
 fi
 
-# Create a new disk image.
 progress "Creating disk image"
 img_new "$IMG_DST" "$IMG_SIZE"
 
@@ -75,36 +74,13 @@ DEV_SWAP_ID="PARTUUID=$(blkid "${LOOP_DEV}p2" -o value -s PARTUUID)"
 progress "Mounting disk"
 disk_mount "$LOOP_DEV" "$LFS"
 
-if [ -f "$lfs_backup_file" ]
+if ! [ -e "$lfs_backup_file" ]
 then
-	progress "Restoring backup"
-	lfs_restore "$LFS" "$lfs_backup_file"
-
-	# TODO: Fix permission in backup and remove this
-	chmod 755 "$LFS"
-
-	# TODO: Remove when stable
-		chown -v lfs "$LFS/sources" "$LFS"
-
-		info "Fetching sources"
-		# Make files readable by anyone
-		umask 022
-
-		# Fetch sources.
-		sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
-
-		chown -v root "$LFS" "$LFS/sources"
-	#
-else
 	progress "Fetching sources"
-	# Make files readable by anyone
-	umask 022
 
-	# Fetch sources.
 	sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
 	chown -v lfs "$LFS" "$LFS/sources"
 
-	# Build LFS toolchain.
 	progress "Building toolchain"
 	pushd /home/lfs
 		# shellcheck disable=SC2088
@@ -122,17 +98,29 @@ else
 	lfs_chown root:root "$LFS"
 	chown -R root:root /tmp
 
-	# Initialize the filesystem.
 	progress "Initializing filesystem"
 	lfs_chroot "$LFS" /bin/bash --login +h /build/init.sh
 
-	# Build additional temporary tools.
 	progress "Building temporary tools"
 	lfs_chroot "$LFS" /bin/bash --login +h /build/build_tools.sh
 
-	# Backup the temporary filesystem.
-	progress "Backing up"
+	progress "Backing up temporary filesystem"
 	lfs_backup "$LFS" "$lfs_backup_file"
+else
+	progress "Restoring temporary filesystem"
+	lfs_restore "$LFS" "$lfs_backup_file"
+
+	# TODO: Fix permission in backup and remove this
+	chmod 755 "$LFS"
+
+	# TODO: Remove when stable
+		chown -v lfs "$LFS/sources" "$LFS"
+
+		info "Fetching sources"
+		sources_fetch "$lfs_base_url" "$LFS/sources" /cache lfs
+
+		chown -v root "$LFS" "$LFS/sources"
+	#
 fi
 
 progress "Building system software"
