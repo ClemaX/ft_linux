@@ -167,7 +167,7 @@ pkg_run() # pkg_fun
 	done
 }
 
-# Fetch a repo at "url" as "proto://repo:branch", create a tar archive and an
+# Fetch a repo at "url" as "proto://repo:ref", create a tar archive and an
 # md5 sum and store it's name in a variable named "name_dst".
 pkg_src_fetch_git() # url name_dst
 {
@@ -180,18 +180,27 @@ pkg_src_fetch_git() # url name_dst
 	then
 		local proto="${BASH_REMATCH[1]}"
 		local repo="${BASH_REMATCH[2]}"
-		local branch="${BASH_REMATCH[3]}"
+		local ref="${BASH_REMATCH[3]}"
 
-		name="$(basename "$repo" .git)-$branch"
+		name="$(basename "$repo" .git)-$ref"
 
 		if [ -d "$name/.git" ]
 		then
 			pushd "$name"
-				git fetch --depth 1 origin "$branch"
+				git fetch --depth 1 origin "$ref"
+				git checkout "$ref"
+				git submodule update --init --recursive --depth 1
 			popd
 		else
-			git clone --depth 1 --single-branch \
-				--branch "$branch" "$proto://$repo" "$name"
+			mkdir -vp "$name"
+			pushd "$name"
+				git init
+				git remote add origin "$proto://$repo"
+
+				git fetch --depth 1 origin "$ref"
+				git checkout "$ref"
+				git submodule update --init --recursive --depth 1
+			popd
 		fi
 		name_dst="$name"
 
