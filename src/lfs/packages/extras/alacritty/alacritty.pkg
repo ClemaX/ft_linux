@@ -62,8 +62,8 @@ build()
 
 	pushd "$SRCDIR" || return
 		# Set TERMINAL variable on xinit.
-		install -vD -m644 92-terminal.sh \
-			-t "$DESTDIR/usr/local/etc/X11/xinit/xinitrc.d"
+		install -vD -m755 92-terminal.sh \
+			-t "$DESTDIR/etc/X11/xinit/xinitrc.d"
 
 		# Add default configuration.
 		install -vD -m644 url-handling.yml \

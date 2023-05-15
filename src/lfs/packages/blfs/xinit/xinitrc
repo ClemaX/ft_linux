@@ -2,23 +2,34 @@
 
 wm='i3'
 
-sysdir='/etc/X11/app-defaults'
+sysdir='/etc/X11'
 userdir="$HOME"
 
 userresources="$userdir/.Xresources"
 usermodmap="$userdir/.Xmodmap"
-sysresources="$sysdir/.Xresources"
-sysmodmap="$sysdir/.Xmodmap"
+
+sysresources="$sysdir/Xresources"
+sysmodmap="$sysdir/Xmodmap"
+
+sysxinitrcdir="$sysdir/xinit/xinitrc.d"
 
 # Merge in defaults and keymaps.
-if [ -f $sysresources ]
+if [ -d "$sysresources" ]
 then
-    xrdb -merge $sysresources
+    for f in "$sysresources/"*
+    do
+        xrdb -merge "$f"
+    done
+
+    unset f
+elif [ -f "$sysresources" ]
+then
+    xrdb -merge "$sysresources"
 fi
 
-if [ -f $sysmodmap ]
+if [ -f "$sysmodmap" ]
 then
-    xmodmap $sysmodmap
+    xmodmap "$sysmodmap"
 fi
 
 if [ -f "$userresources" ]
@@ -32,9 +43,9 @@ then
 fi
 
 # Load xinitrc.d scripts.
-if [ -d /usr/local/etc/X11/xinit/xinitrc.d ]
+if [ -d "$sysxinitrcdir" ]
 then
-    for f in /usr/local/etc/X11/xinit/xinitrc.d/?*.sh
+    for f in "$sysxinitrcdir/"?*.sh
     do
         # shellcheck source=/dev/null
         [ -x "$f" ] && . "$f"

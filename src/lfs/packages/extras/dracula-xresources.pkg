@@ -18,6 +18,6 @@ build()
 {
 	pushd "$SRCDIR/$source_base" || return
 		install -vd "$DESTDIR/etc/X11/app-defaults"
-		install -v -m644 Xresources "$DESTDIR/etc/X11/app-defaults/.Xresources"
+		install -vD -m644 Xresources "$DESTDIR/etc/X11/Xresources/dracula"
 	popd || return
 }
