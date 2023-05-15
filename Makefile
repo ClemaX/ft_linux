@@ -54,6 +54,19 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 
 	printf '\a'
 
+edit: ft_linux
+	@echo "RUN ./edit.sh"
+	docker run --rm \
+		--cap-drop=all $(CAPS:%=--cap-add=%) \
+		--device-cgroup-rule='b 7:* rmw' \
+		--device-cgroup-rule='b 259:* rmw' \
+		-v /dev:/hostdev:ro \
+		-v "$(DISTVOL):/dist:rw" \
+		-v "$(CACHEVOL):/cache:rw" \
+		-v "$(PWD)/$(SRCDIR)/lfs:/root/chroot" \
+		--name=ft_linux \
+		-it ft_linux ./edit.sh
+
 check-scripts:
 	shellcheck $(shell find $(SRCDIR) -type f -name '*.sh')
 
