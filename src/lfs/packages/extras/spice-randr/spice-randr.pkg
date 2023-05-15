@@ -7,8 +7,6 @@
 name="spice-randr"
 version="1.0.0"
 
-branch=master
-
 source_base="$name-$version"
 
 sources=(

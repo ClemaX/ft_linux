@@ -7,11 +7,11 @@
 name="dracula-alacritty"
 version="1.0.0"
 
-branch=master
+ref='77aff04b9f2651eac10e5cfa80a3d85ce43e7985'
 
-source_base="alacritty-$branch"
+source_base="alacritty-$ref"
 
-sources=("https://github.com/dracula/alacritty.git:$branch")
+sources=("https://github.com/dracula/alacritty.git:$ref")
 md5sums=()
 
 build()

@@ -5,11 +5,11 @@
 name="dracula-xresources"
 version="1.0.0"
 
-branch=master
+ref='539ef24e9b0c5498a82d59bfa2bad9b618d832a3'
 
-source_base="xresources-$branch"
+source_base="xresources-$ref"
 
-sources=("https://github.com/dracula/xresources.git:$branch")
+sources=("https://github.com/dracula/xresources.git:$ref")
 md5sums=()
 
 # TODO: Use fixed commit-id
