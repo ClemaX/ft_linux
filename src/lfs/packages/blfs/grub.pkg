@@ -68,18 +68,12 @@ post_install()
 
 	local esp_dir=/boot
 
-	local dev_boot_id dev_root_id
-
-	local kernel_entry_name
-	local kernel kernel_cmdline
+	local dev_boot_id
+	local dev_root_partuuid
 
 	dev_boot_id="PARTUUID=$(findmnt "$esp_dir" -no PARTUUID)"
-	dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
-
-	kernel_entry_name="ft_linux (LFS $lfs_version), Linux $kernel_version$kernel_localversion"
-
-	kernel_image_path="/vmlinuz-$kernel_version$kernel_localversion"
-	kernel_cmdline="root=$dev_root_id ro"
+	dev_root_partuuid=$(findmnt / -no PARTUUID)
+	dev_root_name=$(basename "$(findmnt / -no SOURCE)")
 
 	# Add boot device to fstab.
 	echo "$dev_boot_id $esp_dir vfat defaults 0 1" >> /etc/fstab
@@ -97,37 +91,15 @@ post_install()
 	# Install grub for removable device.
 	grub-install --efi-directory="$esp_dir" --target=x86_64-efi --removable
 
-	# Configure the grub boot menu.
-	cat > "$esp_dir/grub/grub.cfg" << EOF
-# Grub menu configuration file.
+	if ! [ -e "/dev/disk/by-partuuid/$dev_root_partuuid" ]
+	then
+		# Create by-partuuid link if it does not exist.
+		mkdir -vp /dev/disk/by-partuuid
+		ln -vs "../../$dev_root_name" "/dev/disk/by-partuuid/$dev_root_partuuid"
+	fi
 
-# Default entry.
-set default=0
-# Menu timeout.
-set timeout=5
-
-# Load modules.
-insmod part_gpt
-insmod ext2
-
-# Set root partition.
-set root=(hd0,1)
-
-# Load unicode font.
-if loadfont /grub/fonts/unicode.pf2; then
-  set gfxmode=auto
-  insmod all_video
-  terminal_output gfxterm
-fi
-
-# LFS menu entry.
-menuentry "$kernel_entry_name"  {
-  linux $kernel_image_path $kernel_cmdline
-}
-
-# Firmware setup menu entry.
-menuentry "Firmware Setup" {
-  fwsetup
-}
+	cat > /etc/default/grub << EOF
+GRUB_DISTRIBUTOR=LFS
+GRUB_DISABLE_LINUX_PARTUUID=false
 EOF
 }
