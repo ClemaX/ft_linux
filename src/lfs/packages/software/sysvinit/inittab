@@ -2,21 +2,36 @@
 
 id:5:initdefault:
 
+# System initialization
 si::sysinit:/etc/rc.d/init.d/rc S
 
+# Halt
 l0:0:wait:/etc/rc.d/init.d/rc 0
+
+# Single-user mode
 l1:S1:wait:/etc/rc.d/init.d/rc 1
+
+# Reserved for customization, otherwise the same as 3
 l2:2:wait:/etc/rc.d/init.d/rc 2
+# Multi-user mode with networking
 l3:3:wait:/etc/rc.d/init.d/rc 3
+# Reserved for customization, otherwise the same as 3
 l4:4:wait:/etc/rc.d/init.d/rc 4
+
+# GUI login
 l5:5:wait:/etc/rc.d/init.d/rc 5
+
+# Reboot 
 l6:6:wait:/etc/rc.d/init.d/rc 6
 
+# Ctrk + Alt + Del handler
 ca:12345:ctrlaltdel:/sbin/shutdown -t1 -a -r now
 
+# Single-user mode login
 su:S06:once:/sbin/sulogin
 s1:1:respawn:/sbin/sulogin
 
+# Login ttys
 1:2345:respawn:/sbin/agetty --noclear tty1 9600
 2:2345:respawn:/sbin/agetty tty2 9600
 3:2345:respawn:/sbin/agetty tty3 9600
