@@ -188,7 +188,7 @@ pkg_src_fetch_git() # url name_dst
 		then
 			pushd "$name"
 				git fetch --depth 1 origin "$ref"
-				git checkout "$ref"
+				git checkout FETCH_HEAD
 				git submodule update --init --recursive --depth 1
 			popd
 		else
@@ -198,7 +198,7 @@ pkg_src_fetch_git() # url name_dst
 				git remote add origin "$proto://$repo"
 
 				git fetch --depth 1 origin "$ref"
-				git checkout "$ref"
+				git checkout FETCH_HEAD
 				git submodule update --init --recursive --depth 1
 			popd
 		fi
