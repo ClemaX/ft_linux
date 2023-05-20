@@ -251,9 +251,9 @@ pkg_src_fetch() # url name_dst
 
 		if [ "$url" != "${url#/}" ]
 		then
-			cp -av "$ROOT/$url" "$name"
+			cp -av --no-preserve=ownership "$ROOT/$url" "$name"
 		else
-			cp -av "$PKGDIR/$url" "$name"
+			cp -av --no-preserve=ownership "$PKGDIR/$url" "$name"
 		fi
 	fi
 
