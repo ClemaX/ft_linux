@@ -1,0 +1,46 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on pam, xcb, xorg, xorg-xauth, mcookie, tput, shutdown
+
+name="ly"
+version="v0.5.4"
+
+ref="c64f806a68af225cc95623971b5e464abb55b879"
+
+source_base="$name-$ref"
+
+permissions_patch="$name-permissions.patch"
+
+sources=(
+	"https://github.com/fairyglade/ly.git:$ref"
+	"$permissions_patch"
+	"config.ini"
+	"ly.tab"
+)
+md5sums=()
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		patch -N -i "$SRCDIR/$permissions_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" install
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Install inittab.d entry.
+		install -vD -m644 ly.tab -t "$DESTDIR/etc/inittab.d"
+
+		# Install default configuration.
+		install -vD -m644 config.ini -t "$DESTDIR/etc/ly"
+	popd || return
+}

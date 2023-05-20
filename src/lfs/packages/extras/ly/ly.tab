@@ -1,0 +1,2 @@
+# Run agetty with ly on tty7 at runlevel 5
+dm:5:respawn:/sbin/agetty --skip-login --login-program /bin/ly tty7 9600

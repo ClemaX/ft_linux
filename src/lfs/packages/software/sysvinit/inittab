@@ -1,6 +1,6 @@
 # Begin /etc/inittab
 
-id:3:initdefault:
+id:5:initdefault:
 
 si::sysinit:/etc/rc.d/init.d/rc S
 
