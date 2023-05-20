@@ -1,0 +1,63 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on grub
+
+name="dracula-grub"
+version="1.0.0"
+
+ref='0e721d99dbf0d5d6c4fd489b88248365b7a60d12'
+
+source_base="grub-$ref"
+
+logo_patch="$name-256px-logo.patch"
+
+sources=(
+	"https://github.com/dracula/grub.git:$ref"
+	"logo.png"
+	"$logo_patch"
+)
+md5sums=()
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base/dracula" || return
+		# Replace logo.
+		mv "$SRCDIR/logo.png" .
+
+		# Adjust logo position in theme.txt.
+		patch -N -i "$SRCDIR/$logo_patch"
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		install -vd "$DESTDIR/boot/grub/themes"
+
+		mv dracula "$DESTDIR/boot/grub/themes"
+	popd || return
+}
+
+post_install()
+{
+	local theme_path=/boot/grub/themes/dracula/theme.txt
+
+	# Set GRUB_THEME.
+	echo "GRUB_THEME=$theme_path" >> /etc/default/grub
+
+	# Update grub config.
+	grub-mkconfig -o /boot/grub/grub.cfg
+}
+
+pre_uninstall()
+{
+	local theme_path=/boot/grub/themes/dracula/theme.txt
+
+	if [ -f /etc/default/grub ]
+	then
+		# Remove GRUB_THEME.
+		sed -i '\|^GRUB_THEME='"$theme_path"'|d' /etc/default/grub
+	fi
+}
