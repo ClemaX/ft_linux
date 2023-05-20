@@ -1,0 +1,48 @@
+#!/bin/sh
+########################################################################
+# Begin vtrgb
+#
+# Description : Set vtrgb console colors.
+#
+# Authors     : ClemaX
+#
+# Version     : LFS 11.3
+#
+# Notes       :
+#
+########################################################################
+
+### BEGIN INIT INFO
+# Provides:            vtrgb
+# Required-Start:
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:
+# Default-Stop:
+# Short-Description:
+# Description:
+# X-LFS-Provided-By:
+### END INIT INFO
+
+# shellcheck source=/dev/null
+. /lib/lsb/init-functions
+
+case "${1}" in
+start)
+	if [ -f /etc/vtrgb ]
+	then
+		log_info_msg "Setting vtrgb colors..."
+		setvtrgb /etc/vtrgb
+	fi
+	;;
+
+*)
+	echo "Usage: ${0} {start}"
+	exit 1
+	;;
+esac
+
+exit 0
+
+# End scriptname

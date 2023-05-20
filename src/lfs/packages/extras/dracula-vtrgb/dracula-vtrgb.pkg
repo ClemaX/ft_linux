@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="dracula-vtrgb"
+version="1.0.0"
+
+source_base="$name-$version"
+
+sources=(
+	"dracula.vtrgb"
+	"vtrgb"
+)
+md5sums=(
+)
+
+build()
+{
+	pushd "$SRCDIR" || return
+		# Install service script.
+		install -vD -m755 vtrgb -t "$DESTDIR/etc/init.d"
+
+		# Install vtrgb color file.
+		install -vD -m644 dracula.vtrgb "$DESTDIR/etc/vtrgb"
+	popd || return
+}
+
+post_install()
+{
+	# Enable vtrgb at system initialization.
+	ln -vsf ../init.d/vtrgb /etc/rc.d/rcS.d/S01vtrgb
+}
+
+pre_uninstall()
+{
+	# Disable vtrgb.
+	rm -vf /etc/rc.d/rcS.d/S01vtrgb
+}
