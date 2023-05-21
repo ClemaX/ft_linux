@@ -21,6 +21,7 @@ RUN ./prepare.sh && rm -f packages.lst ./prepare.sh
 COPY src/host/root/sources			./sources
 COPY src/host/root/utils			./utils
 COPY src/host/root/edit.sh			./
+COPY src/host/root/kernel.sh		./
 COPY src/host/root/build.sh			./
 COPY src/lfs						./chroot
 

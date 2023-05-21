@@ -47,7 +47,6 @@ disk_partition() # dev
 }
 
 # Shrink a disk's last ext4 fs and partition to a given size in MiB.
-# TODO: Determine part_index automatically (must be last partition)
 disk_shrink() # device fs_size
 {
 	local device="$1"

@@ -6,6 +6,11 @@ DISTVOL=lfs-dist## The destination docker-volume.
 CACHEVOL=lfs-cache## The cache docker-volume.
 NAME=lfs.img## The name of the image.
 
+VIRTCPU=8## CPU count to use for virtual machines.
+VIRTRAM=4096## RAM amount to use for virtual machines (in MB).
+VIRTVRAM=128## VRAM amount to use for virtual machines (in MB).
+VIRTNAME=LFS## Name to use for virtual machines.
+
 CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER DAC_OVERRIDE## Capabilities to enable for the docker container.
 CMD=./build.sh## Command to run in the docker container.
 
@@ -26,35 +31,44 @@ $(DISTDIR):
 	mkdir -p "$(DISTDIR)"
 
 $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
-	@echo "RUN $(CMD)"
-	docker run --rm \
-		--cap-drop=all $(CAPS:%=--cap-add=%) \
-		--device-cgroup-rule='b 7:* rmw' \
-		--device-cgroup-rule='b 259:* rmw' \
-		-v /dev:/hostdev:ro \
-		-v "$(DISTVOL):/dist:rw" \
-		-v "$(CACHEVOL):/cache:rw" \
-		-v "$(PWD)/$(SRCDIR)/lfs:/root/chroot" \
-		--name=ft_linux \
-		-it ft_linux $(CMD)
+	if [ ! -f $(DISTDIR)/$(NAME) ] || [ ! -f "$(DISTDIR)/build-id" ] \
+	   || [ "$$(cat "$(DISTDIR)/build-id")" != "$$(docker inspect -f '{{.Id}}' ft_linux)" ]; \
+	then \
+		set -euo pipefail; \
+\
+		echo "RUN $(CMD)"; \
+		docker run --rm \
+			--cap-drop=all $(CAPS:%=--cap-add=%) \
+			--device-cgroup-rule='b 7:* rmw' \
+			--device-cgroup-rule='b 259:* rmw' \
+			-v /dev:/hostdev:ro \
+			-v "$(DISTVOL):/dist:rw" \
+			-v "$(CACHEVOL):/cache:rw" \
+			-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
+			--name=ft_linux \
+			-it ft_linux $(CMD); \
+\
+		echo "CP $(NAME) $(DISTDIR)"; \
+		docker run --rm -d \
+			--cap-drop=all \
+			-v "$(DISTVOL):/dist:rw" \
+			--name=ft_linux-dist \
+			ft_linux \
+			tail -f /dev/null; \
+\
+		docker cp --quiet=false ft_linux-dist:/dist/disk.img \
+			$(DISTDIR)/$(NAME) 2>&1 \
+		| awk '{printf "\r%s", $$0; fflush();}'; echo; \
+\
+		echo "$$(docker inspect -f '{{.Id}}' ft_linux)" \
+			> "$(DISTDIR)/build-id"; \
+\
+		docker stop ft_linux-dist; \
+\
+		printf '\a'; \
+	fi
 
-	@echo "CP $(NAME) $(DISTDIR)"
-	docker run --rm -d \
-		--cap-drop=all \
-		-v "$(DISTVOL):/dist:rw" \
-		--name=ft_linux-dist \
-		ft_linux \
-		tail -f /dev/null
-
-	docker cp --quiet=false ft_linux-dist:/dist/disk.img \
-		$(DISTDIR)/$(NAME) 2>&1 \
-	| awk '{printf "\r%s", $$0; fflush();}'
-
-	docker stop ft_linux-dist
-
-	printf '\a'
-
-edit: ft_linux
+edit: $(DISTDIR)/$(NAME) ## Edit or inspect a built image using chroot.
 	@echo "RUN ./edit.sh"
 	docker run --rm \
 		--cap-drop=all $(CAPS:%=--cap-add=%) \
@@ -63,13 +77,95 @@ edit: ft_linux
 		-v /dev:/hostdev:ro \
 		-v "$(DISTVOL):/dist:rw" \
 		-v "$(CACHEVOL):/cache:rw" \
-		-v "$(PWD)/$(SRCDIR)/lfs:/root/chroot" \
+		-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
 		--name=ft_linux \
 		-it ft_linux ./edit.sh
 
-check-scripts:
-	shellcheck $(shell find $(SRCDIR) -type f -name '*.sh')
+kernel-oldconfig: $(DISTDIR)/$(NAME) ## Migrate from an older kernel configuration.
+	@echo "RUN kernel oldconfig"
+	docker run --rm \
+		--cap-drop=all $(CAPS:%=--cap-add=%) \
+		--device-cgroup-rule='b 7:* rmw' \
+		--device-cgroup-rule='b 259:* rmw' \
+		-v /dev:/hostdev:ro \
+		-v "$(DISTVOL):/dist:rw" \
+		-v "$(CACHEVOL):/cache:rw" \
+		-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
+		--name=ft_linux \
+		-it ft_linux ./kernel.sh oldconfig
 
-.PHONY: help ft_linux check-scripts
+kernel-menuconfig: $(DISTDIR)/$(NAME) ## Edit the kernel configuration.
+	@echo "RUN kernel menuconfig"
+	docker run --rm \
+		--cap-drop=all $(CAPS:%=--cap-add=%) \
+		--device-cgroup-rule='b 7:* rmw' \
+		--device-cgroup-rule='b 259:* rmw' \
+		-v /dev:/hostdev:ro \
+		-v "$(DISTVOL):/dist:rw" \
+		-v "$(CACHEVOL):/cache:rw" \
+		-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
+		--name=ft_linux \
+		-it ft_linux ./kernel.sh menuconfig
+
+virt-install: $(DISTDIR)/$(NAME) ## Install the built image as a virt-manager VM.
+	@echo "Installing '$(VIRTNAME)' using virt-install..."
+	@virt-install \
+		--name=LFS \
+		--os-variant=linux2022 \
+		--vcpu="$(VIRTCPU)" \
+		--ram="$(VIRTRAM)" \
+		--disk "bus=sata,path=$(shell readlink -f "$(DISTDIR)/$(NAME)")" \
+		--video=qxl,vram="$(VIRTVRAM)" \
+		--channel spicevmc \
+		--network network=default \
+		--boot uefi \
+		--import
+
+virt-uninstall: ## Uninstall the virt-manager VM.
+	@echo "Uninstalling '$(VIRTNAME)' using virsh..."
+	@virsh undefine "$(VIRTNAME)" --nvram
+
+$(DISTDIR)/$(NAME).vdi: $(DISTDIR)/$(NAME) ## Build a LFS VDI disk image.
+	@rm -f "$(DISTDIR)/$(NAME).vdi"
+	@VBoxManage convertfromraw "$(DISTDIR)/$(NAME)" "$(DISTDIR)/$(NAME).vdi"
+
+vbox-install: $(DISTDIR)/$(NAME).vdi ## Install the build image as a VirtualBox VM
+	@echo "Installing '$(VIRTNAME)' using VBoxManage..."
+	@VBoxManage createvm \
+		--name "$(VIRTNAME)" \
+		--ostype=Linux_64 \
+		--register
+
+	@VBoxManage modifyvm "$(VIRTNAME)" \
+		--memory "$(VIRTRAM)" \
+		--vram "$(VIRTVRAM)" \
+		--graphicscontroller=vmsvga \
+		--firmware=efi64
+
+	@VBoxManage storagectl "$(VIRTNAME)" \
+		--name "SATA Controller" \
+		--add sata \
+		--controller IntelAHCI \
+		--portcount 1
+
+	@VBoxManage storageattach "$(VIRTNAME)" \
+		--storagectl "SATA Controller" \
+		--port 0 \
+		--device 0 \
+		--type hdd \
+		--medium "$(shell readlink -f "$(DISTDIR)/$(NAME).vdi")"
+
+vbox-uninstall: ## Uninstall the VirtualBox VM.
+	@echo "Uninstalling '$(VIRTNAME)' using VBoxManage..."
+	@! VBoxManage list runningvms | grep "\"$(VIRTNAME)\"" > /dev/null \
+	|| VBoxManage controlvm "$(VIRTNAME)" poweroff
+
+	@VBoxManage unregistervm "$(VIRTNAME)" --delete
+
+check-scripts:
+	shellcheck $(shell find "$(SRCDIR)" -type f -name '*.sh')
+
+.PHONY: all help ft_linux edit virt-install vbox-install vbox-uninstall \
+	check-scripts
 
 $(VERBOSE).SILENT:

@@ -28,3 +28,5 @@ ca-certificates
 parallel
 git
 gdisk
+libncurses-dev
+flex

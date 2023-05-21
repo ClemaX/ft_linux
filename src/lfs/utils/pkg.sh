@@ -332,7 +332,6 @@ pkg_load() # pkg_file
 		&& [ -f "$PKG_DATA/${pkg_file%.pkg}/$pkg_file" ]
 		then
 			pkg_dir="$PKG_DATA/${pkg_file%.pkg}"
-			echo "Using previously built $pkg_file..."
 		fi
 	fi
 
@@ -734,6 +733,25 @@ pkg_list_files() # [pkg]...
 	done
 }
 
+# List the given packages's versions
+pkg_version() # [pkg]...
+{
+	local pkg
+	local data_dir
+
+	for pkg in "$@"
+	do
+		pkg="${pkg%.pkg}"; shift
+		data_dir="$PKG_DATA/$pkg"
+
+		pkg_assert_installed "$pkg"
+
+		pkg_load "$data_dir/$pkg.pkg"
+			echo "$version"
+		pkg_unload
+	done
+}
+
 # Parse action
 action="${1:-}"
 [ $# -gt 0 ] && shift
@@ -744,6 +762,7 @@ case "$action" in
 	uninstall)	pkg_uninstall "$@";;
 	list)		pkg_list;;
 	files)		pkg_list_files "$@";;
+	version)	pkg_version "$@";;
 	help)		print_usage;;
 	*)			print_usage; exit 1;;
 esac
