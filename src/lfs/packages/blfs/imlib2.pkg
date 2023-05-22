@@ -1,0 +1,32 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on giflib-5.2.1
+
+name="imlib2"
+version="1.11.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'b9b3c3c33671b4deaa872579eaf15154'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		./configure --prefix=/usr --disable-static
+
+		make
+
+		make DESTDIR="$DESTDIR" install
+
+		# TODO: Build and install documentation
+		#install -v -m755 -d "$DESTDIR/usr/share/doc/$source_base/html"
+		#install -v -m644 doc/html/* "$DESTDIR/usr/share/doc/$source_base/html"
+	popd || return
+}

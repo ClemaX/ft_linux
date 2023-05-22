@@ -1,0 +1,34 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libpng-1.6.39, imlib2-1.11.1
+
+name="feh"
+version="3.10"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'8adf6db9c5b18816df5ce539244d2329'
+)
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base" || return
+		# Add version to documentation directory.
+		sed -i "s:doc/feh:&-3.10:" config.mk
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make PREFIX=/usr
+
+		make DESTDIR="$DESTDIR" PREFIX=/usr install
+	popd || return
+}

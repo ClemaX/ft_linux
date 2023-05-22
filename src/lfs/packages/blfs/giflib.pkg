@@ -1,0 +1,38 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="giflib"
+version="5.2.1"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.gz"
+)
+md5sums=(
+	'6f03aee4ebe54ac2cc1ab3e4b0a049e5'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		make
+
+		make DESTDIR="$DESTDIR" PREFIX=/usr install
+
+		# Remove static library.
+		rm -fv "$DESTDIR/usr/lib/libgif.a"
+
+		# Remove Makefiles, man and xml files from documentation directory.
+		find doc \( \
+			-name Makefile\* \
+			-o -name \*.1 \
+			-o -name \*.xml \) \
+			-exec rm -v {} \;
+
+		# Install documentation.
+		install -v -dm755 "$DESTDIR/usr/share/doc/$source_base"
+		cp -v -R doc/* "$DESTDIR/usr/share/doc/$source_base"
+	popd || return
+}

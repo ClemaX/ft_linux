@@ -144,7 +144,8 @@ EOF
 		shared-mime-info gsettings-desktop-schemas at-spi2-core gdk-pixbuf \
 		librsvg gtk3 adwaita-icon-theme libogg libvorbis libcanberra \
 		notification-daemon libnotify c-ares icu nodejs sqlite yasm nspr \
-		libevent libvpx libwebp nasm nss xdg-utils desktop-file-utils
+		libevent libvpx libwebp nasm nss xdg-utils desktop-file-utils giflib \
+		imlib2 feh
 
 	# Rebuild python with sqlite.
 	rebuild_pkg python sqlite
