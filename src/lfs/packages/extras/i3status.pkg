@@ -22,4 +22,22 @@ build()
 			DESTDIR="$DESTDIR" ninja install
 		popd || return
 	popd || return
+
+	# Move defult i3status configuration to shared configuration directory.
+	install -vd "$DESTDIR/usr/share/i3status"
+	mv "$DESTDIR/etc/i3status.conf" "$DESTDIR/usr/share/i3status/default.conf"
+}
+
+post_install()
+{
+	if ! [ -L /etc/i3status.conf ]
+	then
+		# Create configuration symlink if it does not exist.
+		ln -vsf /usr/share/i3status/default.conf /etc/i3status.conf
+	fi
+}
+
+pre_uninstall()
+{
+	rm -vf /etc/i3status.conf
 }

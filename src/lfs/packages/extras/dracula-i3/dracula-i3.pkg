@@ -1,0 +1,44 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on i3
+
+name="dracula-i3"
+version="1.0.0"
+
+ref='c75c857bcdb826d55ce360e3d5f5a56ef6783c34'
+
+source_base="i3-$ref"
+
+sources=(
+	"https://github.com/dracula/i3.git:$ref"
+)
+md5sums=()
+
+prepare()
+{
+	pushd "$SRCDIR/$source_base/.config/i3" || return
+		# Remove keybindings from configuration.
+		sed -i '/^\s*bindsym/d' config
+	popd || return
+}
+
+build()
+{
+	pushd "$SRCDIR/$source_base/.config/i3" || return
+		install -vd "$DESTDIR/usr/share/i3"
+		cat /usr/share/i3/default-theme.conf config \
+			> "$DESTDIR/usr/share/i3/dracula.conf"
+	popd || return
+}
+
+post_install()
+{
+	ln -vsf /usr/share/i3/dracula.conf /etc/i3/theme.conf
+}
+
+pre_uninstall()
+{
+	ln -vsf /dev/null /etc/i3/theme.conf
+}

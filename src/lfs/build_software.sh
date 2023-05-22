@@ -160,7 +160,7 @@ pushd "$SCRIPTDIR/packages/extras"
 	install_pkg dialog lfs-config xcb-util-xrm yajl libev libconfuse i3status \
 		dracula-xresources dex i3 spice-protocol spice-vdagent spice-randr \
 		alacritty dracula-alacritty ly dracula-grub dracula-vtrgb rofi \
-		dracula-rofi
+		dracula-rofi dracula-i3 dracula-i3status
 popd
 
 # TODO: Install pkg using pkg

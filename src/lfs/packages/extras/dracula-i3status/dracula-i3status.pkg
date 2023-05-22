@@ -1,0 +1,36 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on i3status
+
+name="dracula-i3status"
+version="1.0.0"
+
+ref='c75c857bcdb826d55ce360e3d5f5a56ef6783c34'
+
+source_base="i3-$ref"
+
+sources=("https://github.com/dracula/i3.git:$ref")
+md5sums=()
+
+build()
+{
+	pushd "$SRCDIR/$source_base/.config/i3status" || return
+		install -vd "$DESTDIR/usr/share/i3status"
+
+		# Append theme configuration to default configuration.
+		cat /usr/share/i3status/default.conf config \
+			> "$DESTDIR/usr/share/i3status/dracula.conf"
+	popd || return
+}
+
+post_install()
+{
+	ln -vsf /usr/share/i3status/dracula.conf /etc/i3status.conf
+}
+
+pre_uninstall()
+{
+	ln -vsf /usr/share/i3status/default.conf /etc/i3status.conf
+}
