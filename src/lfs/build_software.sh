@@ -269,9 +269,6 @@ pushd "$SCRIPTDIR/packages/software"
 	install_pkg linux
 popd
 
-# Update grub config.
-grub-mkconfig -o /boot/grub/grub.cfg
-
 # Remove sources.
 rm -rf /sources
 

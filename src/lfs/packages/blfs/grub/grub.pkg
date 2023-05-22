@@ -12,6 +12,7 @@ source_base="$name-$version"
 sources=(
 	"/sources/$source_base.tar.xz"
 	"/sources/$source_base-upstream_fixes-1.patch"
+	"grub-mkconfig.hook"
 )
 md5sums=(
 	'cf0fd928b1e5479c8108ee52cb114363'
@@ -51,9 +52,14 @@ build()
 		make DESTDIR="$DESTDIR" install
 
 		# Move bash completion to correct location.
-		install -d "$DESTDIR/usr/share/bash-completion/completions"
+		install -vd "$DESTDIR/usr/share/bash-completion/completions"
 		mv -v "$DESTDIR/etc/bash_completion.d/grub" \
 			"$DESTDIR/usr/share/bash-completion/completions"
+	popd || return
+
+	pushd "$SRCDIR" || return
+		install -vD -m644 grub-mkconfig.hook \
+			-t "$DESTDIR/usr/share/pkg/hooks/linux"
 	popd || return
 }
 
@@ -77,6 +83,8 @@ post_install()
 
 	# Add boot device to fstab.
 	echo "$dev_boot_id $esp_dir vfat defaults 0 1" >> /etc/fstab
+
+	# TODO: Handle efivars
 
 	# Ensure efivars are mounted.
 	#mountpoint /sys/firmware/efi/efivars \

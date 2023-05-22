@@ -1,0 +1,9 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# Updates grub configuration after linux is installed.
+
+hook_post_install() {
+    grub-mkconfig -o /boot/grub/grub.cfg
+}
