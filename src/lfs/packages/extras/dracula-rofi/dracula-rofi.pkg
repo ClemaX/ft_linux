@@ -1,0 +1,20 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="dracula-rofi"
+version="1.0.0"
+
+source_base="$name-$version"
+
+sources=("rofi.rasi")
+md5sums=()
+
+build()
+{
+	local sysconf_dir="${XDG_CONFIG_DIRS:-/etc}"
+
+	pushd "$SRCDIR" || return
+		install -vD -m755 rofi.rasi -t "$DESTDIR/$sysconf_dir"
+	popd || return
+}

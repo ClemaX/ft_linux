@@ -1,0 +1,33 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+# TODO: Depends on libpango, libpangocairo, libcairo, libcairo-xcb, libglib2.0,
+# libgdk-pixbuf-2.0, libstartup-notification-1.0, libxkbcommon ibxkbcommon-x11,
+# libxcb, xcb-util, xcb-util-wm, xcb-util-cursor
+
+name="rofi"
+version="1.7.5"
+
+source_base="$name-$version"
+
+sources=(
+	"/sources/$source_base.tar.xz"
+)
+md5sums=(
+	'284aea347005af52354a6a8c492a8c03'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		mkdir -p build
+		pushd build || return
+			../configure --prefix=/usr
+
+			make
+
+			make DESTDIR="$DESTDIR" install
+		popd || return
+	popd || return
+}
