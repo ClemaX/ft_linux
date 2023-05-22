@@ -11,6 +11,8 @@ source_base="$name-$version"
 
 sources=(
 	"/sources/$source_base.tar.xz"
+	"config"
+	"config.keycodes"
 )
 md5sums=(
 	'61c7787808344e2871079a9c93e751c2'
@@ -27,5 +29,10 @@ build()
 
 			DESTDIR="$DESTDIR" ninja install
 		popd || return
+	popd || return
+
+	pushd "$SRCDIR" || return
+		# Replace configuration templates.
+		install -vD -m644 config{,.keycodes} -t "$DESTDIR/etc/i3"
 	popd || return
 }
