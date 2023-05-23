@@ -63,7 +63,7 @@ dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
 dev_swap_id="${DEV_SWAP_ID:-#<swap_device>}"
 
 column -t > /etc/fstab << EOF
-#file-system 	mount-point	type		options				dump	fsck-order
+#file-system	mount-point	type		options				dump	fsck-order
 $dev_root_id	/			ext4		defaults			1		1
 $dev_swap_id	swap		swap		pri=1				0		0
 proc			/proc		proc		nosuid,noexec,nodev	0		0
@@ -160,7 +160,7 @@ pushd "$SCRIPTDIR/packages/extras"
 	install_pkg dialog lfs-config xcb-util-xrm yajl libev libconfuse i3status \
 		dracula-xresources dex i3 spice-protocol spice-vdagent spice-randr \
 		alacritty dracula-alacritty ly dracula-grub dracula-vtrgb rofi \
-		dracula-rofi dracula-i3 dracula-i3status
+		dracula-rofi dracula-i3 dracula-i3status dejavu-fonts
 popd
 
 # TODO: Install pkg using pkg

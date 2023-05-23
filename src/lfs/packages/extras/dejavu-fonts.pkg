@@ -1,0 +1,28 @@
+# vim: filetype=sh
+# shellcheck shell=bash
+# shellcheck disable=SC2034
+
+name="dejavu-fonts"
+version="2.37"
+
+source_base="dejavu-fonts-ttf-$version"
+
+sources=(
+	"/sources/$source_base.tar.bz2"
+)
+md5sums=(
+	'd0efec10b9f110a32e9b8f796e21782c'
+)
+
+build()
+{
+	pushd "$SRCDIR/$source_base" || return
+		install -vD -m644 ttf/*.ttf -t "$DESTDIR/usr/share/fonts/dejavu"
+	popd || return
+}
+
+post_install()
+{
+	# Update font cache.
+	fc-cache -v /usr/share/fonts/dejavu
+}
