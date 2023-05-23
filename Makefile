@@ -1,26 +1,52 @@
-SRCDIR=src
+## Parameters:
+## ----------
+SRCDIR:=src
 
-VERBOSE=## Assign a value to verbose to enable logging.
-DISTDIR=dist## The image's destination directory.
-DISTVOL=lfs-dist## The destination docker-volume.
-CACHEVOL=lfs-cache## The cache docker-volume.
-NAME=lfs.img## The name of the image.
+VERBOSE:=## Assign a value to verbose to enable logging.
+DISTDIR:=dist## The image's destination directory.
+DISTVOL:=lfs-dist## The destination docker-volume.
+CACHEVOL:=lfs-cache## The cache docker-volume.
+NAME:=lfs.img## The name of the image.
+##
+VIRTCPU:=8## CPU count to use for virtual machines.
+VIRTRAM:=4096## RAM amount to use for virtual machines (in MB).
+VIRTVRAM:=128## VRAM amount to use for virtual machines (in MB).
+VIRTNAME:=LFS## Name to use for virtual machines.
+##
+CAPS:=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER DAC_OVERRIDE## Capabilities to enable for the docker container.
+CMD:=./build.sh## Command to run in the docker container.
 
-VIRTCPU=8## CPU count to use for virtual machines.
-VIRTRAM=4096## RAM amount to use for virtual machines (in MB).
-VIRTVRAM=128## VRAM amount to use for virtual machines (in MB).
-VIRTNAME=LFS## Name to use for virtual machines.
+MAKEFILE:=$(CURDIR)/$(firstword $(MAKEFILE_LIST))
 
-CAPS=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER DAC_OVERRIDE## Capabilities to enable for the docker container.
-CMD=./build.sh## Command to run in the docker container.
+RE_SECTION:=^\s*\#\#
+RE_RULE:=^.*:.*\#\#\s+
+RE_VARIABLE:=^.*=.*\#\#\s+
 
-all: $(DISTDIR)/$(NAME) ## Alias for dist/lfs.img.
+SED_SECTION:=s/^\s*\#\#\s*(.*)/\1/
+SED_RULE:=s/(.*):.*\#\#\s*(.*)/\1|\2/
+SED_VARIABLE:=s/(.*)=(.*)\#\#\s*(.*)/\1|\3 Defaults to "\2"./
 
-help:
-	@grep -e '^.*:.*##\s\+.*$$' -e '^.*=.*##\s\+.*$$' Makefile \
-	| sed -e 's/\(.*\):.*##\s*\(.*\)/\1:\2/' \
-		-e 's/\(.*\)=\(.*\)##\s*\(.*\)/\1:\3 Defaults to "\2"./' \
-	| column -t -s':'
+SED_MATCH:=$(RE_SECTION)|$(RE_RULE)|$(RE_VARIABLE)
+SED_SUBST:={$(SED_SECTION);$(SED_RULE);$(SED_VARIABLE);p}
+##
+##
+## Rules:
+## -----
+help: ## Show available parameters and rules.
+	#@sed -n -E '/$(SED_MATCH)/$(SED_SUBST)' \
+	#	$(MAKEFILE) | column -L -t -s':'
+	@sed -n -E \
+		-e '/$(RE_SECTION)/{$(SED_SECTION); p}' \
+		-e '/$(RE_RULE)/{$(SED_RULE); p}' \
+		-e '/$(RE_VARIABLE)/{$(SED_VARIABLE); p}' \
+		$(MAKEFILE) \
+	| column -L -t -s'|'
+
+##
+
+all: $(DISTDIR)/$(NAME) ## Alias for $(DISTDIR)/$(NAME).
+
+##
 
 ft_linux: $(SRCDIR) ## Build the host docker image.
 	@echo "BUILD ft_linux"
@@ -68,6 +94,8 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 		printf '\a'; \
 	fi
 
+##
+
 edit: $(DISTDIR)/$(NAME) ## Edit or inspect a built image using chroot.
 	@echo "RUN ./edit.sh"
 	docker run --rm \
@@ -80,6 +108,8 @@ edit: $(DISTDIR)/$(NAME) ## Edit or inspect a built image using chroot.
 		-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
 		--name=ft_linux \
 		-it ft_linux ./edit.sh
+
+##
 
 kernel-oldconfig: $(DISTDIR)/$(NAME) ## Migrate from an older kernel configuration.
 	@echo "RUN kernel oldconfig"
@@ -94,7 +124,7 @@ kernel-oldconfig: $(DISTDIR)/$(NAME) ## Migrate from an older kernel configurati
 		--name=ft_linux \
 		-it ft_linux ./kernel.sh oldconfig
 
-kernel-menuconfig: $(DISTDIR)/$(NAME) ## Edit the kernel configuration.
+kernel-menuconfig: $(DISTDIR)/$(NAME) ## Edit the kernel configuration interactively.
 	@echo "RUN kernel menuconfig"
 	docker run --rm \
 		--cap-drop=all $(CAPS:%=--cap-add=%) \
@@ -106,6 +136,8 @@ kernel-menuconfig: $(DISTDIR)/$(NAME) ## Edit the kernel configuration.
 		-v "$(shell readlink -f "$(SRCDIR)/lfs"):/root/chroot" \
 		--name=ft_linux \
 		-it ft_linux ./kernel.sh menuconfig
+
+##
 
 virt-install: $(DISTDIR)/$(NAME) ## Install the built image as a virt-manager VM.
 	@echo "Installing '$(VIRTNAME)' using virt-install..."
@@ -129,7 +161,9 @@ $(DISTDIR)/$(NAME).vdi: $(DISTDIR)/$(NAME) ## Build a LFS VDI disk image.
 	@rm -f "$(DISTDIR)/$(NAME).vdi"
 	@VBoxManage convertfromraw "$(DISTDIR)/$(NAME)" "$(DISTDIR)/$(NAME).vdi"
 
-vbox-install: $(DISTDIR)/$(NAME).vdi ## Install the build image as a VirtualBox VM
+##
+
+vbox-install: $(DISTDIR)/$(NAME).vdi ## Install the built image as a VirtualBox VM.
 	@echo "Installing '$(VIRTNAME)' using VBoxManage..."
 	@VBoxManage createvm \
 		--name "$(VIRTNAME)" \
