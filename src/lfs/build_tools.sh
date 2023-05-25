@@ -16,7 +16,6 @@ trap 'error_handler "${BASH_SOURCE[0]}" "$LINENO" "$BASH_COMMAND"' ERR
 SCRIPTDIR=/build
 
 source "$SCRIPTDIR/utils/logger.sh"
-source "$SCRIPTDIR/utils/package.sh"
 
 PACKAGES=(gettext bison perl python texinfo util-linux)
 
