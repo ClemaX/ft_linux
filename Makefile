@@ -28,23 +28,23 @@ SED_VARIABLE:=s/(.*)=(.*)\#\#\s*(.*)/\1|\3 Defaults to "\2"./
 
 SED_MATCH:=$(RE_SECTION)|$(RE_RULE)|$(RE_VARIABLE)
 SED_SUBST:={$(SED_SECTION);$(SED_RULE);$(SED_VARIABLE);p}
+
+
 ##
 ##
 ## Rules:
 ## -----
+all: $(DISTDIR)/$(NAME) ## Alias for $(DISTDIR)/$(NAME).
+
+##
+
 help: ## Show available parameters and rules.
-	#@sed -n -E '/$(SED_MATCH)/$(SED_SUBST)' \
-	#	$(MAKEFILE) | column -L -t -s':'
 	@sed -n -E \
 		-e '/$(RE_SECTION)/{$(SED_SECTION); p}' \
 		-e '/$(RE_RULE)/{$(SED_RULE); p}' \
 		-e '/$(RE_VARIABLE)/{$(SED_VARIABLE); p}' \
 		$(MAKEFILE) \
 	| column -L -t -s'|'
-
-##
-
-all: $(DISTDIR)/$(NAME) ## Alias for $(DISTDIR)/$(NAME).
 
 ##
 
