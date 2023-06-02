@@ -57,6 +57,18 @@ rebuild_pkg() # pkg label
 	mv -v "/var/cache/pkg/$pkg"{-no-"$label",}
 }
 
+info "Installing basic system software..."
+pushd "$SCRIPTDIR/packages/software"
+	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 \
+		bc flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap \
+		shadow gcc pkg-config ncurses sed psmisc gettext bison grep bash \
+		libtool gdbm gperf expat inetutils less perl xml-parser intltool \
+		autoconf automake openssl kmod elfutils libffi python wheel ninja \
+		meson coreutils check diffutils gawk findutils groff gzip iproute2 kbd \
+		libpipeline make patch tar texinfo vim eudev man-db procps-ng \
+		util-linux e2fsprogs sysklogd sysvinit lfs-bootscripts
+popd
+
 info "Creating /etc/fstab..."
 
 dev_root_id="PARTUUID=$(findmnt / -no PARTUUID)"
@@ -73,19 +85,6 @@ tmpfs			/run		tmpfs		defaults			0		0
 devtmpfs		/dev		devtmpfs	mode=0755,nosuid	0		0
 tmpfs			/dev/shm	tmpfs		nosuid,nodev		0		0
 EOF
-
-info "Installing basic system software..."
-pushd "$SCRIPTDIR/packages/software"
-	install_pkg man-pages iana-etc glibc zlib bzip2 xz zstd file readline m4 \
-		bc flex tcl expect dejagnu binutils gmp mpfr mpc attr acl libcap \
-		shadow gcc pkg-config ncurses sed psmisc gettext bison grep bash \
-		libtool gdbm gperf expat inetutils less perl xml-parser intltool \
-		autoconf automake openssl kmod elfutils libffi python wheel ninja \
-		meson coreutils check diffutils gawk findutils groff gzip iproute2 kbd \
-		libpipeline make patch tar texinfo vim eudev man-db procps-ng \
-		util-linux e2fsprogs sysklogd sysvinit lfs-bootscripts
-popd
-
 
 info "Installing beyond LFS software..."
 pushd "$SCRIPTDIR/packages/blfs"
