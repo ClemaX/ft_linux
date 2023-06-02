@@ -81,7 +81,10 @@ pushd "/tmp"
 	for pkg in m4 ncurses bash coreutils diffutils file findutils gawk grep \
 		gzip make patch sed tar xz
 	do
-		pkg_extract "$LFS/sources/"$pkg*.tar*		pkg_build_$pkg
+		source_archive=$(find "$LFS/sources" -maxdepth 1 -follow -type f \
+			-name "$pkg-*.tar*" -a '!' -name "$pkg-*-*.tar*" -print -quit)
+
+		pkg_extract "$source_archive"				"pkg_build_$pkg"
 	done
 
 	pkg_build_binutils_pass2	binutils*/
