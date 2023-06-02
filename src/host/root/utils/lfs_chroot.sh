@@ -53,7 +53,7 @@ lfs_chroot_teardown() # root
 
 			# Remove temporary resolv.conf.
 			rm -vf etc/resolv.conf
-			[ -e etc/resolv.conf ] && mv etc/resolv.conf{.bak,}
+			[ -e etc/resolv.conf.bak ] && mv etc/resolv.conf{.bak,}
 		fi
 	popd
 }
