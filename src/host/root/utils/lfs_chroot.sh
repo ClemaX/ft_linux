@@ -51,6 +51,9 @@ lfs_chroot_teardown() # root
 			# Remove temporary cache mountpoint.
 			[ -d cache ] && rmdir -v cache
 
+			# Remove temporary build mountpoint.
+			[ -d build ] && rmdir -v build
+
 			# Remove temporary resolv.conf.
 			rm -vf etc/resolv.conf
 			[ -e etc/resolv.conf.bak ] && mv etc/resolv.conf{.bak,}
@@ -68,7 +71,7 @@ lfs_chroot() # root [cmd]
 		info "Mounting kernel filesystems to $root..."
 
 		# Create mountpoints.
-		mkdir -pv {dev,proc,sys,run,cache,tmp}
+		mkdir -pv {dev,proc,sys,run,cache,tmp,build}
 
 		# Create console devices.
 		[ -e dev/console	] || mknod -m 600 dev/console	c 5 1
