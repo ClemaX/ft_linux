@@ -37,18 +37,18 @@ popd
 info "Cleaning up..."
 
 # Remove installed documentations to save space.
-rm -vrf /usr/share/{info,man,doc}/*
+rm -rf /usr/share/{info,man,doc}/*
 
 # Remove libtool .la files that are harmful when using dynamic linking.
 find /usr/{lib,libexec} -name '*.la' -delete
 
 # Remove cross-compilation tools.
-rm -vrf /tools
+rm -rf /tools
 
 # Remove temporary tools build cache.
 pushd /cache/pkg/
 	for pkg in "${PACKAGES[@]}"
 	do
-		rm -vrf "./${pkg:?}/"
+		rm -rf "./${pkg:?}/"
 	done
 popd
