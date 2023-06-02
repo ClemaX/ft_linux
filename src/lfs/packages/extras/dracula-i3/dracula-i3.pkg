@@ -21,15 +21,16 @@ prepare()
 	pushd "$SRCDIR/$source_base/.config/i3" || return
 		# Remove keybindings from configuration.
 		sed -i '/^\s*bindsym/d' config
+
+		# Add status_command to configuration.
+		sed -i '/\s*bar\s*{/a\ \ status_command i3status' config
 	popd || return
 }
 
 build()
 {
 	pushd "$SRCDIR/$source_base/.config/i3" || return
-		install -vd "$DESTDIR/usr/share/i3"
-		cat /usr/share/i3/default-theme.conf config \
-			> "$DESTDIR/usr/share/i3/dracula.conf"
+		install -vD config "$DESTDIR/usr/share/i3/dracula.conf"
 	popd || return
 }
 
