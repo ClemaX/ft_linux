@@ -10,7 +10,7 @@ NAME:=lfs.img## The name of the image.
 ##
 VIRTCPU:=8## CPU count to use for virtual machines.
 VIRTRAM:=4096## RAM amount to use for virtual machines (in MB).
-VIRTVRAM:=128## VRAM amount to use for virtual machines (in MB).
+VIRTVRAM:=128## VRAM amount to use for virtual machines (in MiB).
 VIRTNAME:=LFS## Name to use for virtual machines.
 ##
 CAPS:=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER DAC_OVERRIDE## Capabilities to enable for the docker container.
@@ -147,11 +147,12 @@ virt-install: $(DISTDIR)/$(NAME) ## Install the built image as a virt-manager VM
 		--vcpu="$(VIRTCPU)" \
 		--ram="$(VIRTRAM)" \
 		--disk "bus=sata,path=$(shell readlink -f "$(DISTDIR)/$(NAME)")" \
-		--video=qxl,vram="$(VIRTVRAM)" \
+		--video=qxl,vgamem="$(shell numfmt --from-unit Mi --to-unit Ki "$(VIRTVRAM)")",vram="$(shell numfmt --from-unit Mi --to-unit Ki "$(VIRTVRAM)")" \
 		--channel spicevmc \
 		--network network=default \
 		--boot uefi \
-		--import
+		--import \
+		--autoconsole none
 
 virt-uninstall: ## Uninstall the virt-manager VM.
 	@echo "Uninstalling '$(VIRTNAME)' using virsh..."
