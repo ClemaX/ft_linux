@@ -157,7 +157,7 @@ https://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.8.tar.bz2
 https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0.tar.xz
 https://www.freedesktop.org/software/pulseaudio/releases/pulseaudio-16.1.tar.xz
 https://github.com/thom311/libnl/releases/download/libnl3_7_0/libnl-3.7.0.tar.gz
-https://www.linuxfromscratch.org/patches/blfs/svn/libssh2-1.10.0-upstream_fix-1.patch
+https://www.linuxfromscratch.org/patches/blfs/11.3/libssh2-1.10.0-upstream_fix-1.patch
 https://www.libssh2.org/download/libssh2-1.10.0.tar.gz
 https://static.rust-lang.org/dist/rustc-1.69.0-src.tar.xz
 https://github.com/eqrion/cbindgen/archive/v0.24.3/cbindgen-0.24.3.tar.gz
