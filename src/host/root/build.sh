@@ -110,9 +110,6 @@ else
 	progress "Restoring temporary filesystem"
 	lfs_restore "$LFS" "$lfs_backup_file"
 
-	# TODO: Fix permission in backup and remove this
-	chmod 755 "$LFS"
-
 	# TODO: Remove when stable
 		chown -v lfs "$LFS/sources" "$LFS"
 
