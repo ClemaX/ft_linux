@@ -24,7 +24,7 @@ sources=(
 	"firefox.desktop"
 )
 md5sums=(
-	'1442929705ee299acd2a65b711946cee'
+	'482fb76836d2fcd16642a9c84e12bfb9'
 )
 
 prepare()
