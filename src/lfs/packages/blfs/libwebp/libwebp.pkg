@@ -14,11 +14,10 @@ upstream_fixes_patch="$source_base-upstream_fix-1.patch"
 
 sources=(
 	"/sources/$source_base.tar.gz"
-	"/sources/$upstream_fixes_patch"
+	"$upstream_fixes_patch"
 )
 md5sums=(
 	'994cf2efb664ef5140fa0b56b83fa721'
-	'f0c244c72f4a85b02c5f34c8479ac034'
 )
 
 prepare()
