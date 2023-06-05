@@ -7,15 +7,14 @@ version="2.76.2"
 
 source_base="$name-$version"
 
-skip_warnings_patch="$source_base-skip_warnings-1.patch"
+skip_warnings_patch="$name-skip_warnings-1.patch"
 
 sources=(
 	"/sources/$source_base.tar.xz"
-	"/sources/$skip_warnings_patch"
+	"$skip_warnings_patch"
 )
 md5sums=(
 	'455b94549f2056957fa370a1f14c1662'
-	'729287ad0c60b5b2d6ca9ec4a19d8cec'
 )
 
 prepare()

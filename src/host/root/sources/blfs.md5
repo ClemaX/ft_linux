@@ -148,7 +148,6 @@ ee5fa3ce1653b5b313e52007c53ab190 librsvg-2.56.0.tar.xz
 baa2a0a67c71935165a205a76da25954 pango-1.50.14.tar.xz
 84e86fc8a1b7495674016e05e4c5da44 libxslt-1.1.37.tar.xz
 455b94549f2056957fa370a1f14c1662 glib-2.76.2.tar.xz
-729287ad0c60b5b2d6ca9ec4a19d8cec glib-2.76.2-skip_warnings-1.patch
 b3200b02ab80125b694bae887d7c1ca6 duktape-2.7.0.tar.xz
 bbe3e745fc5bc1a41f1b5044f09a0f26 polkit-122.tar.gz
 e809d7aa905ad82adeaf1d59db5445b1 dbus-1.14.6.tar.xz
@@ -191,11 +190,8 @@ d5fd45a806a65a57d6635f9e7a98a1b2 libvpx-1.13.0.tar.gz
 994cf2efb664ef5140fa0b56b83fa721 libwebp-1.3.0.tar.gz
 f0c244c72f4a85b02c5f34c8479ac034 libwebp-1.3.0-upstream_fix-1.patch
 d755ba0d16f94616c2907f8cab7c748b nasm-2.16.01.tar.xz
-9d5b910dcec7ef8aeb88b53803454f63 nss-3.89.tar.gz
-f8a7ce473bd61792ef182cf0fb2d359a nss-3.89-standalone-1.patch
-379e1cf988c034b6fd3416ab454836b9 firefox-102.10.0-upstream_fixes-1.patch
-59fa4e32c27f589ee722676277de9605 firefox-102.10.0-ffmpeg_6-1.patch
-1442929705ee299acd2a65b711946cee firefox-102.10.0esr.source.tar.xz
+c7e06669859cd27af7405ce6ab62cbfb nss-3.89.1.tar.gz
+482fb76836d2fcd16642a9c84e12bfb9 firefox-102.11.0esr.source.tar.xz
 103c9828f24820df86e55e7862e28974 sgml-common-0.6.3.tgz
 645f3c898abd270a9143036824ae121a sgml-common-0.6.3-manpage-1.patch
 03083e288e87a7e829e437358da7ef9e docbook-xml-4.5.zip

@@ -9,24 +9,22 @@
 # startup-notification-0.12, UnZip-6.0, yasm-1.3.0, and Zip-3.0,
 # FFmpeg (runtime), nspr
 name="firefox"
-version="102.10.0"
+version="102.11.0"
 
 source_base="firefox-${version}"
 
-upstream_fixes_patch="firefox-$version-upstream_fixes-1.patch"
+consolidated_patch="firefox-$version-consolidated-1.patch"
 ffmpeg_patch="firefox-$version-ffmpeg_6-1.patch"
 
 sources=(
 	"/sources/${source_base}esr.source.tar.xz"
-	"/sources/$upstream_fixes_patch"
-	"/sources/$ffmpeg_patch"
+	"$consolidated_patch"
+	"$ffmpeg_patch"
 	"mozconfig"
 	"firefox.desktop"
 )
 md5sums=(
 	'1442929705ee299acd2a65b711946cee'
-	'379e1cf988c034b6fd3416ab454836b9'
-	'59fa4e32c27f589ee722676277de9605'
 )
 
 prepare()
@@ -45,7 +43,7 @@ prepare()
 		echo mozilla_key > mozilla-key
 
 		# Fix a build failure due to rust-bindgen incompatibility with LLVM-16.
-		patch -Np1 -i "$SRCDIR/$upstream_fixes_patch"
+		patch -Np1 -i "$SRCDIR/$consolidated_patch"
 
 		# Fix FFmpeg-6.0 API compatibility.
 		patch -Np1 -i "$SRCDIR/$ffmpeg_patch"

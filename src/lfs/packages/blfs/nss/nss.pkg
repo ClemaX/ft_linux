@@ -2,10 +2,10 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
 
-# TODO: Depends on p11-kit-0.24.1
+# TODO: Depends on NSPR-4.35, p11-kit-0.24.1
 
 name="nss"
-version="3.89"
+version="3.89.1"
 
 source_base="$name-$version"
 
@@ -13,10 +13,10 @@ standalone_patch="$source_base-standalone-1.patch"
 
 sources=(
 	"/sources/$source_base.tar.gz"
-	"/sources/$standalone_patch"
+	"$standalone_patch"
 )
 md5sums=(
-	'9d5b910dcec7ef8aeb88b53803454f63'
+	'c7e06669859cd27af7405ce6ab62cbfb'
 )
 
 prepare()

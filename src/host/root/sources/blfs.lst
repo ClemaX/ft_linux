@@ -148,7 +148,6 @@ https://github.com/fribidi/fribidi/releases/download/v1.0.12/fribidi-1.0.12.tar.
 https://download.gnome.org/sources/pango/1.50/pango-1.50.14.tar.xz
 https://download.gnome.org/sources/libxslt/1.1/libxslt-1.1.37.tar.xz
 https://download.gnome.org/sources/glib/2.76/glib-2.76.2.tar.xz
-https://www.linuxfromscratch.org/patches/blfs/svn/glib-2.76.2-skip_warnings-1.patch
 https://duktape.org/duktape-2.7.0.tar.xz
 https://dbus.freedesktop.org/releases/dbus/dbus-1.14.6.tar.xz
 https://gitlab.freedesktop.org/polkit/polkit/-/archive/122/polkit-122.tar.gz
@@ -191,11 +190,8 @@ https://github.com/webmproject/libvpx/archive/v1.13.0/libvpx-1.13.0.tar.gz
 http://downloads.webmproject.org/releases/webp/libwebp-1.3.0.tar.gz
 https://www.linuxfromscratch.org/patches/blfs/svn/libwebp-1.3.0-upstream_fix-1.patch
 https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/nasm-2.16.01.tar.xz
-https://archive.mozilla.org/pub/security/nss/releases/NSS_3_89_RTM/src/nss-3.89.tar.gz
-https://www.linuxfromscratch.org/patches/blfs/svn/nss-3.89-standalone-1.patch
-https://www.linuxfromscratch.org/patches/blfs/svn/firefox-102.10.0-upstream_fixes-1.patch
-https://www.linuxfromscratch.org/patches/blfs/svn/firefox-102.10.0-ffmpeg_6-1.patch
-https://archive.mozilla.org/pub/firefox/releases/102.10.0esr/source/firefox-102.10.0esr.source.tar.xz
+https://archive.mozilla.org/pub/security/nss/releases/NSS_3_89_1_RTM/src/nss-3.89.1.tar.gz
+https://archive.mozilla.org/pub/firefox/releases/102.11.0esr/source/firefox-102.11.0esr.source.tar.xz
 https://sourceware.org/ftp/docbook-tools/new-trials/SOURCES/sgml-common-0.6.3.tgz
 https://www.linuxfromscratch.org/patches/blfs/11.3/sgml-common-0.6.3-manpage-1.patch
 https://www.docbook.org/xml/4.5/docbook-xml-4.5.zip
