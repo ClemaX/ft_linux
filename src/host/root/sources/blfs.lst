@@ -68,8 +68,7 @@ https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/llvm-15.0.
 https://anduin.linuxfromscratch.org/BLFS/llvm/llvm-cmake-15.0.7.src.tar.xz
 https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang-15.0.7.src.tar.xz
 https://www.linuxfromscratch.org/patches/blfs/11.3/clang-15.0.7-enable_default_ssp-1.patch
-https://www.linuxfromscratch.org/patches/blfs/svn/mesa-add_xdemos-2.patch
-https://mesa.freedesktop.org/archive/mesa-23.0.3.tar.xz
+https://mesa.freedesktop.org/archive/mesa-23.1.1.tar.xz
 https://www.x.org/pub/individual/data/xbitmaps-1.1.3.tar.xz
 https://xcb.freedesktop.org/dist/xcb-util-0.4.1.tar.xz
 https://xcb.freedesktop.org/dist/xcb-util-image-0.4.1.tar.xz

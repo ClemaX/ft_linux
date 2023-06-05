@@ -5,7 +5,7 @@
 # TODO: Depends on xorg-libraries, libdrm-2.4.115, mako-1.2.4
 
 name="mesa"
-version="23.0.3"
+version="23.1.1"
 
 source_base="$name-$version"
 
@@ -13,11 +13,10 @@ xdemos_patch="$name-add_xdemos-2.patch"
 
 sources=(
 	"/sources/$source_base.tar.xz"
-	"/sources/$xdemos_patch"
+	"$xdemos_patch"
 )
 md5sums=(
-	'3d5025f4f135a1d9131183ac75ba91e4'
-	'457fb749cbbc859008befe8acce8d8f5'
+	'649177ce45f752c75b657288f3fc609a'
 )
 
 prepare()
