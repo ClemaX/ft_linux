@@ -9,7 +9,7 @@ cache_complete() # [cache]
 	local status=0
 
 	pushd "$cache"
-		md5sum --check --status - || status="$?"
+		md5sum --check --status - >/dev/null 2>&1 || status="$?"
 	popd
 
 	return "$status"
@@ -24,7 +24,7 @@ cache_check() # action [cache]
 	read -r -a action <<< "$1"
 
 	pushd "$cache"
-		md5sum --check --quiet - \
+		md5sum --check --quiet - 2>/dev/null \
 		| grep FAILED \
 		| sed 's/\(.*\):.*/\1/' \
 		| xargs --no-run-if-empty "${action[@]}"
