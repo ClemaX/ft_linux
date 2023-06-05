@@ -39,7 +39,7 @@ parallel_fetch() # options [input] [dst] [count]
 		wget "${options[@]}"
 			--max-redirect="${MAX_REDIR}"
 			--directory-prefix="$dst"
-			--no-verbose
+			--quiet
 	)
 
 	parallel_cmd=(parallel -j"$count" --bar)
