@@ -20,6 +20,10 @@ To build the image, simply execute `make` in the parent directory of this reposi
 
 The image should be stored by default at `dist/lfs.img`.
 
+## Hardware requirements
+Currently, only UEFI is supported, and Secure Boot needs to be disabled.
+The resulting disk image has been tested on KVM and VirtualBox.
+
 ## Using the system
 To log in, use the default credentials `root:toor`.
 
