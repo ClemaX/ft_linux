@@ -74,24 +74,27 @@ $(DISTDIR)/$(NAME): ft_linux $(DISTDIR) ## Build the LFS image.
 			--name=ft_linux \
 			-it ft_linux $(CMD); \
 \
-		echo "CP $(NAME) $(DISTDIR)"; \
-		docker run --rm -d \
-			--cap-drop=all \
-			-v "$(DISTVOL):/dist:rw" \
-			--name=ft_linux-dist \
-			ft_linux \
-			tail -f /dev/null; \
-\
-		docker cp --quiet=false ft_linux-dist:/dist/disk.img \
-			$(DISTDIR)/$(NAME) 2>&1 \
-		| awk '{printf "\r%s", $$0; fflush();}'; echo; \
-\
-		echo "$$(docker inspect -f '{{.Id}}' ft_linux)" \
-			> "$(DISTDIR)/build-id"; \
-\
-		docker stop ft_linux-dist; \
-\
-		printf '\a'; \
+		if [ "$(CMD)" = "./build.sh" ]; \
+		then \
+			echo "CP $(NAME) $(DISTDIR)"; \
+			docker run --rm -d \
+				--cap-drop=all \
+				-v "$(DISTVOL):/dist:rw" \
+				--name=ft_linux-dist \
+				ft_linux \
+				tail -f /dev/null; \
+	\
+			docker cp --quiet=false ft_linux-dist:/dist/disk.img \
+				$(DISTDIR)/$(NAME) 2>&1 \
+			| awk '{printf "\r%s", $$0; fflush();}'; echo; \
+	\
+			echo "$$(docker inspect -f '{{.Id}}' ft_linux)" \
+				> "$(DISTDIR)/build-id"; \
+	\
+			docker stop ft_linux-dist; \
+	\
+			printf '\a'; \
+		fi \
 	fi
 
 ##
