@@ -16,6 +16,7 @@ VIRTNAME:=LFS## Name to use for virtual machines.
 CAPS:=SYS_ADMIN MKNOD CHOWN SETGID SETUID SYS_CHROOT FOWNER DAC_OVERRIDE## Capabilities to enable for the docker container.
 CMD:=./build.sh## Command to run in the docker container.
 
+SHELL=/bin/bash
 MAKEFILE:=$(CURDIR)/$(firstword $(MAKEFILE_LIST))
 
 RE_SECTION:=^\s*\#\#
