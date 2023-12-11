@@ -18,22 +18,27 @@ kernel_image_name="vmlinuz-$version$kernel_localversion"
 
 prepare()
 {
-	pushd "$SRCDIR" || return
-		pushd "$source_base" || return
-			# Prepare for compilation.
-			make mrproper
-		popd || return
+	pushd "$SRCDIR/$source_base" || return
+		# Prepare for compilation.
+		make mrproper
+
+		# Apply thor_kernel patch.
+		patch -Np1 -i "$SRCDIR/thor_kernel.patch"
 
 		# Set configuration.
-		sed kernel.config > "$source_base/.config" \
+		sed "$SRCDIR/kernel.config" > ".config" \
 			-e 's/^\s*CONFIG_LOCALVERSION="[^"]*"\s*$/CONFIG_LOCALVERSION="'"$kernel_localversion"'"/' \
 			-e 's/^\s*CONFIG_DEFAULT_HOSTNAME="[^"]*"\s*$/CONFIG_DEFAULT_HOSTNAME="'"$kernel_hostname"'"/'
+
+		# Upgrade configuration using defaults.
+		make olddefconfig
 	popd || return
 }
 
 build()
 {
 	local lfs_version="${LFS_VERSION:-11.3}"
+	local kernel_release_version
 
 	pushd "$SRCDIR/$source_base" || return
 		make
@@ -54,8 +59,11 @@ build()
 		install -vd "$DESTDIR/usr/share/doc/$source_base"
 		cp -vr Documentation/* "$DESTDIR/usr/share/doc/$source_base"
 
+		# Get kernel release version.
+		kernel_release_version=$(make -s kernelrelease)
+
 		# Cleanup.
-		make distclean
+		make clean
 	popd || return
 
 	pushd "$SRCDIR" || return
@@ -63,6 +71,9 @@ build()
 		install -vd "$DESTDIR/usr/src"
 
 		mv -v "$source_base" "$DESTDIR/usr/src/kernel-$version"
+
+		# Fix kernel module build directory symlink.
+		ln -sf "/usr/src/kernel-$version" "$DESTDIR/lib/modules/$kernel_release_version/build"
 	popd || return
 }
 
