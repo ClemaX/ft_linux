@@ -212,26 +212,31 @@ pkg_src_fetch_git() # url name_dst
 		local repo="${BASH_REMATCH[2]}"
 		local ref="${BASH_REMATCH[3]}"
 
+		local existing_ref
+
 		name="$(basename "$repo" .git)-$ref"
 
-		if [ -d "$name/.git" ]
-		then
-			pushd "$name"
-				git fetch --depth 1 origin "$ref"
-				git checkout FETCH_HEAD
-				git submodule update --init --recursive --depth 1
-			popd
-		else
-			mkdir -vp "$name"
-			pushd "$name"
+		mkdir -vp "$name"
+
+		pushd "$name"
+			if ! [ -d .git ]
+			then
 				git init
 				git remote add origin "$proto://$repo"
 
+				existing_ref=
+			else
+				existing_ref="$(git rev-parse HEAD)"
+			fi
+
+			if [ "$existing_ref" != "$ref" ]
+			then
 				git fetch --depth 1 origin "$ref"
 				git checkout FETCH_HEAD
 				git submodule update --init --recursive --depth 1
-			popd
-		fi
+			fi
+		popd
+
 		name_dst="$name"
 
 		echo "$url"
